@@ -1,0 +1,3 @@
+2
+korktv,http://lifovebible.github.io/data/korktv.lfa
+engkjv,http://lifovebible.github.io/data/engkjv.lfa
