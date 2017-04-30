@@ -1,4 +1,4 @@
-2
+47
 korktv,https://lifovebible.github.io/data/korktv.lfa
 engkjv,https://lifovebible.github.io/data/engkjv.lfa
 arabic,https://lifovebible.github.io/data/arabic.lfa
