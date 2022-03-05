@@ -55,7 +55,7 @@ tagalog,https://lifovebible.github.io/data/tagalog.lfa,Tagalog
 tagamag,https://lifovebible.github.io/data/tagamag.lfa,Tagalog(Mag.Bal.)
 thai,https://lifovebible.github.io/data/thai.lfa,Thai
 turkish,https://lifovebible.github.io/data/turkish.lfa,Turkish
-kornkrv,https://lifovebible.github.io/data/korhrv.lfa,개역개정
+kornkrv,https://lifovebible.github.io/data/kornkrv.lfa,개역개정
 vietnamese,https://lifovebible.github.io/data/vietnamese.lfa,Vietnamese
 my,https://lifovebible.github.io/data/my.lfa,Myanmarese
 
