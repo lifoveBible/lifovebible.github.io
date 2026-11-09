@@ -1,4 +1,4 @@
-59
+60
 korktv,https://lifovebible.github.io/data/korktv.lfa,바른성경,ko
 korhrv,https://lifovebible.github.io/data/korhrv.lfa,개역한글,ko
 korhkjv,https://lifovebible.github.io/data/korHKJV.lfa,흠정역,ko
@@ -58,10 +58,10 @@ turkish,https://lifovebible.github.io/data/turkish.lfa,Turkish,tr
 kornkrv,https://lifovebible.github.io/data/kornkrv.lfa,개역개정,ko
 vietnamese,https://lifovebible.github.io/data/vietnamese.lfa,Vietnamese,vi
 my,https://lifovebible.github.io/data/my.lfa,Myanmarese,my
-
-
-
 amharic,https://lifovebible.github.io/data/amharic.lfa,Amharic(መጽሐፍ ቅዱስ),am
+
+
+
 bengali,https://lifovebible.github.io/data/bengali.lfa,Bengali(পবিত্র বাইবেল),bn
 italian,https://lifovebible.github.io/data/italian.lfa,Italian(La Sacra Bibbia),it
 kannada,https://lifovebible.github.io/data/kannada.lfa,Kannada(ಪವಿತ್ರ ಬೈಬಲ್),kn
