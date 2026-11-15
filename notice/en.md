@@ -1,8 +1,8 @@
-<!-- 2026-11-17 -->
+<!-- 2026-11-18 -->
 
 ## New commentaries and cross-references
 
-You can now download the following English commentaries and cross-reference data from Menu (≡) > Settings > Data Management > Bible Data Download, and read them alongside the Bible text in the Parallel Viewer. Turning on Viewer Settings > One Column Parallel Viewer is recommended for easier reading.
+You can now download the following English commentaries and cross-reference data from Menu (≡) > Settings > Data Management > Bible Data Download, and read them alongside the Bible text in the Parallel Viewer.
 
 - Barnes’ Notes (NT)
 - Clarke’s Commentary
