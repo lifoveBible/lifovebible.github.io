@@ -4,15 +4,13 @@
 
 You can now download the following English commentaries and cross-reference data from Menu (≡) > Settings > Data Management > Bible Data Download, and read them alongside the Bible text in the Parallel Viewer. Turning on Viewer Settings > One Column Parallel Viewer is recommended for easier reading.
 
-```text
-Barnes’ Notes (NT)
-Clarke’s Commentary
-Calvin’s Commentaries
-Treasury of Scripture Knowledge
-Geneva Bible Notes (1599)
-Catena Aurea (Aquinas)
-Robertson’s Word Pictures (NT)
-```
+- Barnes’ Notes (NT)
+- Clarke’s Commentary
+- Calvin’s Commentaries
+- Treasury of Scripture Knowledge
+- Geneva Bible Notes (1599)
+- Catena Aurea (Aquinas)
+- Robertson’s Word Pictures (NT)
 
 ## Version 7.5.1
 
