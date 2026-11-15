@@ -1,5 +1,7 @@
 <!-- 2026-11-20 -->
-## Version 7.5.0
+
+## Version 7.5.1
+
 Lifove Bible works again on the latest Android (15, 16).
 You can bring in your old Bible data and memos with Menu (≡) > Settings > Data Management > **Connect Previous Data Folder**.
 
