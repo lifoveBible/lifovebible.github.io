@@ -1,4 +1,4 @@
-<!-- 2026-11-18 -->
+<!-- 2026-11-19 -->
 
 ## New commentaries and cross-references
 
