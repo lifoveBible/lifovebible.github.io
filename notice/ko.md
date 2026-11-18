@@ -23,7 +23,7 @@
 - Calvin’s Commentaries
 - Treasury of Scripture Knowledge
 - Geneva Bible Notes (1599)
-- Catena Aurea (Aquinas)
+- Catena Aurea (Aquinas) (Gospels)
 - Robertson’s Word Pictures (NT)
 
 ## 7.5.1 업데이트 안내
