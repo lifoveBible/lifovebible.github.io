@@ -9,7 +9,7 @@ You can now download the following English commentaries and cross-reference data
 - Calvin’s Commentaries
 - Treasury of Scripture Knowledge
 - Geneva Bible Notes (1599)
-- Catena Aurea (Aquinas)
+- Catena Aurea (Aquinas) (Gospels)
 - Robertson’s Word Pictures (NT)
 
 ## Version 7.5.1
