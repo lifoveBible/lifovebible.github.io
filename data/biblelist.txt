@@ -1,4 +1,4 @@
-74
+75
 korktv,https://lifovebible.github.io/data/korktv.lfa,바른성경,ko
 korhrv,https://lifovebible.github.io/data/korhrv.lfa,개역한글,ko
 korhkjv,https://lifovebible.github.io/data/korHKJV.lfa,흠정역,ko
@@ -61,6 +61,7 @@ persian,https://lifovebible.github.io/data/persian.lfa,Persian(کتاب مقدس
 prtaa,https://lifovebible.github.io/data/prtaa.lfa,Portuguese,pt-BR
 russyn,https://lifovebible.github.io/data/russyn.lfa,Russian(Synodal),ru
 spnrei,https://lifovebible.github.io/data/spnrei.lfa,Spanish(ReinaValera1909),es
+swe1917,https://lifovebible.github.io/data/swe1917.lfa,Swedish(1917),sv
 swefolk,https://lifovebible.github.io/data/swefolk.lfa,Swedish(Folkbibeln2015),sv
 tagalog,https://lifovebible.github.io/data/tagalog.lfa,Tagalog,fil
 thai,https://lifovebible.github.io/data/thai.lfa,Thai,th
