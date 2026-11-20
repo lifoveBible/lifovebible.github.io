@@ -41,6 +41,16 @@ If you have any problem, please let us know with 'Report Issues' in the menu.
 
 Some Bible versions you can download in Lifove Bible are shared under an open license. The license asks us to show the notice below.
 
+### Ilocano(ULB)
+
+This text is an adaptation of “Ti Biblia” (Unlocked Literal Bible in the Ilocano language of the Republic of the Philippines).
+
+Copyright © 2019 Door43 World Missions Community (https://door43.org/), from eBible.org.
+
+Changes made for Lifove Bible: converted to the Lifove Bible format (one verse per line, plain text); section headings and paragraph layout removed; footnotes placed in parentheses; verse bridges marked as “(→ chapter:verse)”; verse numbering changed from NRSV to KJV (3 John 1:15 joined to 1:14, Revelation 12:18 joined to the start of 13:1). Door43 World Missions Community does not necessarily endorse these changes.
+
+This adapted text is licensed under the [Creative Commons Attribution-ShareAlike 4.0 International License (CC BY-SA 4.0)](https://creativecommons.org/licenses/by-sa/4.0/).
+
 ### Chichewa(Chalero)
 
 This text is an adaptation of “Tsekulani Mawu a Mulungu mu Chichewa Chalero” (Open God’s Word in Contemporary Chichewa).

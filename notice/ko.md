@@ -61,6 +61,16 @@ bible@lifove.net 이메일 주소로 추가하고 싶은 역본/주석이 무엇
 
 Lifove Bible에서 다운로드할 수 있는 성경 역본 중 일부는 공개 라이선스로 배포됩니다. 해당 라이선스에 따라 아래 고지를 함께 표시합니다.
 
+### Ilocano(ULB) (일로카노어)
+
+Door43 World Missions Community의 일로카노어 성경 "Ti Biblia"(Unlocked Literal Bible)를 Lifove Bible 형식으로 바꾼 것입니다. 소제목과 문단 구분을 빼고, 각주는 괄호로 넣고, 묶어 번역된 절은 "(→ 장:절)"로 표시하고, 절 번호를 KJV 기준으로 맞췄습니다(요한삼서 1:15 → 1:14, 요한계시록 12:18 → 13:1 앞). 이 변경은 원 저작자가 보증한 것이 아닙니다. 원문 고지는 다음과 같습니다.
+
+This text is an adaptation of “Ti Biblia” (Unlocked Literal Bible in the Ilocano language of the Republic of the Philippines).
+
+Copyright © 2019 Door43 World Missions Community (https://door43.org/), from eBible.org.
+
+This adapted text is licensed under the [Creative Commons Attribution-ShareAlike 4.0 International License (CC BY-SA 4.0)](https://creativecommons.org/licenses/by-sa/4.0/).
+
 ### Chichewa(Chalero) (치체와어)
 
 Biblica, Inc.의 현대 치체와어 성경을 Lifove Bible 형식으로 바꾼 것입니다. 소제목과 문단 구분을 빼고(시편 표제는 1절 앞에 둠), 표는 한 줄로 풀고, 절 번호를 KJV 기준으로 맞췄습니다(요한삼서 1:15 → 1:14, 요한계시록 12:18 → 13:1 앞). 이 변경은 Biblica, Inc.가 보증한 것이 아닙니다. 원문 고지는 다음과 같습니다.

@@ -1,4 +1,4 @@
-72
+73
 korktv,https://lifovebible.github.io/data/korktv.lfa,바른성경,ko
 korhrv,https://lifovebible.github.io/data/korhrv.lfa,개역한글,ko
 korhkjv,https://lifovebible.github.io/data/korHKJV.lfa,흠정역,ko
@@ -50,6 +50,7 @@ hungarian,https://lifovebible.github.io/data/hungarian.lfa,Hungarian(Biblia),hu
 hindi,https://lifovebible.github.io/data/hindi.lfa,Hindi(पवित्र बाइबिल),hi
 icelandic,https://lifovebible.github.io/data/icelandic.lfa,Icelandic(Biblían),is
 idntbaru,https://lifovebible.github.io/data/idntbaru.lfa,IndonesiaTer.Baru,id
+ilocano,https://lifovebible.github.io/data/ilocano.lfa,Ilocano(ULB),ilo
 jpnjct,https://lifovebible.github.io/data/jpnjct.lfa,Japanese(口語訳),ja
 jpnnew,https://lifovebible.github.io/data/jpnnew.lfa,Japanese(新改訳),ja
 jpnnit,https://lifovebible.github.io/data/jpnnit.lfa,Japanese(新共同訳),ja
