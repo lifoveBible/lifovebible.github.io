@@ -1,0 +1,123 @@
+<!-- Cada pergunta ### é recolhível. Mantenha os caminhos de menu iguais aos nomes do aplicativo. Mantenha iguais a cópia do servidor (help/pt/faq.md) e a do aplicativo (assets/help/pt/faq.md). -->
+
+## Primeiros passos
+
+### Como baixo os dados da Bíblia?
+
+Vá em Menu (≡) > Configurações > Gerenciamento de dados > Baixar dados da Bíblia e escolha as traduções que você quer.
+Só oferecemos traduções com permissão de direitos autorais.
+Depois, escolha a tradução em 'Escolher Bíblia' no menu para lê-la.
+
+### Posso adicionar uma Bíblia que não está na lista de download?
+
+Sim. O Lifove Bible lê arquivos .lfa e os antigos dados do Bethlehem Bible (.bdf). Você também pode procurar na internet por "Lifove Bible data download".
+Depois de baixar (descompacte primeiro se for um arquivo zip), crie uma pasta no celular e salve o arquivo .lfa nela.
+Em seguida, vá em Menu (≡) > Configurações > Gerenciamento de dados > **Conectar pasta de dados antiga** e selecione essa pasta para instalar os dados no aplicativo.
+
+### Como trago meus dados antigos da Bíblia (inclusive mp3) e minhas notas?
+
+Vá em Menu (≡) > Configurações > Gerenciamento de dados > **Conectar pasta de dados antiga** e selecione sua pasta bible antiga.
+
+- Os textos da Bíblia (.lfa, .bdf) e os backups de notas/destaques são importados para o aplicativo. Você pode importar só os arquivos ou também os backups de notas/destaques.
+- O áudio (mp3) comprado de terceiros precisa estar na pasta mp3 dentro da pasta de dados da Bíblia e é tocado diretamente de lá.
+
+### Como faço backup e restauro meus dados?
+
+Menu (≡) > Configurações > Gerenciamento de dados > Backup de dados salva na pasta 'Download/LifoveBible', que permanece mesmo se o aplicativo for desinstalado.
+Para restaurar, use Restaurar dados e escolha o arquivo de backup.
+Faça um backup antes de trocar de celular ou desinstalar o aplicativo.
+
+### O ícone do aplicativo mudou
+
+A partir da versão 7.5.2, o ícone do aplicativo é um livro com marcador. O nome continua sendo Lifove Bible; se não o encontrar na tela inicial, procure pelo nome.
+
+## Leitura
+
+### Como me movo rapidamente?
+
+- Deslize para a esquerda para o próximo capítulo e para a direita para o anterior, como quem vira páginas.
+- Toque no botão do livro, do capítulo ou do versículo no leitor para ir direto.
+- Use os botões de navegação à direita para o próximo capítulo, uma tela ou capítulos vistos antes. (Configurações do leitor > Usar barra de navegação)
+- As teclas de volume podem mover um versículo, uma tela ou um capítulo. (Configurações do leitor > Tecla de volume)
+
+### Como mostro os nomes dos livros em português?
+
+Vá em Configurações > Gerenciamento de listas > **Nome dos livros 1** e escolha Português (ou Português abrev. para abreviações). Em Nome dos livros 2 você escolhe o segundo nome mostrado ao lado, ou Ocultar. (7.5.2 ou superior)
+
+### A rolagem automática parece não começar
+
+- Depois de tocar em Menu (≡) > **Iniciar rolagem automática**, ela espera o tempo de leitura até a linha de leitura, perto do topo da tela, e então começa a se mover. Quanto maior a velocidade (linhas por minuto) e maior o texto, menor a espera.
+- Tocar na tela pausa a rolagem; ela volta 2 segundos depois.
+- Com Menu (≡) > Configurações > Configurações do leitor > **Rolagem automática para o próximo capítulo** ligado, ela espera no fim do capítulo o tempo de ler o que resta na tela e passa ao próximo capítulo. Capítulos curtos que não precisam de rolagem também ficam parados pelo tempo de leitura antes de avançar.
+- A rolagem automática não funciona enquanto um capítulo está sendo lido em voz (▶︎). As duas movem a tela, então ligar uma para a outra.
+
+### Como mudo o tamanho e as cores do texto?
+
+- Faça o gesto de pinça com dois dedos no leitor para mudar o tamanho do texto.
+- Em Configurações do leitor você muda a cor do texto, a cor de fundo, o negrito, o espaço entre versículos e o espaço entre linhas.
+- O Modo noturno faz os botões seguirem as cores do leitor, para reduzir o brilho à noite.
+
+### Como coloco a barra de livro/capítulo embaixo ou uso mais da tela?
+
+- Ligue Configurações do leitor > **Barra de livro/capítulo embaixo**.
+- Ligue Configurações do leitor > **Leitura em tela cheia** para ocultar as barras de status e de navegação enquanto você rola para baixo. Role um pouco para cima para mostrá-las de novo. (Android 11 ou superior)
+- Com a leitura em tela cheia ligada, 'Barras de status/título' não é usado e aparece em cinza. (7.5.2 ou superior)
+
+### Como marco capítulos como lidos?
+
+- Toque na caixa de seleção da barra de livro/capítulo. As marcas de leitura são separadas para cada tradução.
+- Com Configurações do leitor > Marcar leitura automaticamente, o capítulo é marcado quando você avança com as teclas de volume ou os botões de navegação.
+- Veja Estatísticas de leitura no menu para as estatísticas de cada tradução.
+
+### Como uso marcadores e histórico?
+
+- Use 'Adicionar marcador' no menu para guardar onde você está. Toque e segure um marcador para excluí-lo.
+- O Histórico guarda os lugares lidos recentemente. Os botões ↶ ↷ do leitor levam de volta aos lugares vistos antes.
+
+## Ouvir
+
+### Como ouço um capítulo?
+
+Toque no botão **▶︎** do leitor.
+Capítulos sem arquivo de áudio são lidos pela voz do celular (TTS), e a tela acompanha o versículo lido.
+Durante a reprodução, toque no botão de novo para mudar a velocidade: 1.0x, 1.3x, 1.6x, 1.8x, 2.0x.
+Na primeira vez que a voz de um capítulo é preparada, pode demorar um pouco, dependendo do celular. Enquanto você ouve, o próximo capítulo é preparado antes, então a partir dele a reprodução começa sem espera.
+Em Comparar traduções, só a primeira tradução é lida. (Duas colunas: 7.5.2 ou superior)
+
+### Quero outra voz
+
+Vá em Menu (≡) > Configurações > **Configurações de voz (TTS)** para escolher uma voz (com prévia) e instalar dados de voz, se precisar.
+Se os arquivos de voz ocuparem muito espaço, você pode limitar ou limpar o cache na mesma tela.
+
+### Como oculto o botão de áudio?
+
+Desligue Configurações do leitor > Mostrar botão de áudio.
+
+## Estudo
+
+### Como leio várias traduções juntas?
+
+Escolha as traduções em 'Comparar traduções' no menu. É preciso ter pelo menos duas traduções baixadas.
+
+- Você pode ler em uma ou duas colunas. (Configurações do leitor > Comparar em uma coluna)
+- Mude a ordem e as cores em Gerenciamento de listas > Ordem e cor das Bíblias.
+- Escolher muitas traduções pode deixar a troca de capítulos mais lenta.
+
+### Como faço notas e destaques?
+
+- Toque e segure um versículo para escrever uma nota ou destacá-lo pelo menu que aparece.
+- Toque nos versículos para selecionar vários e depois destaque, copie ou envie todos juntos pelo menu.
+- A exibição das notas, a cor das notas e as cores de destaque podem ser mudadas em Configurações do leitor.
+- Veja todos em Meus destaques e Minhas notas no menu.
+- Em Minhas notas, digite na caixa de pesquisa no topo para filtrar a lista enquanto digita. A pesquisa olha o texto da nota e o nome do livro e mostra só as notas que contêm todas as palavras digitadas. (7.5.2 ou superior)
+
+### Como vejo outra passagem e volto?
+
+Na lista de capítulos, marque 'Abrir em nova janela' e escolha um capítulo, ou toque e segure um capítulo.
+Mova-se à vontade na nova janela e toque em Voltar para retornar à leitura principal.
+
+### Como pesquiso?
+
+Escolha a pesquisa no menu da tela da lista de livros. Digite pelo menos duas letras em Palavra A para encontrar todos os versículos que a contêm.
+Digite Palavra A e Palavra B para encontrar versículos que contêm as duas.
+Toque em um resultado para abrir o capítulo, ou toque e segure para enviá-lo por e-mail ou mensagem.
