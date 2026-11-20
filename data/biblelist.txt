@@ -21,6 +21,7 @@ enggnt,https://lifovebible.github.io/data/enggnt.lfa,GNT,en
 engwmt,https://lifovebible.github.io/data/engwmt.lfa,Weymouth(NT),en
 engylt,https://lifovebible.github.io/data/engylt.lfa,YLT,en
 barnesnt,https://lifovebible.github.io/data/barnesnt.lfa,Barnes' Notes (NT),en
+cebuano,https://lifovebible.github.io/data/cebuano.lfa,Cebuano(Pinadayag),ceb
 clarke,https://lifovebible.github.io/data/clarke.lfa,Clarke's Commentary,en
 calvin,https://lifovebible.github.io/data/calvin.lfa,Calvin's Commentaries,en
 tsk,https://lifovebible.github.io/data/tsk.lfa,Treasury of Scripture Knowledge,en
@@ -62,7 +63,6 @@ prtaa,https://lifovebible.github.io/data/prtaa.lfa,Portuguese,pt-BR
 russyn,https://lifovebible.github.io/data/russyn.lfa,Russian(Synodal),ru
 spnrei,https://lifovebible.github.io/data/spnrei.lfa,Spanish(ReinaValera1909),es
 swe1917,https://lifovebible.github.io/data/swe1917.lfa,Swedish(1917),sv
-swefolk,https://lifovebible.github.io/data/swefolk.lfa,Swedish(Folkbibeln2015),sv
 tagalog,https://lifovebible.github.io/data/tagalog.lfa,Tagalog,fil
 thai,https://lifovebible.github.io/data/thai.lfa,Thai,th
 turkish,https://lifovebible.github.io/data/turkish.lfa,Turkish,tr
@@ -74,4 +74,7 @@ bengali,https://lifovebible.github.io/data/bengali.lfa,Bengali(পবিত্�
 italian,https://lifovebible.github.io/data/italian.lfa,Italian(La Sacra Bibbia),it
 kannada,https://lifovebible.github.io/data/kannada.lfa,Kannada(ಪವಿತ್ರ ಬೈಬಲ್),kn
 luganda,https://lifovebible.github.io/data/luganda.lfa,Luganda(Baibuli y'Oluganda),lg
+
+
+swefolk,https://lifovebible.github.io/data/swefolk.lfa,Swedish(Folkbibeln2015),sv
  
