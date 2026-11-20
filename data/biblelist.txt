@@ -58,7 +58,7 @@ malagasy,https://lifovebible.github.io/data/malagasy.lfa,Malagasy,mg
 persian,https://lifovebible.github.io/data/persian.lfa,Persian(کتاب مقدس),fa
 prtaa,https://lifovebible.github.io/data/prtaa.lfa,Portuguese,pt-BR
 russyn,https://lifovebible.github.io/data/russyn.lfa,Russian(Synodal),ru
-spnrei,https://lifovebible.github.io/data/spnrei.lfa,Spanish(ReinaValera1960),es
+spnrei,https://lifovebible.github.io/data/spnrei.lfa,Spanish(ReinaValera1909),es
 tagalog,https://lifovebible.github.io/data/tagalog.lfa,Tagalog,fil
 thai,https://lifovebible.github.io/data/thai.lfa,Thai,th
 turkish,https://lifovebible.github.io/data/turkish.lfa,Turkish,tr
