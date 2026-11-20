@@ -56,3 +56,18 @@
 ## 추가하고 싶은 성경 역본/주석이 있습니까?
 
 bible@lifove.net 이메일 주소로 추가하고 싶은 역본/주석이 무엇인지 알려주십시오. 저작권 문제가 없는 역본만 요청하셔야 합니다. 이메일 보내실 때 [역본/주석 추가] 제목으로 보내주십시오.
+
+## 성경 데이터 라이선스
+
+Lifove Bible에서 다운로드할 수 있는 성경 역본 중 일부는 공개 라이선스로 배포됩니다. 해당 라이선스에 따라 아래 고지를 함께 표시합니다.
+
+### Chichewa(Chalero) (치체와어)
+
+Biblica, Inc.의 현대 치체와어 성경을 Lifove Bible 형식으로 바꾼 것입니다. 소제목과 문단 구분을 빼고(시편 표제는 1절 앞에 둠), 표는 한 줄로 풀고, 절 번호를 KJV 기준으로 맞췄습니다(요한삼서 1:15 → 1:14, 요한계시록 12:18 → 13:1 앞). 이 변경은 Biblica, Inc.가 보증한 것이 아닙니다. 원문 고지는 다음과 같습니다.
+
+This text is an adaptation of “Tsekulani Mawu a Mulungu mu Chichewa Chalero” (Open God’s Word in Contemporary Chichewa).
+
+Copyright © 2002, 2016 by Biblica, Inc.
+The original work by Biblica, Inc. is available for free at www.biblica.com and open.bible.
+
+This adapted text is licensed under the [Creative Commons Attribution-ShareAlike 4.0 International License (CC BY-SA 4.0)](https://creativecommons.org/licenses/by-sa/4.0/).

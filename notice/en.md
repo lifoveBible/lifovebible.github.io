@@ -36,3 +36,18 @@ Lifove Bible works again on the latest Android (15, 16).
 You can bring in your old Bible data and memos with Menu (≡) > Settings > Data Management > **Connect Previous Data Folder**.
 
 If you have any problem, please let us know with 'Report Issues' in the menu.
+
+## Bible data licenses
+
+Some Bible versions you can download in Lifove Bible are shared under an open license. The license asks us to show the notice below.
+
+### Chichewa(Chalero)
+
+This text is an adaptation of “Tsekulani Mawu a Mulungu mu Chichewa Chalero” (Open God’s Word in Contemporary Chichewa).
+
+Copyright © 2002, 2016 by Biblica, Inc.
+The original work by Biblica, Inc. is available for free at www.biblica.com and open.bible.
+
+Changes made for Lifove Bible: converted to the Lifove Bible format (one verse per line, plain text); section headings, paragraph and poetry layout removed, with Psalm titles kept at the start of verse 1; tables flattened into one line per verse; verse numbering changed from NRSV to KJV (3 John 1:15 joined to 1:14, Revelation 12:18 joined to the start of 13:1). Biblica, Inc. does not necessarily endorse these changes.
+
+This adapted text is licensed under the [Creative Commons Attribution-ShareAlike 4.0 International License (CC BY-SA 4.0)](https://creativecommons.org/licenses/by-sa/4.0/).
