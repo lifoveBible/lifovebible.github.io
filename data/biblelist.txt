@@ -1,4 +1,4 @@
-70
+72
 korktv,https://lifovebible.github.io/data/korktv.lfa,바른성경,ko
 korhrv,https://lifovebible.github.io/data/korhrv.lfa,개역한글,ko
 korhkjv,https://lifovebible.github.io/data/korHKJV.lfa,흠정역,ko
@@ -27,6 +27,8 @@ tsk,https://lifovebible.github.io/data/tsk.lfa,Treasury of Scripture Knowledge,e
 geneva,https://lifovebible.github.io/data/geneva.lfa,Geneva Bible Notes (1599),en
 catena,https://lifovebible.github.io/data/catena.lfa,Catena Aurea (Aquinas),en
 rwp,https://lifovebible.github.io/data/rwp.lfa,Robertson's Word Pictures (NT),en
+arabic,https://lifovebible.github.io/data/arabic.lfa,رض المقدسة(Arabic),ar
+arabicshaped,https://lifovebible.github.io/data/arabicshaped.lfa,رض المقدسة(Arabic-Shaped),ar
 albanian,https://lifovebible.github.io/data/albanian.lfa,Albanian(Bibla e Shenjtë),sq
 bulgarian,https://lifovebible.github.io/data/bulgarian.lfa,Bulgarian(БЪЛГАРСКА БИБЛИЯ),bg
 croatian,https://lifovebible.github.io/data/croatian.lfa,Croatian(BIBLIJA),hr
