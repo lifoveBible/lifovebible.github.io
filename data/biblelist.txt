@@ -1,4 +1,4 @@
-75
+76
 korktv,https://lifovebible.github.io/data/korktv.lfa,바른성경,ko
 korhrv,https://lifovebible.github.io/data/korhrv.lfa,개역한글,ko
 korhkjv,https://lifovebible.github.io/data/korHKJV.lfa,흠정역,ko
