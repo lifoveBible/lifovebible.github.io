@@ -40,6 +40,7 @@ finpr,https://lifovebible.github.io/data/finpr.lfa,Finnish(PyhäRaamattu),fi
 finpr38,https://lifovebible.github.io/data/finpr38.lfa,PyhäRaamattu(1933/1938),fi
 frdarby,https://lifovebible.github.io/data/frdarby.lfa,French(Darby),fr
 frsegond,https://lifovebible.github.io/data/frsegond.lfa,French(L.Segond),fr
+deuelb,https://lifovebible.github.io/data/deuelb.lfa,German(Elberfelder),de
 gerlut,https://lifovebible.github.io/data/gerlut.lfa,German(Luther),de
 grestg,https://lifovebible.github.io/data/grestg.lfa,Greek(Septuagint/OT),el
 grestp,https://lifovebible.github.io/data/grestp.lfa,Greek(Stephanos/NT),el

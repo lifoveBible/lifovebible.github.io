@@ -41,6 +41,12 @@ If you have any problem, please let us know with 'Report Issues' in the menu.
 
 Some Bible versions you can download in Lifove Bible are shared under an open license. The license asks us to show the notice below.
 
+### German(Elberfelder)
+
+Elberfelder Übersetzung (Version von bibelkommentare.de). Copyright © 2019 Verbreitung des christlichen Glaubens e.V. Dieser Bibeltext ist online verfügbar auf [www.bibelkommentare.de](https://www.bibelkommentare.de).
+
+This translation is made available under the [Creative Commons Attribution-NonCommercial-NoDerivatives 4.0 License (CC BY-NC-ND 4.0)](http://creativecommons.org/licenses/by-nc-nd/4.0/). It is distributed free of charge, and the words and punctuation of the Scripture text are unchanged. Footnotes and headings are not included, and verse numbers follow the KJV versification.
+
 ### Ilocano(ULB)
 
 This text is an adaptation of “Ti Biblia” (Unlocked Literal Bible in the Ilocano language of the Republic of the Philippines).

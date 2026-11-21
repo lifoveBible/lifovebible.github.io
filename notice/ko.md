@@ -61,6 +61,14 @@ bible@lifove.net 이메일 주소로 추가하고 싶은 역본/주석이 무엇
 
 Lifove Bible에서 다운로드할 수 있는 성경 역본 중 일부는 공개 라이선스로 배포됩니다. 해당 라이선스에 따라 아래 고지를 함께 표시합니다.
 
+### German(Elberfelder) (독일어)
+
+bibelkommentare.de가 다듬은 엘버펠더 성경입니다. 본문의 낱말과 문장부호는 바꾸지 않았고, 각주와 소제목은 넣지 않았으며, 절 번호는 KJV 기준으로 표시했습니다. 원문 고지는 다음과 같습니다.
+
+Copyright © 2019 Verbreitung des christlichen Glaubens e.V. Dieser Bibeltext ist online verfügbar auf [www.bibelkommentare.de](https://www.bibelkommentare.de).
+
+This translation is made available under the [Creative Commons Attribution-NonCommercial-NoDerivatives 4.0 License (CC BY-NC-ND 4.0)](http://creativecommons.org/licenses/by-nc-nd/4.0/).
+
 ### Ilocano(ULB) (일로카노어)
 
 Door43 World Missions Community의 일로카노어 성경 "Ti Biblia"(Unlocked Literal Bible)를 Lifove Bible 형식으로 바꾼 것입니다. 소제목과 문단 구분을 빼고, 각주는 괄호로 넣고, 묶어 번역된 절은 "(→ 장:절)"로 표시하고, 절 번호를 KJV 기준으로 맞췄습니다(요한삼서 1:15 → 1:14, 요한계시록 12:18 → 13:1 앞). 이 변경은 원 저작자가 보증한 것이 아닙니다. 원문 고지는 다음과 같습니다.
