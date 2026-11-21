@@ -44,8 +44,8 @@ Starting with 7.5.2, the app icon is a book with a bookmark. The name is still L
 
 - Swipe left for the next chapter and right for the previous one, like turning pages.
 - Tap the book, chapter, or verse button in the viewer to jump directly.
-- Use the navigation buttons on the right for the next chapter, one screen, or previously visited chapters. (Viewer Settings > Use Navigation Bar)
-- Volume keys can move by a verse, a screen, or a chapter. (Viewer Settings > Volume Key)
+- Use the navigation buttons on the right for the next chapter, one screen, or previously visited chapters. (Viewer Settings > Show navigation buttons)
+- Volume keys can move by a verse, a screen, or a chapter. (Viewer Settings > Move with volume keys)
 
 ### Auto scroll doesn't seem to start
 
@@ -102,7 +102,7 @@ Turn off Viewer Settings > Show audio button.
 
 Choose the translations in 'Parallel Viewer' from the menu. You need at least two translations downloaded.
 
-- You can read in one or two columns. (Viewer Settings > One Column Parallel Viewer)
+- You can read in one or two columns. (Viewer Settings > Compare translations in one column)
 - Change the order and colors in List Management > Bible Order and Color.
 - Selecting many translations can make moving between chapters slower.
 
