@@ -1,5 +1,4 @@
-79
-korktv,https://lifovebible.github.io/data/korktv.lfa,바른성경,ko
+77
 korhrv,https://lifovebible.github.io/data/korhrv.lfa,개역한글,ko
 korhkjv,https://lifovebible.github.io/data/korHKJV.lfa,흠정역,ko
 kchhrv,https://lifovebible.github.io/data/kchhrv.lfa,개역한글국한문,ko
@@ -78,6 +77,6 @@ italian,https://lifovebible.github.io/data/italian.lfa,Italian(La Sacra Bibbia),
 kannada,https://lifovebible.github.io/data/kannada.lfa,Kannada(ಪವಿತ್ರ ಬೈಬಲ್),kn
 luganda,https://lifovebible.github.io/data/luganda.lfa,Luganda(Baibuli y'Oluganda),lg
 
-
+korktv,https://lifovebible.github.io/data/korktv.lfa,바른성경,ko
 swefolk,https://lifovebible.github.io/data/swefolk.lfa,Swedish(Folkbibeln2015),sv
  
