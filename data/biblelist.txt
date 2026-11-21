@@ -1,4 +1,4 @@
-76
+79
 korktv,https://lifovebible.github.io/data/korktv.lfa,바른성경,ko
 korhrv,https://lifovebible.github.io/data/korhrv.lfa,개역한글,ko
 korhkjv,https://lifovebible.github.io/data/korHKJV.lfa,흠정역,ko
@@ -11,8 +11,10 @@ ckjvsimp,https://lifovebible.github.io/data/ckjvsimp.lfa,中文英皇钦定本�
 ckjvsimpgod,https://lifovebible.github.io/data/ckjvsimpgod.lfa,中文英皇钦定本神版简体,zh-CN
 chnncv,https://lifovebible.github.io/data/chnncv.lfa,新译本简体,zh-CN
 chnncvtr,https://lifovebible.github.io/data/chnncvtr.lfa,新译本繁體,zh-TW
-chnunisimpnospace,https://lifovebible.github.io/data/chnunisimpnospace.lfa,和合本简体,zh-CN
-chuniwospace,https://lifovebible.github.io/data/chuniwospace.lfa,和合本繁體,zh-TW
+chunisimp,https://lifovebible.github.io/data/chunisimp.lfa,和合本简体字版(Chinese Union Simplified),zh-CN
+chnunisimpnospace,https://lifovebible.github.io/data/chnunisimpnospace.lfa,和合本简体字版 无空格(Chinese Union Simplified no spaces),zh-CN
+chuni,https://lifovebible.github.io/data/chuni.lfa,和合本繁體字版(Chinese Union Traditional),zh-TW
+chuniwospace,https://lifovebible.github.io/data/chuniwospace.lfa,和合本繁體字版 無空格(Chinese Union Traditional no spaces),zh-TW
 chncath,https://lifovebible.github.io/data/chncath.lfa,思高繁体聖經,zh-TW
 engasv,https://lifovebible.github.io/data/engasv.lfa,ASV,en
 engdrb,https://lifovebible.github.io/data/engdrb.lfa,Darby,en
