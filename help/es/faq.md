@@ -18,14 +18,18 @@ Luego ve a Menú (≡) > Ajustes > Gestión de datos > **Conectar carpeta de dat
 
 Ve a Menú (≡) > Ajustes > Gestión de datos > **Conectar carpeta de datos anterior** y elige tu carpeta bible anterior.
 
-- Los textos de la Biblia (.lfa, .bdf) y las copias de notas/resaltados se importan a la aplicación. Puedes importar solo los archivos o también las copias de notas/resaltados.
+- Los textos de la Biblia (.lfa, .bdf) y las copias de notas/resaltados se importan a la aplicación. Puedes importar solo los archivos o también las copias de notas/resaltados. También se importan los marcadores creados en la versión 7.4.6 o anterior.
 - El audio (mp3) comprado a terceros debe estar en la carpeta mp3 dentro de la carpeta de datos de la Biblia, y se reproduce directamente desde allí.
 
 ### ¿Cómo hago y restauro una copia de seguridad?
 
 Menú (≡) > Ajustes > Gestión de datos > Copia de seguridad guarda en la carpeta 'Download/LifoveBible', que se conserva aunque desinstales la aplicación.
-Para restaurar, usa Restaurar datos y elige el archivo de copia.
-Haz una copia antes de cambiar de teléfono o desinstalar la aplicación.
+Para restaurar, usa Restaurar datos y elige el archivo de copia. El archivo se comprueba antes de restaurar nada. Elige una de dos formas: (7.6.0 o posterior)
+
+- **Combinar (recomendado)**: tus datos actuales se conservan y se añaden los registros que solo están en la copia o que se cambiaron después en ella. Para las notas distintas, eliges este teléfono, la copia o ambos.
+- **Reemplazar**: se borran tus datos actuales y se usa la copia en su lugar. Si la copia no tiene marcadores, se conservan tus marcadores actuales.
+
+Los marcadores se incluyen en la copia. Haz una copia antes de cambiar de teléfono o desinstalar la aplicación.
 
 ### El icono de la aplicación ha cambiado
 
@@ -35,10 +39,10 @@ Desde la versión 7.5.2, el icono es un libro con marcador. El nombre sigue sien
 
 ### ¿Cómo me muevo rápidamente?
 
-- Desliza a la izquierda para el capítulo siguiente y a la derecha para el anterior, como al pasar páginas.
+- Desliza a la izquierda para el capítulo siguiente y a la derecha para el anterior, como al pasar páginas. Si no quieres que deslizar cambie de capítulo, desactiva Ajustes del lector > **Deslizar para cambiar de capítulo**. (7.6.0 o posterior)
 - Toca el botón del libro, del capítulo o del versículo en el lector para ir directamente.
-- Usa los botones de navegación de la derecha para el capítulo siguiente, una pantalla o capítulos vistos antes. (Ajustes del lector > Usar barra de navegación)
-- Las teclas de volumen pueden mover un versículo, una pantalla o un capítulo. (Ajustes del lector > Tecla de volumen)
+- Usa los botones de navegación de la derecha para el capítulo siguiente, una pantalla o capítulos vistos antes. (Ajustes del lector > Mostrar botones de navegación)
+- Las teclas de volumen pueden mover un versículo, una pantalla o un capítulo. (Ajustes del lector > Moverse con las teclas de volumen)
 
 ### ¿Cómo muestro los nombres de los libros en español?
 
@@ -71,8 +75,16 @@ Ve a Ajustes > Gestión de listas > **Nombre de los libros 1** y elige Español 
 
 ### ¿Cómo uso los marcadores y el historial?
 
-- Usa 'Añadir marcador' en el menú para guardar dónde estás. Mantén pulsado un marcador para eliminarlo.
+- Usa 'Añadir marcador' en el menú para guardar dónde estás. Mantén pulsado un marcador para eliminarlo. Si añades otra vez el mismo lugar, sube al principio en vez de duplicarse.
 - El Historial guarda los lugares leídos recientemente. Los botones ↶ ↷ del lector te llevan a los lugares vistos antes.
+
+### Encontré un error en el texto de la Biblia
+
+Mantén pulsado el versículo y elige **Informar error en el texto**. Se abre un correo con el versículo y la versión de la Biblia ya rellenados; describe el error y envíalo. (7.6.0 o posterior)
+
+### El menú aparece en blanco en mi lector de tinta electrónica
+
+En lectores de tinta electrónica como ONYX BOOX, el menú ≡ se muestra como una lista simple, sin animación. Si la ventana del menú se abre pero no aparecen los elementos, activa Menú (≡) > Ajustes > Ajustes del menú > **Menú para lector electrónico**. (7.6.0 o posterior)
 
 ## Escuchar
 
@@ -103,13 +115,30 @@ Elige las versiones en 'Comparar versiones' del menú. Necesitas tener al menos 
 - Cambia el orden y los colores en Gestión de listas > Orden y color de las Biblias.
 - Elegir muchas versiones puede hacer más lento el cambio de capítulo.
 
-### ¿Cómo hago notas y resaltados?
+### ¿Cómo escribo notas?
 
-- Mantén pulsado un versículo para escribir una nota o resaltarlo desde el menú que aparece.
-- Toca versículos para seleccionar varios y luego resáltalos, cópialos o envíalos juntos desde el menú.
-- La forma de mostrar las notas, el color de las notas y los colores de resaltado se cambian en Ajustes del lector.
-- Míralos todos en Mis resaltados y Mis notas del menú.
-- En Mis notas, escribe en el cuadro de búsqueda de arriba para filtrar la lista mientras escribes. Busca en el texto de la nota y en el nombre del libro, y muestra solo las notas que contienen todas las palabras escritas. (7.5.2 o posterior)
+- Mantén pulsado un versículo y elige la nota en el menú; se abre un panel de notas debajo del texto. El versículo sigue visible justo encima del panel mientras escribes, y puedes mirar los versículos cercanos u otros capítulos. (7.6.0 o posterior)
+- Si cambiaste la nota, Cerrar, Atrás o ir a otra pantalla pregunta si quieres guardar. Guardar una nota vacía la elimina.
+- Activa Ajustes de notas > **Tocar la nota para editarla** para editar una nota tocándola en el texto.
+- Las notas aparecen debajo del versículo por defecto. Para ponerlas encima, activa Ajustes de notas > **Mostrar notas encima de los versículos**. También puedes ocultarlas un rato con **Mostrar notas/Ocultar notas** en el menú (≡).
+- Míralas todas en Mis notas del menú. Escribe en el cuadro de búsqueda de arriba para filtrar la lista mientras escribes. Busca en el texto de la nota y en el nombre del libro, y muestra solo las notas que contienen todas las palabras escritas. (7.5.2 o posterior)
+- Usa Enviar notas en Mis notas para enviarlas por correo o mensaje, o guardarlas como archivo de texto (Download/LifoveBible).
+
+### ¿Qué son los cuadernos de notas?
+
+Los cuadernos de notas guardan tus notas por separado, por ejemplo por tema o propósito. (7.6.0 o posterior)
+
+- Añade, cambia el nombre, reordena o elimina cuadernos en Ajustes de notas > **Cuadernos de notas**.
+- Con dos o más, toca el título del panel de notas o de Mis notas para elegir cuál usar. El texto, la lista y la búsqueda muestran solo las notas de ese cuaderno.
+- Cada cuaderno tiene sus propias opciones de escritura. Con **Ir al siguiente versículo al guardar** activado, el panel pasa al siguiente versículo después de guardar. También puedes elegir **Saltar versículos que ya tienen nota** y **Al final del capítulo, pasar al siguiente**. Es práctico para copiar o traducir la Biblia.
+- Con **Guardar con la tecla Intro** activado, Intro guarda en lugar de empezar una línea nueva.
+- Activa y desactiva "Ir al siguiente versículo al guardar" y "Guardar con la tecla Intro" directamente con los iconos de la barra de título del panel de notas. Un icono en negrita significa activado; uno fino, desactivado.
+
+### ¿Cómo uso los resaltados?
+
+- Mantén pulsado un versículo para resaltarlo o quitar el resaltado desde el menú que aparece. También puedes tocar versículos para seleccionar varios y resaltarlos, copiarlos o enviarlos juntos.
+- En Ajustes de resaltados > **Tipo de resaltado** puedes combinar fondo, subrayado, color del texto y negrita. Los colores también se cambian en Ajustes de resaltados.
+- Míralos todos en Mis resaltados del menú y usa **Enviar resaltados** para enviarlos por correo o mensaje, o guardarlos como archivo de texto.
 
 ### ¿Cómo miro otro pasaje y vuelvo?
 

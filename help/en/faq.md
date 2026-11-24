@@ -14,25 +14,22 @@ Yes. Lifove Bible is a viewer for .lfa files and the older Bethlehem Bible data 
 After downloading (unzip it first if it is a zip file), create a folder on your phone and save the .lfa file in it.
 Then go to Menu (≡) > Settings > Data Management > **Connect Previous Data Folder** and select that folder to install the data into the app.
 
-### Can I use the Korean Revised Version (개역개정)?
-
-Lifove Bible is a free app that makes no profit, so it does not sell Bible data. If you previously bought the file (kornkrv_hs.lfa) from a third party, install it like this:
-
-- Create a folder on your phone (for example, bible), create a **restrict** folder inside it, and put kornkrv_hs.lfa there. If the file is anywhere other than the restrict folder, it shows in the list but will not open.
-- Go to Menu (≡) > Settings > Data Management > **Connect Previous Data Folder** and select the folder above restrict (for example, bible), not restrict itself.
-
 ### How do I bring in my old Bible data (including mp3) and memos?
 
 Go to Menu (≡) > Settings > Data Management > **Connect Previous Data Folder** and select your old bible folder.
 
-- Bible texts (.lfa, .bdf) and memo/highlight backups are imported into the app. You can choose to import only the files, or the memo/highlight backups as well.
+- Bible texts (.lfa, .bdf) and memo/highlight backups are imported into the app. You can choose to import only the files, or the memo/highlight backups as well. Bookmarks made in version 7.4.6 or earlier are imported too.
 - Audio (mp3) bought from a third party must be in the mp3 folder inside your Bible data folder, and it is played directly from there.
 
 ### How do I back up and restore my data?
 
 Menu (≡) > Settings > Data Management > Data Backup saves to the 'Download/LifoveBible' folder, which is kept even if the app is uninstalled.
-To restore, use Restore Data and pick the backup file.
-Please back up before changing phones or uninstalling the app.
+To restore, use Restore Data and pick the backup file. The file is checked before anything is restored. Choose one of two ways: (7.6.0 or later)
+
+- **Merge (recommended)**: your current data stays, and records that are only in the backup or were changed later there are added. For memos that differ, you choose this phone, the backup, or both.
+- **Replace**: your current data is deleted and the backup is used instead. If the backup has no bookmarks, your current bookmarks stay.
+
+Bookmarks are included in the backup. Please back up before changing phones or uninstalling the app.
 
 ### The app icon has changed
 
@@ -42,7 +39,7 @@ Starting with 7.5.2, the app icon is a book with a bookmark. The name is still L
 
 ### How do I move around quickly?
 
-- Swipe left for the next chapter and right for the previous one, like turning pages.
+- Swipe left for the next chapter and right for the previous one, like turning pages. If swiping changes chapters when you don't want it to, turn off Viewer Settings > **Swipe to change chapters**. (7.6.0 or later)
 - Tap the book, chapter, or verse button in the viewer to jump directly.
 - Use the navigation buttons on the right for the next chapter, one screen, or previously visited chapters. (Viewer Settings > Show navigation buttons)
 - Volume keys can move by a verse, a screen, or a chapter. (Viewer Settings > Move with volume keys)
@@ -74,8 +71,16 @@ Starting with 7.5.2, the app icon is a book with a bookmark. The name is still L
 
 ### How do I use bookmarks and history?
 
-- Use 'Add Bookmark' in the menu to save your place. Long-press a bookmark to delete it.
+- Use 'Add Bookmark' in the menu to save your place. Long-press a bookmark to delete it. Adding the same place again moves it to the top instead of adding a duplicate.
 - History keeps the places you read recently. The ↶ ↷ buttons in the viewer take you back to places you viewed before.
+
+### I found a mistake in the Bible text
+
+Long-press the verse and choose **Report Text Error**. An email opens with the verse and Bible version filled in; describe what is wrong and send it. (7.6.0 or later)
+
+### The menu is blank on my e-ink device
+
+On e-ink devices such as ONYX BOOX, the ≡ menu is shown as a plain list without animation. If the menu window opens but its items do not appear, turn on Menu (≡) > Settings > Menu Setting > **E-reader menu**. (7.6.0 or later)
 
 ## Listening
 
@@ -106,13 +111,30 @@ Choose the translations in 'Parallel Viewer' from the menu. You need at least tw
 - Change the order and colors in List Management > Bible Order and Color.
 - Selecting many translations can make moving between chapters slower.
 
-### How do I add memos and highlights?
+### How do I write memos?
 
-- Long-press a verse to write a memo or highlight it from the menu that appears.
-- Tap verses to select several, then highlight, copy, or send them together from the menu.
-- Memo display, memo color, and highlight colors can be changed in Viewer Settings.
-- See them all in My Highlight and My Memo from the menu.
-- In My Memo, type in the search box at the top to narrow the list as you type. It searches both the memo text and the book name, and shows only memos that contain every word you enter. (7.5.2 or later)
+- Long-press a verse and choose the memo item from the menu; a memo panel opens below the text. The verse stays visible just above the panel while you write, and you can look at nearby verses or other chapters. (7.6.0 or later)
+- If you changed the memo, Close, Back, or moving to another screen asks whether to save. Saving an empty memo deletes it.
+- Turn on Memo Settings > **Tap a memo to edit it** to edit a memo by tapping it in the text.
+- Memos appear below the verse by default. To put them above, turn on Memo Settings > **Show memos above verses**. You can also hide them for a while with **Show memos/Hide memos** in the menu (≡).
+- See them all in My Memo from the menu. Type in the search box at the top to narrow the list as you type. It searches both the memo text and the book name, and shows only memos that contain every word you enter. (7.5.2 or later)
+- Use Send Memos in My Memo to send them by email or message, or to save them as a text file (Download/LifoveBible).
+
+### What are memo books?
+
+Memo books keep your memos in separate notebooks, for example by topic or purpose. (7.6.0 or later)
+
+- Add, rename, reorder or delete them in Memo Settings > **Memo books**.
+- With two or more, tap the title of the memo panel or of My Memo to choose which one to use. The text, the list and search show only that memo book.
+- Each memo book has its own input options. With **Go to the next verse after saving** on, the memo panel moves to the next verse after you save. You can also choose **Skip verses that already have a memo** and **At the end of a chapter, go to the next chapter**. This is handy for copying or translating the Bible.
+- With **Save with the Enter key** on, Enter saves instead of starting a new line.
+- Turn "Go to the next verse after saving" and "Save with the Enter key" on and off right from the icons in the memo panel title bar. A bold icon means on, a thin one means off.
+
+### How do I use highlights?
+
+- Long-press a verse to highlight it or remove the highlight from the menu that appears. You can also tap verses to select several and highlight, copy, or send them together.
+- In Highlight Settings > **Highlight style**, you can combine background, underline, text color and bold. Colors are also changed in Highlight Settings.
+- See them all in My Highlight from the menu, and use **Send Highlights** to send them by email or message, or to save them as a text file.
 
 ### How do I look at another passage and come back?
 
