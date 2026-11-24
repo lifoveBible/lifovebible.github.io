@@ -1,6 +1,6 @@
 <!-- 2026-11-20 -->
 
-## Version 7.5.2 is coming soon! (Under review)
+## Version 7.5.2 has been released!
 
 - New app icon: a book with a bookmark
 - Bookmarks, History, My Highlights, My Memos and Reading Statistics now look like the reading screen (they follow its background color, text color and text size)
