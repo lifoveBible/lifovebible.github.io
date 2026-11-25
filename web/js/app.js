@@ -972,11 +972,12 @@ async function importItems(items) {
     return;
   }
   importing = true;
-  showImportNote(S.importing);
+  $('importProgress').hidden = false;
   const added = [], failed = [];
   try {
-    for (const g of groups) {
+    for (const [i, g] of groups.entries()) {
       const fileLabel = g.kind === 'lfa' ? g.files[0].path.split(/[\\/]/).pop() : g.code + '.bdf';
+      showImportNote(groups.length > 1 ? `${S.importing} (${i + 1}/${groups.length})` : S.importing);
       try {
         const r = await prepareGroup(g);
         if (r.reason) {
@@ -993,6 +994,7 @@ async function importItems(items) {
     }
   } finally {
     importing = false;
+    $('importProgress').hidden = true;
   }
   let changed = await reloadLocal();
   // 읽을 역본이 없던 사람이면 넣은 역본으로 바로 본다
