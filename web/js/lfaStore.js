@@ -29,14 +29,19 @@ export async function getLfa(url, onProgress) {
   return buf;
 }
 
-/** 보관해 둔 .lfa 주소들. 역본 고르기 창에서 "받음" 표시에 쓴다 */
+/** 받아 둘 수 있는가. Cache Storage가 없는 주소(http://192.168.x.x 등)에서는 고를 때마다 받는다 */
+export async function canCache() {
+  return (await openCache()) !== null;
+}
+
+/** 보관해 둔 .lfa 주소들. 성경다운로드 창의 "받음" 표시와 역본대조보기 창의 목록에 쓴다 */
 export async function cachedUrls() {
   const cache = await openCache();
   if (!cache) return new Set();
   return new Set((await cache.keys()).map((req) => req.url));
 }
 
-/** 보관본을 지운다(앱 설정의 역본 삭제에 해당). 다음에 고르면 다시 받는다 */
+/** 보관본을 지운다(앱 설정의 역본 삭제에 해당). 다시 읽으려면 성경다운로드에서 받는다 */
 export async function deleteLfa(url) {
   const cache = await openCache();
   if (cache) await cache.delete(url);

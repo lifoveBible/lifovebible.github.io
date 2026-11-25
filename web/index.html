@@ -13,31 +13,42 @@
   <link rel="stylesheet" href="css/app.css">
 </head>
 <body>
-  <!-- 읽기 화면. 문구는 js/strings.js에서 채운다 -->
+  <!-- 읽기 화면. 문구는 js/strings.js에서 채운다.
+       책·장 바는 앱처럼 아래가 기본이고 메뉴에서 위로 바꾼다(html에 bar-top). 위치는 CSS order로 정한다 -->
   <header class="bar">
     <div class="nav">
-      <button id="prevTop" class="icon" data-label="prev">◀</button>
       <button id="ref" class="ref"></button>
-      <button id="nextTop" class="icon" data-label="next">▶</button>
     </div>
     <div class="tools">
-      <button id="versionBtn" class="versions"></button>
       <button id="searchBtn" class="icon">🔍</button>
       <span class="font" role="group" id="fontGroup">
         <button id="smaller" class="icon">가-</button>
         <button id="larger" class="icon">가+</button>
       </span>
     </div>
+    <!-- 앱의 메뉴처럼 오른쪽 위 끝. 폰 폭에서도 첫 줄 끝에 오게 CSS order로 자리를 정한다 -->
+    <button id="menuBtn" class="icon" aria-haspopup="menu">☰</button>
   </header>
 
   <main>
     <p id="status" role="status"></p>
+    <!-- 고른 역본이 없을 때(받은 것을 다 지웠을 때) 보인다 -->
+    <p id="emptyBox" hidden><button id="emptyDownload" class="primary"></button></p>
     <ol id="verses"></ol>
-    <nav class="pager">
-      <button id="prev"></button>
-      <button id="next"></button>
-    </nav>
   </main>
+
+  <!-- 화면 가운데 오른쪽 이동 버튼. 앱 verselist.xml의 navigationbar_layout(장 ‹ ›, 화면 ˄ ˅, 최근목록 ↶ ↷)에 해당.
+       아이콘은 앱 ic_nav_*.xml과 같은 경로(Material Icons, Apache License 2.0). 어느 쌍을 보일지는 본문화면설정 -->
+  <nav id="sideNav" class="side-nav">
+    <button id="navPrevCh" data-group="chapter"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M15.41,7.41L14,6l-6,6 6,6 1.41,-1.41L10.83,12z" fill="currentColor" stroke="currentColor" stroke-width="1.2" stroke-linejoin="round"/></svg></button>
+    <button id="navNextCh" data-group="chapter"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M10,6L8.59,7.41 13.17,12l-4.58,4.59L10,18l6,-6z" fill="currentColor" stroke="currentColor" stroke-width="1.2" stroke-linejoin="round"/></svg></button>
+    <button id="navUp" data-group="screen"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M7.41,15.41L12,10.83l4.59,4.58L18,14l-6,-6 -6,6z" fill="currentColor" stroke="currentColor" stroke-width="1.2" stroke-linejoin="round"/></svg></button>
+    <button id="navDown" data-group="screen"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M7.41,8.59L12,13.17l4.59,-4.58L18,10l-6,6 -6,-6 1.41,-1.41z" fill="currentColor" stroke="currentColor" stroke-width="1.2" stroke-linejoin="round"/></svg></button>
+    <button id="navBack" data-group="history"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M12.5,8c-2.65,0 -5.05,0.99 -6.9,2.6L2,7v9h9l-3.62,-3.62c1.39,-1.16 3.16,-1.88 5.12,-1.88 3.54,0 6.55,2.31 7.6,5.5l2.37,-0.78C21.08,11.03 17.15,8 12.5,8z" fill="currentColor" transform="translate(12 12) scale(0.75) translate(-12 -12)"/></svg></button>
+    <button id="navForward" data-group="history"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M18.4,10.6C16.55,8.99 14.15,8 11.5,8c-4.65,0 -8.58,3.03 -9.96,7.22L3.9,16c1.05,-3.19 4.05,-5.5 7.6,-5.5 1.95,0 3.73,0.72 5.12,1.88L13,16h9V7l-3.6,3.6z" fill="currentColor" transform="translate(12 12) scale(0.75) translate(-12 -12)"/></svg></button>
+  </nav>
+  <!-- 잠깐 보이는 알림(앱의 Toast). 예: 아래 버튼을 한 번 더 누르면 다음 장 -->
+  <div id="toast" role="status" hidden></div>
 
   <!-- 책 → 장 고르기. 앱의 DialogBookSelectionTable, DialogChapterSelectionTable에 해당 -->
   <dialog id="picker">
@@ -49,7 +60,8 @@
     <div id="pickerBody"></div>
   </dialog>
 
-  <!-- 역본 고르기(여러 개면 대조 보기). 앱의 역본대조보기 대화 상자(Util SEL_VER)에 해당 -->
+  <!-- 역본 고르기. 앱의 다른성경보기(Util SEL_ONE_VER, 하나 고르기)와 역본대조보기(SEL_VER, 여러 개면 대조 보기)를
+       한 창으로 쓴다. 모드에 따라 라디오/체크 상자 -->
   <dialog id="verPicker">
     <div class="picker-head">
       <h2 id="verTitle"></h2>
@@ -57,23 +69,94 @@
     </div>
     <div id="verBody">
       <p id="verHint" class="hint"></p>
-      <p id="verNote" class="hint error" hidden></p>
-      <!-- 성경 파일 수동 넣기. 폴더 고르기는 webkitdirectory(아이폰 사파리는 안 될 수 있다) -->
-      <div class="import">
-        <button id="importFilesBtn"></button>
-        <button id="importFolderBtn"></button>
-        <input type="file" id="importFiles" accept=".lfa,.bdf" multiple hidden>
-        <input type="file" id="importFolder" webkitdirectory multiple hidden>
-      </div>
-      <p id="importHint" class="hint"></p>
-      <p id="importNote" class="hint" role="status" hidden></p>
       <div id="verList"></div>
+      <p id="verEmpty" class="hint" hidden></p>
+      <!-- 받은 역본만 보이므로 더 받으러 가는 길을 둔다 -->
+      <p class="more-link"><button id="verDownload" class="link"></button></p>
     </div>
     <div class="picker-foot">
       <label class="check"><input type="checkbox" id="oneColumn"> <span id="oneColumnLabel"></span></label>
       <span class="spacer"></span>
       <button id="verCancel"></button>
       <button id="verOk" class="primary"></button>
+    </div>
+  </dialog>
+
+  <!-- 메뉴. 앱의 옵션 메뉴에 해당. 위쪽 ☰ 아래에 붙여 보인다 -->
+  <dialog id="menu" class="menu">
+    <!-- 순서는 앱 메뉴를 따른다(검색, 다른성경보기, 역본대조보기 … 설정의 성경다운로드) -->
+    <button id="menuSearch"></button>
+    <button id="menuOneVersion"></button>
+    <button id="menuVersions"></button>
+    <button id="menuDownload"></button>
+    <button id="menuImport"></button>
+    <button id="menuSettings"></button>
+  </dialog>
+
+  <!-- 본문화면설정. 앱 설정의 "본문화면설정" 화면(화면 구성, 색)에 해당. 앱처럼 바꾸면 바로 적용(확인 단추 없음) -->
+  <dialog id="settingsBox">
+    <div class="picker-head">
+      <h2 id="settingsTitle"></h2>
+      <button id="settingsClose" class="icon">✕</button>
+    </div>
+    <div class="scroll settings">
+      <h3 id="groupScreen"></h3>
+      <label class="setting"><input type="checkbox" id="setBarBottom"> <span id="setBarBottomLabel"></span></label>
+      <label class="setting"><input type="checkbox" id="setOneColumn">
+        <span><span id="setOneColumnLabel"></span><small id="setOneColumnHint"></small></span></label>
+      <label class="setting"><input type="checkbox" id="setVerName">
+        <span><span id="setVerNameLabel"></span><small id="setVerNameHint"></small></span></label>
+      <h3 id="groupColors"></h3>
+      <label class="setting color"><span id="fontColorLabel"></span><input type="color" id="fontColor"></label>
+      <label class="setting color"><span id="bgColorLabel"></span><input type="color" id="bgColor"></label>
+      <div id="colorPresets" class="presets"></div>
+      <p id="colorSample" class="color-sample"></p>
+      <button id="colorReset"></button>
+      <h3 id="groupNav"></h3>
+      <label class="setting stack"><span><span id="navBarLabel"></span><small id="navBarHint"></small></span>
+        <select id="setNavBar"></select></label>
+      <label class="setting stack"><span id="navUnitLabel"></span><select id="setNavUnit"></select></label>
+    </div>
+  </dialog>
+
+  <!-- 성경다운로드. 앱의 AddBibleData(받을 역본을 체크해서 한꺼번에 받기)에 해당.
+       받은 역본은 "받음"과 지우기(앱은 설정의 데이터 관리에서 지운다) -->
+  <dialog id="dlBox">
+    <div class="picker-head">
+      <h2 id="dlTitle"></h2>
+      <button id="dlClose" class="icon">✕</button>
+    </div>
+    <div id="dlBody" class="scroll">
+      <p id="dlHint" class="hint"></p>
+      <p id="dlNote" class="hint error" hidden></p>
+      <div id="dlList"></div>
+    </div>
+    <div class="picker-foot">
+      <p id="dlStatus" class="foot-status" role="status"></p>
+      <span class="spacer"></span>
+      <button id="dlCancel"></button>
+      <button id="dlGo" class="primary"></button>
+    </div>
+  </dialog>
+
+  <!-- 성경 파일 넣기(가지고 있는 .lfa/.bdf). 폴더 고르기는 webkitdirectory(아이폰 사파리는 안 될 수 있다) -->
+  <dialog id="importBox">
+    <div class="picker-head">
+      <h2 id="importTitle"></h2>
+      <button id="importClose" class="icon">✕</button>
+    </div>
+    <div id="importBody" class="scroll">
+      <p id="importHint" class="hint"></p>
+      <div class="import">
+        <button id="importFilesBtn"></button>
+        <button id="importFolderBtn"></button>
+        <input type="file" id="importFiles" accept=".lfa,.bdf" multiple hidden>
+        <input type="file" id="importFolder" webkitdirectory multiple hidden>
+      </div>
+      <p id="importNote" class="hint" role="status" hidden></p>
+      <h3 id="localTitle"></h3>
+      <ul id="localList" class="ver-list"></ul>
+      <p id="localEmpty" class="hint" hidden></p>
     </div>
   </dialog>
 

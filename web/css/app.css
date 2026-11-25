@@ -8,6 +8,11 @@
   --accent-bg: #e8f0fe;
   --error: #b00020;
   --verse-size: 18px; /* app.js가 저장해 둔 글자 크기로 바꾼다 */
+  /* 본문화면 글자색·배경색(본문화면설정). 고르지 않았으면 테마 색. app.js가 고른 색으로 바꾼다 */
+  --page-fg: var(--fg);
+  --page-bg: var(--bg);
+  /* 절 번호, (없음) 같은 흐린 글자는 고른 글자색을 배경 쪽으로 흐리게 */
+  --page-muted: color-mix(in srgb, var(--page-fg) 60%, var(--page-bg));
 }
 @media (prefers-color-scheme: dark) {
   :root {
@@ -26,7 +31,11 @@
 html { color-scheme: light dark; }
 body {
   margin: 0;
-  background: var(--bg);
+  /* 책·장 바를 아래에 둘 때 내용이 짧아도 바가 화면 맨 아래에 붙게 */
+  display: flex;
+  flex-direction: column;
+  min-height: 100dvh;
+  background: var(--page-bg);
   color: var(--fg);
   font-family: system-ui, -apple-system, "Segoe UI", "Malgun Gothic", "Apple SD Gothic Neo", sans-serif;
   line-height: 1.7;
@@ -50,23 +59,45 @@ select {
 }
 
 /* ---- 위쪽 막대 ---- */
+/* 책·장 바. 앱처럼 아래가 기본(text_pref_header_bottom). 아래일 때는 wrap-reverse로 첫 줄(◀ 책 장 ▶ ☰)이
+   맨 아래(엄지 닿는 곳)에 오고, 검색·글자 크기 줄이 그 위에 온다. html.bar-top이면 위쪽, 첫 줄이 맨 위 */
 .bar {
   position: sticky;
-  top: 0;
+  bottom: 0;
+  order: 2; /* main 뒤 */
   z-index: 1;
   display: flex;
-  flex-wrap: wrap; /* 폰 폭에서는 역본·글자 크기가 둘째 줄로 내려간다 */
+  flex-wrap: wrap-reverse;
   gap: 6px;
   padding: 6px 8px;
   background: var(--bar);
+  border-top: 1px solid var(--line);
+}
+.bar-top .bar {
+  top: 0;
+  bottom: auto;
+  order: 0;
+  flex-wrap: wrap;
+  border-top: 0;
   border-bottom: 1px solid var(--line);
 }
-.nav { display: flex; gap: 4px; flex: 1 1 260px; min-width: 0; }
-.tools { display: flex; gap: 4px; flex: 1 1 220px; min-width: 0; }
+.nav { display: flex; gap: 4px; flex: 1 1 140px; min-width: 0; }
+.tools { display: flex; gap: 4px; flex: none; justify-content: flex-end; }
+/* ☰는 늘 바의 오른쪽 끝(앱의 메뉴 자리). 장 이동 ◀ ▶를 없애 폰 폭(360px)에서도 한 줄에 들어간다.
+   더 좁아서 두 줄이 되면 책 장 줄 끝에 오고 검색·글자 크기가 다른 줄로 간다(그 줄은 오른쪽으로 붙인다).
+   352px = 패딩 16 + 책 장 140 + tools 140 + ☰ 44 + 틈 12 */
+#menuBtn { flex: none; order: 3; }
+@media (max-width: 351px) {
+  .tools { flex: 1 1 100%; }
+  .nav { order: 1; }
+  #menuBtn { order: 2; }
+  .tools { order: 3; }
+}
 .font { display: flex; gap: 4px; }
 .icon { min-width: 44px; padding: 4px 6px; }
 .ref {
   flex: 1 1 auto;
+  padding: 4px 6px; /* "데살로니가전서 5장"도 폰 폭에서 잘리지 않게 */
   min-width: 0;
   font-weight: 600;
   white-space: nowrap;
@@ -75,9 +106,15 @@ select {
 }
 
 /* ---- 본문 ---- */
-main { max-width: 760px; margin: 0 auto; padding: 8px 16px 24px; }
+/* 여러 단 대조 보기는 넓게. 한 칸이 너무 넓어지지 않게 역본 수(--nver, app.js) × 글자 34자쯤까지만 */
+main.wide { max-width: calc(var(--nver, 2) * var(--verse-size) * 34 + 80px); }
+/* 넓은 화면에서는 오른쪽 이동 버튼 자리를 비운다(폰은 칸이 좁아져서 앱처럼 겹치게 둔다) */
+@media (min-width: 600px) { main.wide { padding-right: 48px; } }
+main { flex: 1 0 auto; width: 100%; max-width: 760px; margin: 0 auto; padding: 8px 16px 24px; color: var(--page-fg); }
 #status { color: var(--muted); font-size: 0.9rem; margin: 8px 0; }
 #status.error { color: var(--error); }
+#emptyBox { margin: 8px 0; }
+#status { word-break: keep-all; }
 
 /* 한글은 낱말 가운데서 줄을 바꾸지 않게. 너무 긴 낱말만 아무 데서나 */
 #verses { list-style: none; padding: 0; margin: 0; font-size: var(--verse-size); word-break: keep-all; overflow-wrap: anywhere; }
@@ -90,11 +127,9 @@ main { max-width: 760px; margin: 0 auto; padding: 8px 16px 24px; }
   align-items: baseline;
   padding: 0.25em 0;
 }
-#verses .num { color: var(--muted); font-size: 0.7em; text-align: right; }
-#verses .missing { color: var(--muted); }
+#verses .num { color: var(--page-muted); font-size: 0.7em; text-align: right; }
+#verses .missing { color: var(--page-muted); }
 
-.pager { display: flex; justify-content: space-between; gap: 8px; margin-top: 24px; }
-.pager button { flex: 0 1 auto; }
 
 /* ---- 책·장 고르기 ---- */
 dialog {
@@ -127,27 +162,32 @@ dialog::backdrop { background: rgb(0 0 0 / 0.45); }
 .grid button { padding: 4px 2px; font-size: 0.9rem; line-height: 1.3; word-break: keep-all; overflow-wrap: anywhere; }
 .grid button.current { border-color: var(--accent); background: var(--accent-bg); font-weight: 600; }
 
-/* ---- 역본 버튼 ---- */
-.tools .versions {
-  flex: 1 1 auto;
-  min-width: 0;
-  white-space: nowrap;
-  overflow: hidden;
-  text-overflow: ellipsis;
-}
-
 /* ---- 대조 보기 ----
    앱의 2단 보기(VerseList)는 역본을 둘씩 한 줄에 놓는다(1·2, 3·4 …). 1단(VerseListOneColumn)은 위아래로.
    절과 절 사이에 줄을 그어 어느 칸이 같은 절인지 보이게 한다 */
-#verses.compare li { padding: 0.45em 0; border-bottom: 1px solid var(--line); }
+#verses.compare li { display: block; padding: 0.45em 0; border-bottom: 1px solid var(--line); }
+#verses.compare .cell {
+  display: grid;
+  grid-template-columns: 1.6em minmax(0, 1fr); /* 단일 보기의 절 줄과 같은 번호 칸 */
+  column-gap: 0.4em;
+  align-items: baseline;
+  min-width: 0;
+}
 #verses.compare .cells { display: grid; gap: 0.3em 0.9em; min-width: 0; }
-#verses.compare.two .cells { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+/* 여러 단(1단으로 보기를 끈 상태): 화면 폭에 맞춰 자동. 한 칸은 글자 18자쯤(18em) 이상이라 넓으면 여러 역본이
+   한 줄에 서고, 좁아지면 남는 역본이 다음 줄로 밀린다. 폰처럼 좁아도 앱의 2단처럼 최소 둘씩(50%).
+   auto-fit이라 역본이 적으면 빈 칸 없이 늘어난다. em이라 글자를 키우면 한 줄에 서는 역본이 줄어든다 */
+#verses.compare.two .cells { grid-template-columns: repeat(auto-fit, minmax(min(calc(50% - 0.45em), 18em), 1fr)); }
 #verses.compare .vname { color: var(--accent); font-size: 0.65em; margin-right: 0.2em; }
+/* 역본명은 앱처럼 기본은 숨김(앱 "여백 및 역본명 제거" 기본 켜짐). 본문화면설정의 "역본명 보이기"로 html.show-vname */
+html:not(.show-vname) #verses.compare .vname { display: none; }
 /* 2단은 칸이 좁지만 한글을 낱말 중간에서 끊으면(word-break: normal) 더 읽기 어려웠다. keep-all 그대로 둔다 */
 
 /* ---- 역본 고르기 ---- */
-#verBody { overflow-y: auto; padding: 4px 12px 8px; }
-#verBody h3 { font-size: 0.9rem; color: var(--muted); margin: 12px 0 4px; }
+#verBody, .scroll { overflow-y: auto; padding: 4px 12px 8px; }
+#verBody h3, .scroll h3 { font-size: 0.9rem; color: var(--muted); margin: 12px 0 4px; }
+.more-link { margin: 12px 0 4px; }
+button.link { border: 0; background: none; color: var(--accent); padding: 4px 0; text-align: left; }
 .hint { font-size: 0.85rem; color: var(--muted); margin: 6px 0; }
 .hint.error { color: var(--error); }
 .ver-list { list-style: none; margin: 0; padding: 0; }
@@ -168,6 +208,7 @@ dialog::backdrop { background: rgb(0 0 0 / 0.45); }
   line-height: 1.3;
 }
 .ver-list input { width: 20px; height: 20px; flex: none; margin: 0; }
+.ver-list .pad { width: 20px; flex: none; } /* 체크 상자가 없는 줄도 이름 위치를 맞춘다 */
 .ver-list .order { min-width: 1.2em; color: var(--accent); font-weight: 600; text-align: center; }
 .ver-list .name { overflow-wrap: anywhere; }
 .badge {
@@ -188,8 +229,12 @@ dialog::backdrop { background: rgb(0 0 0 / 0.45); }
   border-top: 1px solid var(--line);
 }
 .picker-foot .spacer { flex: 1; }
+.foot-status { flex: 1 1 100%; margin: 0; font-size: 0.85rem; color: var(--muted); overflow-wrap: anywhere; }
+.foot-status.error { color: var(--error); }
+.foot-status[hidden] { display: none; }
 /* 폰 폭에서 확인 버튼만 둘째 줄로 밀리지 않게 체크 상자는 한 줄을 다 쓴다 */
 .picker-foot .check { flex: 1 1 100%; }
+.picker-foot .check[hidden] { display: none; }
 .check { display: flex; align-items: center; gap: 6px; font-size: 0.9rem; cursor: pointer; }
 .check input { width: 18px; height: 18px; margin: 0; }
 button.primary { background: var(--accent); color: var(--bg); border-color: var(--accent); }
@@ -220,7 +265,124 @@ button.primary { background: var(--accent); color: var(--bg); border-color: var(
   color: var(--fg);
   text-align: center;
 }
-#verPicker.dropping { outline: 3px dashed var(--accent); outline-offset: -3px; }
+#importBox.dropping { outline: 3px dashed var(--accent); outline-offset: -3px; }
+
+/* ---- 메뉴 ----
+   ☰ 아래 오른쪽에 붙는 작은 목록(앱의 옵션 메뉴). 모달로 열어 바깥을 누르면 닫힌다 */
+/* ☰ 옆에 붙인다. 바가 아래면 ☰ 위로, 위면 ☰ 아래로(☰는 어느 쪽이든 바 끝 줄에 있다) */
+dialog.menu {
+  position: fixed;
+  inset: auto 8px 52px auto;
+  margin: 0;
+  width: max-content;
+  min-width: 180px;
+  max-width: calc(100vw - 16px);
+  padding: 4px 0;
+  box-shadow: 0 4px 16px rgb(0 0 0 / 0.25);
+}
+.bar-top dialog.menu { inset: 52px 8px auto auto; }
+dialog.menu::backdrop { background: transparent; }
+dialog.menu button {
+  display: block;
+  width: 100%;
+  min-height: 44px;
+  padding: 8px 16px;
+  border: 0;
+  border-radius: 0;
+  background: none;
+  text-align: left;
+}
+dialog.menu button:hover, dialog.menu button:focus-visible { background: var(--bar); }
+
+/* ---- 이동 버튼(화면 가운데 오른쪽) ----
+   앱처럼 본문 위에 떠 있고 본문 글자색을 흐리게(앱은 알파 100/255) 칠한다. 본문을 가리지 않게 단추 사이만 누를 수 있다 */
+.side-nav {
+  position: fixed;
+  right: 2px;
+  top: 50%;
+  transform: translateY(-50%);
+  z-index: 1;
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+  color: var(--page-fg);
+  opacity: 0.4;
+  pointer-events: none;
+}
+.side-nav[hidden] { display: none; }
+.side-nav button {
+  pointer-events: auto;
+  width: 40px;
+  height: 40px;
+  min-height: 0;
+  padding: 2px;
+  border: 0;
+  border-radius: 8px;
+  background: transparent;
+}
+.side-nav button:active { background: color-mix(in srgb, var(--page-fg) 25%, transparent); }
+.side-nav button.off { display: none; } /* 설정에서 고르지 않은 쌍 */
+.side-nav button.none { visibility: hidden; } /* 갈 곳이 없을 때(창세기 1장의 이전 장 등). 자리는 지킨다 */
+.side-nav svg { display: block; width: 36px; height: 36px; }
+
+#toast {
+  position: fixed;
+  left: 50%;
+  bottom: 120px;
+  transform: translateX(-50%);
+  z-index: 6;
+  max-width: calc(100% - 32px);
+  padding: 8px 14px;
+  border-radius: 18px;
+  background: rgb(40 40 40 / 0.92);
+  color: #fff;
+  font-size: 0.9rem;
+  text-align: center;
+  word-break: keep-all;
+}
+#toast[hidden] { display: none; }
+
+/* ---- 본문화면설정 ---- */
+.settings { padding-bottom: 16px; }
+.setting {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  min-height: 48px;
+  padding: 4px 0;
+  border-bottom: 1px solid var(--line);
+  cursor: pointer;
+  line-height: 1.35;
+}
+.setting input[type="checkbox"] { width: 20px; height: 20px; flex: none; margin: 0; }
+.setting small { display: block; font-size: 0.8rem; color: var(--muted); }
+.setting.color { justify-content: space-between; }
+.setting input[type="color"] {
+  width: 56px;
+  height: 36px;
+  flex: none;
+  padding: 2px;
+  border: 1px solid var(--line);
+  border-radius: 6px;
+  background: var(--bg);
+  cursor: pointer;
+}
+.presets { display: flex; flex-wrap: wrap; gap: 8px; margin: 12px 0 8px; }
+.presets button { flex: 1 1 0; min-width: 0; padding: 4px 2px; font-size: 0.9rem; } /* 폰 폭에서도 넷이 한 줄 */
+.presets button.current { outline: 2px solid var(--accent); outline-offset: 1px; }
+.color-sample {
+  margin: 8px 0 12px;
+  padding: 10px 12px;
+  border: 1px solid var(--line);
+  border-radius: 6px;
+  background: var(--page-bg);
+  color: var(--page-fg);
+  font-size: var(--verse-size);
+}
+#colorReset { width: 100%; }
+/* 고르기 상자는 문구가 길어("화면 + 장 + 최근목록 이동 버튼") 이름 밑에 한 줄을 다 쓴다 */
+.setting.stack { flex-direction: column; align-items: stretch; gap: 6px; padding: 8px 0; }
+.setting.stack select { width: 100%; }
 
 /* ---- 검색 ---- */
 .search-form { padding: 8px 12px 4px; display: grid; gap: 6px; }
@@ -273,10 +435,11 @@ mark { background: #ffe066; color: #222; border-radius: 2px; }
 }
 
 /* ---- 새 버전 알림 (js/pwa.js) ---- */
+/* 바와 겹치지 않게 바 반대쪽에 띄운다 */
 #updateBar {
   position: fixed;
   left: 50%;
-  bottom: 16px;
+  top: 16px;
   transform: translateX(-50%);
   z-index: 5;
   display: flex;
@@ -291,4 +454,5 @@ mark { background: #ffe066; color: #222; border-radius: 2px; }
   box-shadow: 0 2px 8px rgb(0 0 0 / 0.2);
 }
 #updateBar[hidden] { display: none; }
+.bar-top #updateBar { top: auto; bottom: 16px; }
 #updateBtn { background: var(--accent); color: var(--bg); border-color: var(--accent); }
