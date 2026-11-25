@@ -66,7 +66,7 @@ russyn,https://lifovebible.github.io/data/russyn.lfa,Russian(Synodal),ru
 spnrei,https://lifovebible.github.io/data/spnrei.lfa,Spanish(ReinaValera1909),es
 swe1917,https://lifovebible.github.io/data/swe1917.lfa,Swedish(1917),sv
 tagangbiblia,https://lifovebible.github.io/data/tagangbiblia.lfa,Tagalog(AngBiblia1905),fil
-tagangbiblia,https://lifovebible.github.io/data/tagang.lfa,Tagalog(mag.bal.),fil
+tagangbiblia,https://lifovebible.github.io/data/tagalog.lfa,Tagalog(mag.bal.),fil
 thai,https://lifovebible.github.io/data/thai.lfa,Thai,th
 turkish,https://lifovebible.github.io/data/turkish.lfa,Turkish,tr
 kornkrv,https://lifovebible.github.io/data/kornkrv.lfa,개역개정,ko
