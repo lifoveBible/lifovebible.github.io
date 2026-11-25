@@ -9,7 +9,7 @@
 //   (바꾸지 않으면 브라우저가 새 버전을 알아채지 못한다. tests/sw.test.js가 잊은 것을 잡는다)
 // - 모듈 서비스 워커는 파이어폭스 지원이 늦어서 보통 스크립트로 둔다
 
-const VERSION = '8e8ef35bacd0';
+const VERSION = '06375223915b';
 const CACHE = 'lifove-app-' + VERSION;
 const CACHE_PREFIX = 'lifove-app-'; // 이 이름으로 시작하는 옛 캐시만 지운다(lfa-v1은 남긴다)
 
