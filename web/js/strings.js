@@ -35,7 +35,14 @@ const STRINGS = {
     colorReset: '기본 색으로',
     groupNav: '이동과 터치', // pref_group_navigation
     navBar: '이동 버튼 표시', // text_pref_navigation_bar_preference
-    navBarHint: '화면 가운데 오른쪽에 이동 버튼을 보입니다.',
+    navBarHint: '본문 위에 이동 버튼을 보입니다.',
+    navPos: '이동 버튼 위치', // 웹에만 있는 설정
+    navPositions: {
+      'right-middle': '오른쪽 가운데',
+      'right-bottom': '오른쪽 아래',
+      'left-middle': '왼쪽 가운데',
+      'left-bottom': '왼쪽 아래',
+    },
     navBarOptions: { // entries_navigation_bar (값은 앱 entryvalues_navigation_bar)
       1: '네비게이션바 숨기기',
       2: '한 화면 이동 버튼',
@@ -162,7 +169,14 @@ const STRINGS = {
     colorReset: 'Default colors',
     groupNav: 'Navigation and touch', // pref_group_navigation
     navBar: 'Show navigation buttons', // text_pref_navigation_bar_preference
-    navBarHint: 'Show move buttons at the middle right of the screen.',
+    navBarHint: 'Show move buttons over the text.',
+    navPos: 'Navigation buttons position',
+    navPositions: {
+      'right-middle': 'Middle right',
+      'right-bottom': 'Bottom right',
+      'left-middle': 'Middle left',
+      'left-bottom': 'Bottom left',
+    },
     navBarOptions: { // entries_navigation_bar
       1: 'Hide Navigation Bar',
       2: 'Only Verse Navigation Bar',

@@ -17,7 +17,7 @@ import {
 import { pickLang, stringsFor } from './strings.js';
 import { PRESETS, validColor, presetOf } from './viewColors.js';
 import {
-  NAV_OPTIONS, NAV_DEFAULT, navButtons, NAV_UNITS, NAV_UNIT_DEFAULT,
+  NAV_OPTIONS, NAV_DEFAULT, navButtons, NAV_UNITS, NAV_UNIT_DEFAULT, NAV_POSITIONS, navPosition,
   loadHistory, jumpHistory, updateHistory, stepHistory, canBack, canForward,
 } from './navBar.js';
 import { groupFiles, prepareGroup, openRecord, mergeLocal, classifyName } from './localBible.js';
@@ -80,7 +80,8 @@ function savePrefs() {
 
 const prefs = loadPrefs();
 // prefs: { pos: {book, chapter}, fontSize, versions: [{code, url, name, lang}], oneColumn, started, barTop,
-//          showVerName, fontColor, bgColor, navBar(앱 값 1~8), navUnit('verse'|'page'|'chapter') }
+//          showVerName, fontColor, bgColor, navBar(앱 값 1~8), navUnit('verse'|'page'|'chapter'),
+//          navPos('right-middle'|'right-bottom'|'left-middle'|'left-bottom', 웹에만. 기본 오른쪽 아래) }
 // started: 역본을 한 번이라도 골랐다. 처음 쓰는 사람에게만 기본 역본을 받아 주려고(syncPrefsVersions).
 // 시작할 때 한 번만 보면 첫 방문에서 다 지웠을 때 또 받아 버려서 그때그때 본다
 
@@ -537,6 +538,7 @@ function openSettings() {
   $('setVerName').checked = !!prefs.showVerName;
   $('setNavBar').value = String(NAV_OPTIONS.includes(prefs.navBar) ? prefs.navBar : NAV_DEFAULT);
   $('setNavUnit').value = NAV_UNITS.includes(prefs.navUnit) ? prefs.navUnit : NAV_UNIT_DEFAULT;
+  $('setNavPos').value = navPosition(prefs.navPos);
   showColorInputs();
   $('settingsBox').showModal();
 }
@@ -1329,6 +1331,8 @@ function showToast(text) {
 function updateSideNav() {
   const show = navButtons(prefs.navBar ?? NAV_DEFAULT);
   $sideNav.hidden = !show.screen && !show.chapter && !show.history;
+  $sideNav.dataset.pos = navPosition(prefs.navPos);
+  root.classList.toggle('nav-left', $sideNav.dataset.pos.startsWith('left')); // 넓은 대조 보기가 비울 쪽
   for (const b of $sideNav.children) b.classList.toggle('off', !show[b.dataset.group]);
   $('navPrevCh').classList.toggle('none', !prevChapter(pos));
   $('navNextCh').classList.toggle('none', !nextChapter(pos));
@@ -1354,6 +1358,7 @@ $('groupNav').textContent = S.groupNav;
 $('navBarLabel').textContent = S.navBar;
 $('navBarHint').textContent = S.navBarHint;
 $('navUnitLabel').textContent = S.navUnit;
+$('navPosLabel').textContent = S.navPos;
 const option = (value, text) => {
   const o = document.createElement('option');
   o.value = value;
@@ -1371,7 +1376,17 @@ $('setNavUnit').addEventListener('change', (e) => {
   prefs.navUnit = e.target.value;
   savePrefs();
 });
+$('setNavPos').append(...NAV_POSITIONS.map((p) => option(p, S.navPositions[p])));
+$('setNavPos').addEventListener('change', (e) => {
+  prefs.navPos = e.target.value;
+  savePrefs();
+  updateSideNav();
+});
 updateSideNav();
+// 아래쪽 이동 버튼이 책·장 바에 가리지 않게 바 높이를 --bar-h로 알린다(폭에 따라 한 줄/두 줄로 바뀐다)
+new ResizeObserver(([e]) => {
+  root.style.setProperty('--bar-h', `${Math.ceil(e.borderBoxSize?.[0]?.blockSize ?? e.target.offsetHeight)}px`);
+}).observe(document.querySelector('.bar'));
 
 // ---- 이동 ----
 $('smaller').addEventListener('click', () => changeFont(-FONT_STEP));

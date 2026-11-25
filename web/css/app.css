@@ -109,7 +109,10 @@ select {
 /* 여러 단 대조 보기는 넓게. 한 칸이 너무 넓어지지 않게 역본 수(--nver, app.js) × 글자 34자쯤까지만 */
 main.wide { max-width: calc(var(--nver, 2) * var(--verse-size) * 34 + 80px); }
 /* 넓은 화면에서는 오른쪽 이동 버튼 자리를 비운다(폰은 칸이 좁아져서 앱처럼 겹치게 둔다) */
-@media (min-width: 600px) { main.wide { padding-right: 48px; } }
+@media (min-width: 600px) {
+  main.wide { padding-right: 48px; }
+  .nav-left main.wide { padding-right: 16px; padding-left: 48px; } /* 이동 버튼을 왼쪽에 둘 때 */
+}
 main { flex: 1 0 auto; width: 100%; max-width: 760px; margin: 0 auto; padding: 8px 16px 24px; color: var(--page-fg); }
 #status { color: var(--muted); font-size: 0.9rem; margin: 8px 0; }
 #status.error { color: var(--error); }
@@ -294,7 +297,7 @@ dialog.menu button {
 }
 dialog.menu button:hover, dialog.menu button:focus-visible { background: var(--bar); }
 
-/* ---- 이동 버튼(화면 가운데 오른쪽) ----
+/* ---- 이동 버튼(기본 오른쪽 아래, 앱은 오른쪽 가운데) ----
    앱처럼 본문 위에 떠 있고 본문 글자색을 흐리게(앱은 알파 100/255) 칠한다. 본문을 가리지 않게 단추 사이만 누를 수 있다 */
 .side-nav {
   position: fixed;
@@ -310,6 +313,15 @@ dialog.menu button:hover, dialog.menu button:focus-visible { background: var(--b
   pointer-events: none;
 }
 .side-nav[hidden] { display: none; }
+/* 위치(본문화면설정). 아래쪽이면 책·장 바(아래일 때) 바로 위에 띄운다. 바는 폭에 따라 한 줄/두 줄이라
+   높이를 app.js가 재서 --bar-h에 넣는다. 바가 위쪽이면 화면 맨 아래에서 조금 띄운다 */
+.side-nav[data-pos^="left"] { right: auto; left: 2px; }
+.side-nav[data-pos$="bottom"] {
+  top: auto;
+  bottom: calc(var(--bar-h, 0px) + 8px);
+  transform: none;
+}
+.bar-top .side-nav[data-pos$="bottom"] { bottom: 8px; }
 .side-nav button {
   pointer-events: auto;
   width: 40px;

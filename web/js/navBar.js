@@ -1,4 +1,4 @@
-// 화면 가운데 오른쪽의 이동 버튼(네비게이션 바). 앱 VerseList의 navigationbar_layout에 해당. DOM을 쓰지 않는다.
+// 본문 위에 떠 있는 이동 버튼(네비게이션 바). 앱 VerseList의 navigationbar_layout에 해당. DOM을 쓰지 않는다.
 // - 장 이동(‹ ›), 화면 이동(˄ ˅), 최근목록 이동(↶ ↷) 세 쌍. 어느 것을 보일지는 앱 설정
 //   "이동 버튼 표시"(navigation_bar_preference_new)와 같은 값 1~8. 앱 기본은 7(장 + 최근목록)
 // - 최근목록: 앱 Util.historyLines처럼 위치 목록(0이 가장 최근, 최대 20개)과 지금 칸(index)
@@ -16,6 +16,14 @@ export function navButtons(option) {
     history: [5, 6, 7, 8].includes(v), // 최근목록 이동
   };
 }
+
+/** 이동 버튼 위치(웹에만 있는 설정). 앱은 오른쪽 가운데 고정이지만, PC에서는 손이 아니라 마우스라
+ *  오른쪽 아래가 덜 가린다. 화면에 보이는 순서. 문구는 strings.js navPositions[값] */
+export const NAV_POSITIONS = ['right-middle', 'right-bottom', 'left-middle', 'left-bottom'];
+export const NAV_POSITION_DEFAULT = 'right-bottom';
+
+/** 저장된 위치 값을 검사한다. 모르는 값이면 기본값 */
+export const navPosition = (v) => (NAV_POSITIONS.includes(v) ? v : NAV_POSITION_DEFAULT);
 
 /** 위·아래 버튼의 이동 단위. 앱은 "볼륨키로 이동" 설정(한 절, 한 화면, 한 장)을 따른다. 웹에는 볼륨키가 없어 따로 둔다 */
 export const NAV_UNITS = ['verse', 'page', 'chapter'];

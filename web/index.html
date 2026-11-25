@@ -37,8 +37,8 @@
     <ol id="verses"></ol>
   </main>
 
-  <!-- 화면 가운데 오른쪽 이동 버튼. 앱 verselist.xml의 navigationbar_layout(장 ‹ ›, 화면 ˄ ˅, 최근목록 ↶ ↷)에 해당.
-       아이콘은 앱 ic_nav_*.xml과 같은 경로(Material Icons, Apache License 2.0). 어느 쌍을 보일지는 본문화면설정 -->
+  <!-- 본문 위 이동 버튼. 앱 verselist.xml의 navigationbar_layout(장 ‹ ›, 화면 ˄ ˅, 최근목록 ↶ ↷)에 해당.
+       아이콘은 앱 ic_nav_*.xml과 같은 경로(Material Icons, Apache License 2.0). 어느 쌍을 보일지, 어디에 둘지(data-pos)는 본문화면설정 -->
   <nav id="sideNav" class="side-nav">
     <button id="navPrevCh" data-group="chapter"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M15.41,7.41L14,6l-6,6 6,6 1.41,-1.41L10.83,12z" fill="currentColor" stroke="currentColor" stroke-width="1.2" stroke-linejoin="round"/></svg></button>
     <button id="navNextCh" data-group="chapter"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M10,6L8.59,7.41 13.17,12l-4.58,4.59L10,18l6,-6z" fill="currentColor" stroke="currentColor" stroke-width="1.2" stroke-linejoin="round"/></svg></button>
@@ -115,6 +115,7 @@
       <h3 id="groupNav"></h3>
       <label class="setting stack"><span><span id="navBarLabel"></span><small id="navBarHint"></small></span>
         <select id="setNavBar"></select></label>
+      <label class="setting stack"><span id="navPosLabel"></span><select id="setNavPos"></select></label>
       <label class="setting stack"><span id="navUnitLabel"></span><select id="setNavUnit"></select></label>
     </div>
   </dialog>
