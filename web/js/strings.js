@@ -18,6 +18,18 @@ const STRINGS = {
     pickChapter: '장 고르기',
     pickVerse: '절 고르기',
     versePos: (now, last) => `${last}절 중 ${now}절`, // 절 단추를 읽어 줄 때
+    readCheck: '이 장을 읽음으로 표시',
+    checkedAsRead: '읽음으로 표시합니다.', // text_checked_as_read_in_chapter_list
+    uncheckedRead: '읽음표시를 해제합니다.', // text_release_as_unread_in_chapter_list
+    checkedAllTrans: '선택된 모든 역본을 읽음으로 표시합니다.', // text_checked_all_trans
+    uncheckedAllTrans: '선택된 모든 역본의 읽음표시를 해제합니다.', // text_ubchecked_all_trans
+    readCheckFailed: '읽음 표시를 저장하지 못했습니다',
+    readStats: '성경읽기통계', // menu_read_check_table
+    statsTotal: '전체', // text_total
+    statsValue: (read, total, pct) => `${read} / ${total}장 · ${pct}%`, // 앱 StatAdapter
+    statsReset: '읽기통계초기화', // menu_init_read_check
+    statsResetConfirm: (name) => `${name}의 읽음 표시를 모두 지울까요?`,
+    statsResetDone: '읽기통계를 초기화 하였습니다.', // text_initiated_reading_statistics
     backToBooks: '책 목록',
     close: '닫기',
     version: '역본',
@@ -158,6 +170,18 @@ const STRINGS = {
     pickChapter: 'Choose a chapter',
     pickVerse: 'Choose a verse',
     versePos: (now, last) => `Verse ${now} of ${last}`,
+    readCheck: 'Mark this chapter as read',
+    checkedAsRead: 'Checked as Read.', // text_checked_as_read_in_chapter_list
+    uncheckedRead: 'Uncheck the Read mark.', // text_release_as_unread_in_chapter_list
+    checkedAllTrans: 'Check the selected trans. as Read', // text_checked_all_trans
+    uncheckedAllTrans: "Uncheck the selected trans.'s Read mark", // text_ubchecked_all_trans
+    readCheckFailed: 'Could not save the read mark',
+    readStats: 'Read Statistics', // menu_read_check_table
+    statsTotal: 'All', // text_total
+    statsValue: (read, total, pct) => `${read} / ${total} · ${pct}%`, // 앱 text_chapter가 영어는 빈 문자열
+    statsReset: 'Reset reading checks', // menu_init_read_check
+    statsResetConfirm: (name) => `Clear all read marks of ${name}?`,
+    statsResetDone: 'Reset read statistics', // text_initiated_reading_statistics
     backToBooks: 'Books',
     close: 'Close',
     version: 'Version',

@@ -22,6 +22,8 @@
       <button id="bookBtn" class="ref"></button>
       <button id="chapterBtn" class="chap"></button>
       <button id="verseBtn" class="verse"><span id="verseNow"></span><span id="verseLast"></span></button>
+      <!-- 읽음 표시(앱 verselist.xml의 read_check). 고른 역본 모두 읽었으면 체크된 채로 보인다 -->
+      <label class="read-check"><input type="checkbox" id="readCheck"></label>
     </div>
     <div class="tools">
       <button id="searchBtn" class="icon">🔍</button>
@@ -88,10 +90,31 @@
     <button id="menuSearch"></button>
     <button id="menuOneVersion"></button>
     <button id="menuVersions"></button>
+    <button id="menuStats"></button>
     <button id="menuDownload"></button>
     <button id="menuImport"></button>
     <button id="menuSettings"></button>
     <button id="menuHelp"></button>
+  </dialog>
+
+  <!-- 성경읽기통계. 앱의 ReadCheckTable(역본 고르기 + 전체 %, 전체·구약·신약과 66권의 읽은 장·막대)에 해당 -->
+  <dialog id="statsBox">
+    <div class="picker-head">
+      <h2 id="statsTitle"></h2>
+      <button id="statsClose" class="icon">✕</button>
+    </div>
+    <div class="stats-head">
+      <select id="statsVer"></select>
+      <output id="statsAll"></output>
+    </div>
+    <ul id="statsList" class="scroll stats"></ul>
+    <div class="picker-foot">
+      <!-- 창이 알림(#toast)을 가리므로 초기화 결과는 여기에 -->
+      <p id="statsNote" class="foot-status" role="status" hidden></p>
+      <button id="statsReset"></button>
+      <span class="spacer"></span>
+      <button id="statsDone"></button>
+    </div>
   </dialog>
 
   <!-- 도움말. 앱의 메뉴 > 도움말에 해당. 내용은 help/<언어>.html을 불러와 넣는다(오프라인에서도 보이게 앱 파일로 캐시) -->

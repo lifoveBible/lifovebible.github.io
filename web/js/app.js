@@ -24,6 +24,8 @@ import {
 import { swipeDirection } from './swipe.js';
 import { groupFiles, prepareGroup, openRecord, mergeLocal, classifyName } from './localBible.js';
 import { listLocal, getLocal, putLocal, deleteLocal } from './localStore.js';
+import { readSet, isRead, readChaptersOf, readStats, percent } from './readCheck.js';
+import { readChecksOf, versWithReadChecks, setReadCheck, clearReadChecks } from './userStore.js';
 import {
   THEMES, booksOfRange, normalizeQuery, checkQuery, searchText, readJobs, highlightParts, sortResults,
 } from './search.js';
@@ -324,6 +326,7 @@ async function render() {
   }
   cameToLast = false;
   updateSideNav();
+  updateReadCheck();
 
   const vers = prefs.versions;
   // 받은 역본을 다 지웠으면 성경다운로드로 안내. 목록을 못 받았으면 오류는 이미 보였다
@@ -556,6 +559,17 @@ function showChapters(book) {
   }
   $pickerBody.replaceChildren(grid);
   $pickerBody.scrollTop = 0;
+  // 고른 역본 모두 읽은 장은 앱(DialogChapterSelectionTable)처럼 체크 색으로
+  const codes = prefs.versions.map((v) => v.code);
+  loadReadSets(codes).then((sets) => {
+    const read = readChaptersOf(sets, codes, book);
+    for (const btn of grid.children) {
+      if (read.has(Number(btn.textContent))) {
+        btn.classList.add('read');
+        label(btn, S.ref(NAMES[book], btn.textContent) + ' ✓');
+      }
+    }
+  }).catch((e) => console.warn('read checks unavailable', e));
 }
 
 function pick(p) {
@@ -594,6 +608,162 @@ $pickerBack.addEventListener('click', showBooks);
 $('pickerClose').addEventListener('click', () => $picker.close());
 // 바깥(배경)을 누르면 닫는다. 대화 상자 안쪽을 누르면 target이 안쪽 요소다
 $picker.addEventListener('click', (e) => { if (e.target === $picker) $picker.close(); });
+
+// ---- 읽음 표시 ----
+// 앱 VerseList의 read_check: 바의 체크 상자로 지금 장을 읽음으로. 대조 보기면 고른 역본 모두에(앱도 그렇다),
+// 모두 읽었을 때만 체크된 채로 보인다. 저장은 IndexedDB(userStore.js), 계산은 readCheck.js.
+// 앱의 "자동 읽음 체크"(autoreadcheck_preference, 기본 끔)는 아직 옮기지 않았다
+const $readCheck = $('readCheck');
+const readSets = new Map(); // 역본 코드 → 읽은 장 모음. 처음 쓸 때 IndexedDB에서 읽어 두고, 고치면 지워서 다시 읽는다
+let readSeq = 0; // 장을 빠르게 넘길 때 늦게 끝난 옛 결과로 체크 상자를 바꾸지 않게
+label($readCheck, S.readCheck);
+
+async function loadReadSets(codes) {
+  await Promise.all(codes.filter((c) => !readSets.has(c)).map(async (c) => {
+    readSets.set(c, readSet(await readChecksOf(c)));
+  }));
+  return readSets;
+}
+
+/** 체크 상자를 지금 장·고른 역본에 맞춘다(앱 setReadCheck) */
+async function updateReadCheck() {
+  const seq = ++readSeq;
+  const codes = prefs.versions.map((v) => v.code);
+  $readCheck.disabled = !codes.length;
+  let read = false;
+  try {
+    read = isRead(await loadReadSets(codes), codes, pos.book, pos.chapter);
+  } catch (e) {
+    console.warn('read checks unavailable', e); // IndexedDB를 못 쓰는 브라우저(개인 정보 보호 모드 등)
+  }
+  if (seq === readSeq) $readCheck.checked = read;
+}
+
+$readCheck.addEventListener('change', async () => {
+  ++readSeq; // 저장 중에 끝난 다른 updateReadCheck가 체크를 되돌리지 않게
+  const codes = prefs.versions.map((v) => v.code);
+  const checked = $readCheck.checked;
+  try {
+    await setReadCheck(codes, pos.book, pos.chapter, checked);
+    for (const c of codes) readSets.delete(c);
+    if (codes.length > 1) showToast(checked ? S.checkedAllTrans : S.uncheckedAllTrans);
+    else showToast(checked ? S.checkedAsRead : S.uncheckedRead);
+  } catch (e) {
+    console.warn(e);
+    showToast(S.readCheckFailed);
+  }
+  updateReadCheck();
+});
+
+// ---- 성경읽기통계 ----
+// 앱 ReadCheckTable: 역본 하나를 골라 전체·구약·신약과 66권의 읽은 장 수·퍼센트·막대. 앱처럼 받아 둔 역본에서 고르고,
+// 지운 역본이라도 읽음 기록이 남아 있으면 목록에 넣는다(기록은 역본 파일과 따로 남으므로). 책을 누르면 그 책의 장 고르기
+const $statsBox = $('statsBox'), $statsVer = $('statsVer'), $statsList = $('statsList');
+$('menuStats').textContent = S.readStats;
+$('statsTitle').textContent = S.readStats;
+label($('statsClose'), S.close);
+label($statsVer, S.version);
+$('statsDone').textContent = S.close;
+$('statsReset').textContent = S.statsReset;
+
+async function openStats() {
+  $('statsNote').hidden = true;
+  $statsVer.replaceChildren();
+  $statsList.replaceChildren();
+  $statsBox.showModal();
+  await refreshCached();
+  let withData = [];
+  try {
+    withData = await versWithReadChecks();
+  } catch (e) {
+    console.warn('read checks unavailable', e);
+  }
+  const list = pickableVersions(versionList, cachedSet, prefs.versions.map((v) => v.code), cacheOk);
+  for (const code of withData) {
+    if (!list.some((v) => v.code === code)) list.push(versionList.find((v) => v.code === code) || { code, name: code });
+  }
+  $statsVer.replaceChildren(...list.map((v) => option(v.code, v.name)));
+  $statsVer.value = prefs.versions[0]?.code || list[0]?.code || '';
+  $statsVer.disabled = !list.length;
+  drawStats();
+}
+
+async function drawStats() {
+  const code = $statsVer.value;
+  $('statsReset').disabled = !code;
+  let set = new Set();
+  if (code) {
+    try {
+      set = (await loadReadSets([code])).get(code);
+    } catch (e) {
+      console.warn('read checks unavailable', e);
+    }
+    if ($statsVer.value !== code) return; // 그 사이 다른 역본을 골랐다
+  }
+  const st = readStats(set);
+  $('statsAll').textContent = percent(st.all.read, st.all.total) + '%';
+  $statsList.replaceChildren(
+    statRow(S.statsTotal, st.all), statRow(S.ot, st.ot), statRow(S.nt, st.nt),
+    ...st.books.map((b, i) => statRow(NAMES[i], b, i)),
+  );
+}
+
+/** 한 줄: 이름과 "읽은 장 / 전체 · %" + 막대(앱 read_check_table_item). 다 읽으면 읽음 색, 읽는 중이면 읽는 중 색 */
+function statRow(name, { read, total }, book) {
+  const li = document.createElement('li');
+  const row = document.createElement(book === undefined ? 'div' : 'button');
+  row.className = book === undefined ? 'stat summary' : 'stat';
+  const top = document.createElement('span');
+  top.className = 'stat-top';
+  const n = document.createElement('span');
+  n.className = 'stat-name';
+  n.textContent = name;
+  const v = document.createElement('span');
+  v.className = 'stat-value';
+  v.textContent = S.statsValue(read, total, percent(read, total));
+  top.append(n, v);
+  const bar = document.createElement('span');
+  bar.className = 'stat-bar';
+  const fill = document.createElement('span');
+  fill.className = read >= total && total > 0 ? 'done' : '';
+  fill.style.width = (total ? (read / total) * 100 : 0) + '%';
+  bar.append(fill);
+  row.append(top, bar);
+  if (book !== undefined) {
+    row.addEventListener('click', () => {
+      $statsBox.close();
+      openPicker(() => showChapters(book));
+    });
+  }
+  li.append(row);
+  return li;
+}
+
+$statsVer.addEventListener('change', () => {
+  $('statsNote').hidden = true;
+  drawStats();
+});
+$('statsReset').addEventListener('click', async () => {
+  const code = $statsVer.value;
+  if (!code || !confirm(S.statsResetConfirm($statsVer.selectedOptions[0]?.textContent || code))) return;
+  const note = $('statsNote');
+  try {
+    await clearReadChecks(code);
+    readSets.delete(code);
+    note.textContent = S.statsResetDone;
+    note.classList.remove('error');
+  } catch (e) {
+    console.warn(e);
+    note.textContent = S.readCheckFailed;
+    note.classList.add('error');
+  }
+  note.hidden = false;
+  drawStats();
+  updateReadCheck();
+});
+$('statsClose').addEventListener('click', () => $statsBox.close());
+$('statsDone').addEventListener('click', () => $statsBox.close());
+$statsBox.addEventListener('click', (e) => { if (e.target === $statsBox) $statsBox.close(); });
 
 // ---- 본문화면설정 ----
 // 앱 설정의 "본문화면설정"(화면 구성, 색) 중 웹에 맞는 것. 앱처럼 바꾸면 바로 적용하고 저장한다.
@@ -723,6 +893,7 @@ $('menuImport').addEventListener('click', fromMenu(openImport));
 $('menuSettings').addEventListener('click', fromMenu(openSettings));
 $('menuOneVersion').addEventListener('click', fromMenu(() => openVerPicker('one')));
 $('menuVersions').addEventListener('click', fromMenu(() => openVerPicker('multi')));
+$('menuStats').addEventListener('click', fromMenu(openStats));
 $('menuSearch').addEventListener('click', fromMenu(openSearch));
 $('menuHelp').addEventListener('click', fromMenu(openHelp));
 // 메뉴 밖(배경)을 누르면 닫는다

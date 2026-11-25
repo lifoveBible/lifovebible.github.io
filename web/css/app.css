@@ -1,4 +1,7 @@
 :root {
+  /* 읽음 색(앱 DEFAULT_COLOR_FOR_CHECKED)과 읽는 중 색(DEFAULT_COLOR_FOR_READING). 라이트·다크 같게 */
+  --read: #9e3737;
+  --reading: #ba5757;
   --bg: #fff;
   --fg: #222;
   --muted: #666;
@@ -81,14 +84,14 @@ select {
   border-top: 0;
   border-bottom: 1px solid var(--line);
 }
-.nav { display: flex; gap: 4px; flex: 1 1 170px; min-width: 0; }
+.nav { display: flex; gap: 4px; flex: 1 1 200px; min-width: 0; }
 .tools { display: flex; gap: 4px; flex: none; justify-content: flex-end; }
-/* ☰는 늘 바의 오른쪽 끝(앱의 메뉴 자리). 책·장·절 🔍 ☰가 폰 폭(360px)에서 한 줄에 들어간다.
+/* ☰는 늘 바의 오른쪽 끝(앱의 메뉴 자리). 책·장·절·읽음 🔍 ☰가 폰 폭(360px)에서 한 줄에 들어간다.
    더 좁아서 두 줄이 되면 ☰는 책 장 절 줄 끝에 오고 검색이 다른 줄로 간다(그 줄은 오른쪽으로 붙인다).
    글자 크기 가-/가+는 본문화면설정으로 옮겼다.
-   290px = 패딩 16 + 책 장 절 170 + 🔍 44 + ☰ 44 + 틈 12 */
+   316px = 패딩 16 + 책 장 절 읽음 200 + 🔍 44 + ☰ 44 + 틈 12 (읽음 체크 상자를 넣어 290px에서 늘었다. 320px 폰은 한 줄) */
 #menuBtn { flex: none; order: 3; }
-@media (max-width: 289px) {
+@media (max-width: 315px) {
   .tools { flex: 1 1 100%; }
   .nav { order: 1; }
   #menuBtn { order: 2; }
@@ -122,6 +125,10 @@ select {
 #verseNow { font-weight: 600; }
 #verseLast { color: var(--muted); border-top: 1px solid var(--line); min-width: 2.2em; text-align: center; }
 #verseLast:empty { display: none; }
+/* 읽음 체크 상자(앱 read_check). 라벨 전체를 눌러도 되게 칸을 키운다 */
+.read-check { flex: none; display: flex; align-items: center; justify-content: center; min-width: 34px; cursor: pointer; }
+.read-check input { width: 22px; height: 22px; margin: 0; accent-color: var(--accent); cursor: pointer; }
+.read-check:has(input:disabled) { opacity: 0.4; cursor: default; }
 
 /* ---- 본문 ---- */
 /* 여러 단 대조 보기는 넓게. 한 칸이 너무 넓어지지 않게 역본 수(--nver, app.js) × 글자 34자쯤까지만 */
@@ -182,6 +189,30 @@ dialog::backdrop { background: rgb(0 0 0 / 0.45); }
 /* 폰 폭에서 책 이름이 세 칸에 들어가게. "데살로니가전서"처럼 긴 이름은 두 줄로 */
 .grid button { padding: 4px 2px; font-size: 0.9rem; line-height: 1.3; word-break: keep-all; overflow-wrap: anywhere; }
 .grid button.current { border-color: var(--accent); background: var(--accent-bg); font-weight: 600; }
+/* 읽은 장(고른 역본 모두). 지금 장이면 테두리로 함께 보인다 */
+.grid button.read { background: var(--read); color: #fff; }
+.grid button.read.current { border: 2px solid var(--accent); }
+
+/* ---- 성경읽기통계 ---- */
+.stats-head { display: flex; gap: 6px; padding: 8px 12px; border-bottom: 1px solid var(--line); }
+.stats-head select { flex: 1; min-width: 0; }
+#statsAll {
+  flex: none; min-width: 52px; display: flex; align-items: center; justify-content: center;
+  border: 1px solid var(--line); border-radius: 6px; font-weight: 600; font-size: 0.9rem;
+}
+ul.stats { list-style: none; margin: 0; padding: 0 0 8px; }
+.stat {
+  display: block; width: 100%; min-height: 0; padding: 10px 16px;
+  border: 0; border-bottom: 1px solid var(--line); border-radius: 0; background: none; text-align: left;
+}
+.stat-top { display: flex; align-items: baseline; gap: 8px; }
+.stat-name { flex: 1; min-width: 0; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.stat.summary .stat-name { font-weight: 600; }
+.stat-value { flex: none; font-size: 0.8rem; color: var(--muted); font-variant-numeric: tabular-nums; }
+.stat-bar { display: block; height: 6px; margin-top: 6px; border-radius: 5px; background: var(--line); overflow: hidden; }
+.stat.summary .stat-bar { height: 10px; }
+.stat-bar span { display: block; height: 100%; border-radius: 5px; background: var(--reading); }
+.stat-bar span.done { background: var(--read); }
 
 /* ---- 대조 보기 ----
    앱의 2단 보기(VerseList)는 역본을 둘씩 한 줄에 놓는다(1·2, 3·4 …). 1단(VerseListOneColumn)은 위아래로.
