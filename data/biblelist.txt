@@ -1,4 +1,4 @@
-77
+78
 korhrv,https://lifovebible.github.io/data/korhrv.lfa,개역한글,ko
 korhkjv,https://lifovebible.github.io/data/korHKJV.lfa,흠정역,ko
 kchhrv,https://lifovebible.github.io/data/kchhrv.lfa,개역한글국한문,ko
