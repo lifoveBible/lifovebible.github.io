@@ -51,6 +51,13 @@
   </nav>
   <!-- 잠깐 보이는 알림(앱의 Toast). 예: 아래 버튼을 한 번 더 누르면 다음 장 -->
   <div id="toast" role="status" hidden></div>
+  <!-- 고른 절 동작(앱의 절 꾹 누르기 메뉴: 선택한 절 복사·전송, 선택 해제). 절을 하나라도 고르면 책·장 바 옆에 보인다 -->
+  <div id="selBar" hidden>
+    <span id="selCount"></span>
+    <button id="selCopy"></button>
+    <button id="selShare"></button>
+    <button id="selClear" class="icon">✕</button>
+  </div>
 
   <!-- 책 → 장 고르기. 앱의 DialogBookSelectionTable, DialogChapterSelectionTable에 해당 -->
   <dialog id="picker">

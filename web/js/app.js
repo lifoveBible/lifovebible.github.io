@@ -24,6 +24,7 @@ import {
 import { swipeDirection } from './swipe.js';
 import { groupFiles, prepareGroup, openRecord, mergeLocal, classifyName } from './localBible.js';
 import { listLocal, getLocal, putLocal, deleteLocal } from './localStore.js';
+import { formatVerses, rowsOfSingle } from './verseCopy.js';
 import { readSet, isRead, readChaptersOf, readStats, percent } from './readCheck.js';
 import { readChecksOf, versWithReadChecks, setReadCheck, clearReadChecks } from './userStore.js';
 import {
@@ -105,6 +106,9 @@ const downloads = new Map(); // url → {name, got, total}. 받는 중 진행률
 let renderSeq = 0; // 빠르게 장을 넘길 때 늦게 끝난 옛 결과를 버리려고
 let pendingVerse = null; // 검색 결과에서 왔을 때 그린 뒤 보여 줄 절 {book, chapter, verse}
 let slideDir = null; // 'next'|'prev'. 이전/다음 장으로 왔으면 그린 뒤 그쪽에서 들어오게(playSlide)
+// 화면에 그린 장(복사·공유할 글을 만들 때). rows는 verseCopy.formatVerses 꼴, names는 역본 이름
+let shown = { rows: [], names: [] };
+const selected = new Set(); // 고른 절 번호. 장을 다시 그리면 비운다
 
 function setStatus(text, isError = false) {
   $status.textContent = text;
@@ -311,6 +315,8 @@ async function render() {
   const seq = ++renderSeq;
   const slide = slideDir; // 이번 그리기에만 쓴다(뒤로 가기 등 다른 길로 그릴 때는 움직이지 않게)
   slideDir = null;
+  clearSelection(); // 다른 장(또는 다른 역본)에서 고른 절이 남지 않게
+  shown = { rows: [], names: [] };
   const name = NAMES[pos.book];
   $ref.textContent = name;
   $chapterBtn.textContent = pos.chapter; // 앱처럼 숫자만("장"을 붙이면 폰 폭에서 책 이름 칸이 좁아진다)
@@ -355,10 +361,13 @@ async function render() {
   if (vers.length === 1) {
     $verses.className = '';
     $verses.replaceChildren(...(chapters[0] || []).map(verseItem));
+    shown = { rows: rowsOfSingle(chapters[0] || []), names: [vers[0].name] };
   } else {
     $verses.className = 'compare ' + (prefs.oneColumn ? 'one' : 'two');
     const names = vers.map((v) => v.name);
-    $verses.replaceChildren(...alignChapters(chapters, S.missingVerse).map((r) => compareItem(r, names)));
+    const rows = alignChapters(chapters, S.missingVerse);
+    $verses.replaceChildren(...rows.map((r) => compareItem(r, names)));
+    shown = { rows, names };
   }
   playSlide(slide);
 
@@ -458,6 +467,94 @@ function compareItem(r, names) {
   li.append(cells);
   return li;
 }
+
+// ---- 절 고르기 ----
+// 앱처럼 절을 누르면 고름 표시가 되고 다시 누르면 풀린다(여러 절). 앱은 절을 꾹 눌러 메뉴를 띄우지만
+// 웹은 꾹 누르기가 글자 고르기·브라우저 메뉴와 겹쳐서, 하나라도 고르면 책·장 바 옆에 동작 바(#selBar)를 보인다.
+// 형광펜·메모도 이 바에 붙일 예정
+const $selBar = $('selBar');
+$('selCopy').textContent = S.copy;
+$('selShare').textContent = S.share;
+label($('selCopy'), S.copyVerses);
+label($('selShare'), S.shareVerses);
+label($('selClear'), S.clearSelection);
+$('selShare').hidden = typeof navigator.share !== 'function'; // PC 파이어폭스 등은 공유가 없다
+
+$verses.addEventListener('click', (e) => {
+  // 끌어서 글자를 고른 뒤 손을 뗀 것이면 절 고르기가 아니다
+  if (!window.getSelection()?.isCollapsed) return;
+  const li = e.target.closest('#verses > li');
+  if (!li) return;
+  const verse = Number(li.id.slice(1));
+  if (selected.has(verse)) selected.delete(verse);
+  else selected.add(verse);
+  li.classList.toggle('selected', selected.has(verse));
+  updateSelBar();
+});
+
+function updateSelBar() {
+  const n = selected.size;
+  $selBar.hidden = !n;
+  if (n) $('selCount').textContent = S.selCount(n);
+}
+
+function clearSelection() {
+  selected.clear();
+  for (const li of $verses.querySelectorAll('li.selected')) li.classList.remove('selected');
+  updateSelBar();
+}
+
+function selectedText() {
+  const rows = shown.rows.filter((r) => selected.has(r.verse));
+  return formatVerses(NAMES[pos.book], pos.chapter, rows, shown.names);
+}
+
+/** 클립보드에 넣는다. navigator.clipboard는 https·localhost에서만 있어서, 없으면 예전 방법(execCommand) */
+async function copyText(text) {
+  try {
+    await navigator.clipboard.writeText(text);
+    return;
+  } catch { /* 아래 예전 방법으로 */ }
+  const ta = document.createElement('textarea');
+  ta.value = text;
+  ta.setAttribute('readonly', '');
+  ta.style.position = 'fixed';
+  ta.style.opacity = '0';
+  document.body.append(ta);
+  ta.select();
+  const ok = document.execCommand('copy');
+  ta.remove();
+  if (!ok) throw new Error('copy failed');
+}
+
+$('selCopy').addEventListener('click', async () => {
+  const text = selectedText();
+  if (!text) return;
+  try {
+    await copyText(text);
+    showToast(S.copied); // 앱은 복사한 뒤에도 고른 채로 둔다
+  } catch (e) {
+    console.warn(e);
+    showToast(S.copyFailed);
+  }
+});
+$('selShare').addEventListener('click', async () => {
+  const text = selectedText();
+  if (!text) return;
+  try {
+    await navigator.share({ text });
+  } catch (e) {
+    if (e.name !== 'AbortError') { // 공유 창을 그냥 닫은 것은 알리지 않는다
+      console.warn(e);
+      showToast(S.shareFailed);
+    }
+  }
+});
+$('selClear').addEventListener('click', clearSelection);
+// 동작 바 높이를 --sel-h로 알린다(아래쪽 이동 버튼·알림이 가리지 않게). 숨기면 0
+new ResizeObserver(([e]) => {
+  document.documentElement.style.setProperty('--sel-h',`${Math.ceil(e.borderBoxSize?.[0]?.blockSize ?? e.target.offsetHeight)}px`);
+}).observe($selBar);
 
 /** 위치를 바꾼다. 주소 뒤 #책:장을 바꾸면 hashchange에서 그린다(뒤로 가기가 되게) */
 function go(newPos) {
@@ -1708,6 +1805,10 @@ $('larger').addEventListener('click', () => changeFont(FONT_STEP));
 
 document.addEventListener('keydown', (e) => {
   if (anyDialogOpen() || e.altKey || e.ctrlKey || e.metaKey) return;
+  if (e.key === 'Escape' && selected.size) {
+    clearSelection();
+    return;
+  }
   // 입력 칸·선택 상자에서는 화살표가 그 안에서 움직인다
   if (e.target instanceof HTMLInputElement || e.target instanceof HTMLSelectElement) return;
   if (e.key === 'ArrowLeft') goChapter('prev');

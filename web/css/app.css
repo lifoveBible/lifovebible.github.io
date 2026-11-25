@@ -139,6 +139,8 @@ main.wide { max-width: calc(var(--nver, 2) * var(--verse-size) * 34 + 80px); }
   .nav-left main.wide { padding-right: 16px; padding-left: 48px; } /* 이동 버튼을 왼쪽에 둘 때 */
 }
 main { flex: 1 0 auto; width: 100%; max-width: 760px; margin: 0 auto; padding: 8px 16px 24px; color: var(--page-fg); }
+/* 아래쪽 동작 바(#selBar)가 마지막 절을 가리지 않게 */
+html:not(.bar-top) main { padding-bottom: calc(24px + var(--sel-h, 0px)); }
 #status { color: var(--muted); font-size: 0.9rem; margin: 8px 0; }
 #status.error { color: var(--error); }
 #emptyBox { margin: 8px 0; }
@@ -156,6 +158,10 @@ main { flex: 1 0 auto; width: 100%; max-width: 760px; margin: 0 auto; padding: 8
   padding: 0.25em 0;
 }
 #verses .num { color: var(--page-muted); font-size: 0.7em; text-align: right; }
+/* 절을 누르면 고른다(app.js 절 고르기). manipulation: 두 번 눌러 확대를 꺼서 누를 때 늦지 않게(두 손가락 확대는 된다) */
+#verses li { cursor: pointer; -webkit-tap-highlight-color: transparent; }
+#verses { touch-action: manipulation; }
+#verses li.selected { background: color-mix(in srgb, var(--accent) 22%, transparent); border-radius: 4px; }
 #verses .missing { color: var(--page-muted); }
 
 
@@ -385,7 +391,7 @@ dialog.menu button:hover, dialog.menu button:focus-visible { background: var(--b
 .side-nav[data-pos^="left"] { right: auto; left: 2px; }
 .side-nav[data-pos$="bottom"] {
   top: auto;
-  bottom: calc(var(--bar-h, 0px) + 8px);
+  bottom: calc(var(--bar-h, 0px) + var(--sel-h, 0px) + 8px); /* 절을 고르면 동작 바 위로 */
   transform: none;
 }
 .bar-top .side-nav[data-pos$="bottom"] { bottom: 8px; }
@@ -407,7 +413,7 @@ dialog.menu button:hover, dialog.menu button:focus-visible { background: var(--b
 #toast {
   position: fixed;
   left: 50%;
-  bottom: 120px;
+  bottom: max(120px, calc(var(--bar-h, 0px) + var(--sel-h, 0px) + 16px));
   transform: translateX(-50%);
   z-index: 6;
   max-width: calc(100% - 32px);
@@ -420,6 +426,27 @@ dialog.menu button:hover, dialog.menu button:focus-visible { background: var(--b
   word-break: keep-all;
 }
 #toast[hidden] { display: none; }
+
+/* ---- 고른 절 동작 바 ----
+   책·장 바 바로 옆(바가 아래면 바 위, 위면 바 아래)에 붙는 띠. 바와 같은 색 */
+#selBar {
+  position: fixed;
+  left: 0;
+  right: 0;
+  bottom: var(--bar-h, 0px);
+  z-index: 2;
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  padding: 6px 8px;
+  background: var(--bar);
+  border-top: 1px solid var(--line);
+}
+.bar-top #selBar { top: var(--bar-h, 0px); bottom: auto; border-top: 0; border-bottom: 1px solid var(--line); }
+#selBar[hidden] { display: none; }
+#selBar button[hidden] { display: none; }
+#selCount { flex: 1; min-width: 0; font-size: 0.9rem; font-weight: 600; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+#selBar button { flex: none; }
 
 /* ---- 본문화면설정 ---- */
 .settings { padding-bottom: 16px; }

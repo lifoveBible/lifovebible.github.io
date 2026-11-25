@@ -153,6 +153,15 @@ const STRINGS = {
     stop: '중지',
     more: (n) => `더 보기 (${n}개 남음)`,
     verseRef: (book, chapter, verse) => `${book} ${chapter}:${verse}`,
+    selCount: (n) => `${n}절 선택`,
+    copy: '복사',
+    share: '공유',
+    copyVerses: '선택한 절 복사', // menu_copy_verse
+    shareVerses: '선택한 절 전송', // menu_verse_send
+    clearSelection: '선택 해제', // menu_check_clear
+    copied: '클립보드에 선택한 절을 복사했습니다.', // text_copied_selected_verses
+    copyFailed: '복사하지 못했습니다',
+    shareFailed: '공유하지 못했습니다',
   },
   en: {
     listLoading: 'Loading list…',
@@ -305,6 +314,15 @@ const STRINGS = {
     stop: 'Stop',
     more: (n) => `Show more (${n} left)`,
     verseRef: (book, chapter, verse) => `${book} ${chapter}:${verse}`,
+    selCount: (n) => (n === 1 ? '1 verse' : `${n} verses`),
+    copy: 'Copy',
+    share: 'Share',
+    copyVerses: 'Copy the selected verse(s)', // menu_copy_verse
+    shareVerses: 'Send the selected verse(s)', // menu_verse_send
+    clearSelection: 'Un-check the selected verse(s)', // menu_check_clear
+    copied: 'Copied the selected verse(s)', // text_copied_selected_verses
+    copyFailed: 'Could not copy',
+    shareFailed: 'Could not share',
   },
 };
 
