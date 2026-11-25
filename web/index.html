@@ -1,0 +1,118 @@
+<!doctype html>
+<html lang="ko">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Lifove Bible</title>
+  <!-- 설치(홈 화면에 추가)용. 위쪽 막대 색(--bar)과 맞춘다 -->
+  <meta name="theme-color" content="#f6f6f6" media="(prefers-color-scheme: light)">
+  <meta name="theme-color" content="#1e1e1e" media="(prefers-color-scheme: dark)">
+  <link rel="manifest" href="manifest.webmanifest">
+  <link rel="icon" href="icons/icon.svg" type="image/svg+xml">
+  <link rel="apple-touch-icon" href="icons/apple-touch-icon.png">
+  <link rel="stylesheet" href="css/app.css">
+</head>
+<body>
+  <!-- 읽기 화면. 문구는 js/strings.js에서 채운다 -->
+  <header class="bar">
+    <div class="nav">
+      <button id="prevTop" class="icon" data-label="prev">◀</button>
+      <button id="ref" class="ref"></button>
+      <button id="nextTop" class="icon" data-label="next">▶</button>
+    </div>
+    <div class="tools">
+      <button id="versionBtn" class="versions"></button>
+      <button id="searchBtn" class="icon">🔍</button>
+      <span class="font" role="group" id="fontGroup">
+        <button id="smaller" class="icon">가-</button>
+        <button id="larger" class="icon">가+</button>
+      </span>
+    </div>
+  </header>
+
+  <main>
+    <p id="status" role="status"></p>
+    <ol id="verses"></ol>
+    <nav class="pager">
+      <button id="prev"></button>
+      <button id="next"></button>
+    </nav>
+  </main>
+
+  <!-- 책 → 장 고르기. 앱의 DialogBookSelectionTable, DialogChapterSelectionTable에 해당 -->
+  <dialog id="picker">
+    <div class="picker-head">
+      <button id="pickerBack" class="link" hidden></button>
+      <h2 id="pickerTitle"></h2>
+      <button id="pickerClose" class="icon">✕</button>
+    </div>
+    <div id="pickerBody"></div>
+  </dialog>
+
+  <!-- 역본 고르기(여러 개면 대조 보기). 앱의 역본대조보기 대화 상자(Util SEL_VER)에 해당 -->
+  <dialog id="verPicker">
+    <div class="picker-head">
+      <h2 id="verTitle"></h2>
+      <button id="verClose" class="icon">✕</button>
+    </div>
+    <div id="verBody">
+      <p id="verHint" class="hint"></p>
+      <p id="verNote" class="hint error" hidden></p>
+      <!-- 성경 파일 수동 넣기. 폴더 고르기는 webkitdirectory(아이폰 사파리는 안 될 수 있다) -->
+      <div class="import">
+        <button id="importFilesBtn"></button>
+        <button id="importFolderBtn"></button>
+        <input type="file" id="importFiles" accept=".lfa,.bdf" multiple hidden>
+        <input type="file" id="importFolder" webkitdirectory multiple hidden>
+      </div>
+      <p id="importHint" class="hint"></p>
+      <p id="importNote" class="hint" role="status" hidden></p>
+      <div id="verList"></div>
+    </div>
+    <div class="picker-foot">
+      <label class="check"><input type="checkbox" id="oneColumn"> <span id="oneColumnLabel"></span></label>
+      <span class="spacer"></span>
+      <button id="verCancel"></button>
+      <button id="verOk" class="primary"></button>
+    </div>
+  </dialog>
+
+  <!-- 검색. 앱의 SearchView에 해당(검색어 A·B, 범위). 창을 닫아도 지난 결과는 남는다 -->
+  <dialog id="searchBox">
+    <div class="picker-head">
+      <h2 id="searchTitle"></h2>
+      <button id="searchClose" class="icon">✕</button>
+    </div>
+    <form id="searchForm" class="search-form">
+      <div class="search-row">
+        <input type="search" id="qA" autofocus enterkeyhint="search">
+        <input type="search" id="qB" enterkeyhint="search">
+      </div>
+      <div class="search-row">
+        <select id="searchRange"></select>
+        <select id="searchVer"></select>
+        <button id="searchGo" type="submit" class="primary"></button>
+      </div>
+    </form>
+    <div id="searchBody">
+      <div class="search-status">
+        <p id="searchStatus" role="status"></p>
+        <button id="searchStop" hidden></button>
+      </div>
+      <ol id="searchResults"></ol>
+      <button id="searchMore" hidden></button>
+    </div>
+  </dialog>
+
+  <!-- 새 버전을 받아 두었을 때 아래에 보인다(js/pwa.js) -->
+  <div id="updateBar" role="status" hidden>
+    <span id="updateText"></span>
+    <button id="updateBtn"></button>
+  </div>
+
+  <!-- 성경 파일을 끌어다 놓는 동안 보인다 -->
+  <div id="dropOverlay" hidden><p id="dropText"></p></div>
+
+  <script type="module" src="js/app.js"></script>
+</body>
+</html>

@@ -1,0 +1,294 @@
+:root {
+  --bg: #fff;
+  --fg: #222;
+  --muted: #666;
+  --line: #ddd;
+  --bar: #f6f6f6;
+  --accent: #1a73e8;
+  --accent-bg: #e8f0fe;
+  --error: #b00020;
+  --verse-size: 18px; /* app.js가 저장해 둔 글자 크기로 바꾼다 */
+}
+@media (prefers-color-scheme: dark) {
+  :root {
+    --bg: #121212;
+    --fg: #e6e6e6;
+    --muted: #9a9a9a;
+    --line: #333;
+    --bar: #1e1e1e;
+    --accent: #8ab4f8;
+    --accent-bg: #23324a;
+    --error: #ff6b81;
+  }
+}
+
+* { box-sizing: border-box; }
+html { color-scheme: light dark; }
+body {
+  margin: 0;
+  background: var(--bg);
+  color: var(--fg);
+  font-family: system-ui, -apple-system, "Segoe UI", "Malgun Gothic", "Apple SD Gothic Neo", sans-serif;
+  line-height: 1.7;
+}
+button, select { font: inherit; color: inherit; }
+button {
+  min-height: 40px;
+  padding: 4px 10px;
+  border: 1px solid var(--line);
+  border-radius: 6px;
+  background: var(--bg);
+  cursor: pointer;
+}
+button:disabled { opacity: 0.4; cursor: default; }
+select {
+  min-height: 40px;
+  padding: 4px 6px;
+  border: 1px solid var(--line);
+  border-radius: 6px;
+  background: var(--bg);
+}
+
+/* ---- 위쪽 막대 ---- */
+.bar {
+  position: sticky;
+  top: 0;
+  z-index: 1;
+  display: flex;
+  flex-wrap: wrap; /* 폰 폭에서는 역본·글자 크기가 둘째 줄로 내려간다 */
+  gap: 6px;
+  padding: 6px 8px;
+  background: var(--bar);
+  border-bottom: 1px solid var(--line);
+}
+.nav { display: flex; gap: 4px; flex: 1 1 260px; min-width: 0; }
+.tools { display: flex; gap: 4px; flex: 1 1 220px; min-width: 0; }
+.font { display: flex; gap: 4px; }
+.icon { min-width: 44px; padding: 4px 6px; }
+.ref {
+  flex: 1 1 auto;
+  min-width: 0;
+  font-weight: 600;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+/* ---- 본문 ---- */
+main { max-width: 760px; margin: 0 auto; padding: 8px 16px 24px; }
+#status { color: var(--muted); font-size: 0.9rem; margin: 8px 0; }
+#status.error { color: var(--error); }
+
+/* 한글은 낱말 가운데서 줄을 바꾸지 않게. 너무 긴 낱말만 아무 데서나 */
+#verses { list-style: none; padding: 0; margin: 0; font-size: var(--verse-size); word-break: keep-all; overflow-wrap: anywhere; }
+/* 절 번호 칸과 본문 칸을 나눈다(앱처럼). 본문이 여러 줄이어도 절 번호 밑으로 들어가지 않는다.
+   번호 칸은 세 자리(시 119:176)가 들어가는 고정 폭이라 절마다 본문 시작 위치가 같다 */
+#verses li {
+  display: grid;
+  grid-template-columns: 1.6em minmax(0, 1fr); /* minmax: 긴 낱말이 칸을 넓히지 않게 */
+  column-gap: 0.4em;
+  align-items: baseline;
+  padding: 0.25em 0;
+}
+#verses .num { color: var(--muted); font-size: 0.7em; text-align: right; }
+#verses .missing { color: var(--muted); }
+
+.pager { display: flex; justify-content: space-between; gap: 8px; margin-top: 24px; }
+.pager button { flex: 0 1 auto; }
+
+/* ---- 책·장 고르기 ---- */
+dialog {
+  width: min(720px, calc(100vw - 16px));
+  max-height: calc(100dvh - 32px);
+  padding: 0;
+  border: 1px solid var(--line);
+  border-radius: 10px;
+  background: var(--bg);
+  color: var(--fg);
+}
+dialog[open] { display: flex; flex-direction: column; }
+dialog::backdrop { background: rgb(0 0 0 / 0.45); }
+.picker-head {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  padding: 6px 8px;
+  border-bottom: 1px solid var(--line);
+}
+.picker-head h2 { flex: 1; margin: 0; font-size: 1.05rem; text-align: center; }
+.picker-head .link { border: 0; background: none; color: var(--accent); }
+#pickerBody { overflow-y: auto; padding: 8px 12px 16px; }
+#pickerBody h3 { font-size: 0.9rem; color: var(--muted); margin: 8px 0 6px; }
+
+.grid { display: grid; gap: 6px; }
+.grid.books { grid-template-columns: repeat(auto-fill, minmax(88px, 1fr)); }
+.grid.chapters { grid-template-columns: repeat(auto-fill, minmax(52px, 1fr)); }
+/* 폰 폭에서 책 이름이 세 칸에 들어가게. "데살로니가전서"처럼 긴 이름은 두 줄로 */
+.grid button { padding: 4px 2px; font-size: 0.9rem; line-height: 1.3; word-break: keep-all; overflow-wrap: anywhere; }
+.grid button.current { border-color: var(--accent); background: var(--accent-bg); font-weight: 600; }
+
+/* ---- 역본 버튼 ---- */
+.tools .versions {
+  flex: 1 1 auto;
+  min-width: 0;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+/* ---- 대조 보기 ----
+   앱의 2단 보기(VerseList)는 역본을 둘씩 한 줄에 놓는다(1·2, 3·4 …). 1단(VerseListOneColumn)은 위아래로.
+   절과 절 사이에 줄을 그어 어느 칸이 같은 절인지 보이게 한다 */
+#verses.compare li { padding: 0.45em 0; border-bottom: 1px solid var(--line); }
+#verses.compare .cells { display: grid; gap: 0.3em 0.9em; min-width: 0; }
+#verses.compare.two .cells { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+#verses.compare .vname { color: var(--accent); font-size: 0.65em; margin-right: 0.2em; }
+/* 2단은 칸이 좁지만 한글을 낱말 중간에서 끊으면(word-break: normal) 더 읽기 어려웠다. keep-all 그대로 둔다 */
+
+/* ---- 역본 고르기 ---- */
+#verBody { overflow-y: auto; padding: 4px 12px 8px; }
+#verBody h3 { font-size: 0.9rem; color: var(--muted); margin: 12px 0 4px; }
+.hint { font-size: 0.85rem; color: var(--muted); margin: 6px 0; }
+.hint.error { color: var(--error); }
+.ver-list { list-style: none; margin: 0; padding: 0; }
+.ver-list li {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  border-bottom: 1px solid var(--line);
+}
+.ver-list label {
+  flex: 1;
+  min-width: 0;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  min-height: 44px;
+  cursor: pointer;
+  line-height: 1.3;
+}
+.ver-list input { width: 20px; height: 20px; flex: none; margin: 0; }
+.ver-list .order { min-width: 1.2em; color: var(--accent); font-weight: 600; text-align: center; }
+.ver-list .name { overflow-wrap: anywhere; }
+.badge {
+  flex: none;
+  font-size: 0.75rem;
+  color: var(--muted);
+  border: 1px solid var(--line);
+  border-radius: 10px;
+  padding: 0 6px;
+}
+.ver-list .del { min-width: 40px; min-height: 36px; border: 0; background: none; }
+.picker-foot {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 8px;
+  padding: 8px 12px;
+  border-top: 1px solid var(--line);
+}
+.picker-foot .spacer { flex: 1; }
+/* 폰 폭에서 확인 버튼만 둘째 줄로 밀리지 않게 체크 상자는 한 줄을 다 쓴다 */
+.picker-foot .check { flex: 1 1 100%; }
+.check { display: flex; align-items: center; gap: 6px; font-size: 0.9rem; cursor: pointer; }
+.check input { width: 18px; height: 18px; margin: 0; }
+button.primary { background: var(--accent); color: var(--bg); border-color: var(--accent); }
+
+/* ---- 성경 파일 수동 넣기 ---- */
+.import { display: flex; flex-wrap: wrap; gap: 8px; margin-top: 8px; }
+.import button { flex: 1 1 auto; min-height: 40px; }
+#importNote { white-space: pre-line; color: var(--fg); }
+#importNote.error { color: var(--error); }
+#dropOverlay {
+  position: fixed;
+  inset: 0;
+  z-index: 10;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 16px;
+  background: rgb(0 0 0 / 0.45);
+  pointer-events: none; /* drop 이벤트는 밑의 문서가 받는다 */
+}
+#dropOverlay[hidden] { display: none; }
+#dropOverlay p {
+  margin: 0;
+  padding: 24px;
+  border: 3px dashed var(--accent);
+  border-radius: 12px;
+  background: var(--bg);
+  color: var(--fg);
+  text-align: center;
+}
+#verPicker.dropping { outline: 3px dashed var(--accent); outline-offset: -3px; }
+
+/* ---- 검색 ---- */
+.search-form { padding: 8px 12px 4px; display: grid; gap: 6px; }
+.search-row { display: flex; flex-wrap: wrap; gap: 6px; }
+.search-row input {
+  flex: 1 1 140px;
+  min-width: 0;
+  min-height: 40px;
+  padding: 4px 8px;
+  font: inherit;
+  color: inherit;
+  background: var(--bg);
+  border: 1px solid var(--line);
+  border-radius: 6px;
+}
+/* 범위 상자는 이름이 길다("바울서신전체(로마서-빌레몬서)"). 폰 폭에서 줄어들게 */
+.search-row select { flex: 1 1 140px; min-width: 0; }
+.search-row select[hidden] { display: none; }
+.search-row button { flex: 0 0 auto; }
+#searchBody { overflow-y: auto; padding: 0 12px 12px; }
+.search-status { display: flex; align-items: center; gap: 8px; }
+#searchStatus { flex: 1; margin: 6px 0; font-size: 0.9rem; color: var(--muted); }
+#searchStatus.error { color: var(--error); }
+#searchResults { list-style: none; margin: 0; padding: 0; word-break: keep-all; overflow-wrap: anywhere; }
+#searchResults li { border-bottom: 1px solid var(--line); }
+#searchResults button {
+  display: block;
+  width: 100%;
+  padding: 8px 4px;
+  border: 0;
+  border-radius: 0;
+  background: none;
+  text-align: left;
+  line-height: 1.6;
+}
+#searchResults button:hover { background: var(--bar); }
+#searchResults .sref { color: var(--accent); font-weight: 600; font-size: 0.9em; white-space: nowrap; }
+mark { background: #ffe066; color: #222; border-radius: 2px; }
+@media (prefers-color-scheme: dark) {
+  mark { background: #8a6d00; color: #fff; }
+}
+#searchMore { display: block; width: 100%; margin-top: 8px; }
+#searchMore[hidden] { display: none; }
+
+/* 검색 결과에서 온 절을 잠깐 칠한다 */
+#verses li.flash { animation: flash 2s ease-out; }
+@keyframes flash {
+  from { background: var(--accent-bg); }
+  to { background: transparent; }
+}
+
+/* ---- 새 버전 알림 (js/pwa.js) ---- */
+#updateBar {
+  position: fixed;
+  left: 50%;
+  bottom: 16px;
+  transform: translateX(-50%);
+  z-index: 5;
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  width: max-content;
+  max-width: calc(100% - 32px);
+  padding: 8px 8px 8px 16px;
+  border: 1px solid var(--line);
+  border-radius: 8px;
+  background: var(--bar);
+  box-shadow: 0 2px 8px rgb(0 0 0 / 0.2);
+}
+#updateBar[hidden] { display: none; }
+#updateBtn { background: var(--accent); color: var(--bg); border-color: var(--accent); }
