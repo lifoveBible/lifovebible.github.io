@@ -69,6 +69,8 @@ const STRINGS = {
     downloaded: '받음',
     deleteConfirm: (name) => `받아 둔 "${name}"을(를) 지울까요? 다시 읽으려면 성경다운로드에서 다시 받아야 합니다.`,
     menu: '메뉴',
+    help: '도움말', // menu_help
+    helpFailed: '도움말을 불러오지 못했습니다',
     download: '성경다운로드', // menu_download
     downloadHint: '받을 역본을 고르고 다운로드를 누르세요. 받은 역본은 인터넷 없이도 읽을 수 있고, 역본대조보기에서 고를 수 있습니다.',
     downloadAll: (i, n) => `다운로드 중... (${i}/${n})`,
@@ -203,6 +205,8 @@ const STRINGS = {
     downloaded: 'Downloaded',
     deleteConfirm: (name) => `Delete the downloaded "${name}"? To read it again, download it again.`,
     menu: 'Menu',
+    help: 'Help', // menu_help
+    helpFailed: 'Could not load help',
     download: 'Download', // menu_download
     downloadHint: 'Choose versions and tap Download. Downloaded versions can be read without the Internet and chosen in the Parallel Viewer.',
     downloadAll: (i, n) => `Downloading... (${i}/${n})`,

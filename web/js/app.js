@@ -11,6 +11,7 @@ import {
 } from './books.js';
 import { getLfa, cachedUrls, deleteLfa, pruneLfa, canCache } from './lfaStore.js';
 import { registerServiceWorker } from './pwa.js';
+import { detectPlatform, isStandalone } from './platform.js';
 import {
   alignChapters, toggleCode, groupByLang, isCached, pickableVersions, fallbackVersions,
 } from './compare.js';
@@ -124,6 +125,9 @@ $('menuVersions').textContent = S.pickVersions;
 $('menuOneVersion').textContent = S.pickOneVersion;
 $('menuSettings').textContent = S.viewerSettings;
 $('menuSearch').textContent = S.search;
+$('menuHelp').textContent = S.help;
+$('helpTitle').textContent = S.help;
+label($('helpClose'), S.close);
 $('dlTitle').textContent = S.download;
 $('dlHint').textContent = S.downloadHint;
 label($('dlClose'), S.close);
@@ -619,8 +623,37 @@ $('menuSettings').addEventListener('click', fromMenu(openSettings));
 $('menuOneVersion').addEventListener('click', fromMenu(() => openVerPicker('one')));
 $('menuVersions').addEventListener('click', fromMenu(() => openVerPicker('multi')));
 $('menuSearch').addEventListener('click', fromMenu(openSearch));
+$('menuHelp').addEventListener('click', fromMenu(openHelp));
 // 메뉴 밖(배경)을 누르면 닫는다
 $menu.addEventListener('click', (e) => { if (e.target === $menu) $menu.close(); });
+
+// ---- 도움말 ----
+// 내용은 help/<언어>.html(우리 파일이라 innerHTML로 넣는다). 앱 파일로 캐시되어 오프라인에서도 열린다.
+// 한 번 넣으면 다시 받지 않는다(펼친 항목도 그대로 둔다)
+const $helpBox = $('helpBox'), $helpBody = $('helpBody');
+let helpLoaded = false;
+
+async function openHelp() {
+  $helpBox.showModal();
+  if (helpLoaded) return;
+  try {
+    const res = await fetch(`help/${lang}.html`);
+    if (!res.ok) throw new Error(res.status);
+    $helpBody.innerHTML = await res.text();
+    helpLoaded = true;
+  } catch {
+    $helpBody.textContent = S.helpFailed;
+    return;
+  }
+  // 설치하는 법은 지금 기기 항목만 펼쳐 둔다. 이미 설치한 앱이면 그렇다고 알린다
+  const platform = detectPlatform(navigator.userAgent, navigator.maxTouchPoints);
+  for (const d of $helpBody.querySelectorAll('details[data-platform]')) d.open = d.dataset.platform === platform;
+  if (isStandalone(window)) for (const p of $helpBody.querySelectorAll('[data-installed]')) p.hidden = false;
+  $helpBody.scrollTop = 0;
+}
+
+$('helpClose').addEventListener('click', () => $helpBox.close());
+$helpBox.addEventListener('click', (e) => { if (e.target === $helpBox) $helpBox.close(); });
 
 /** 묶음 제목에 쓸 언어 이름 */
 function langNameOf() {

@@ -91,6 +91,16 @@
     <button id="menuDownload"></button>
     <button id="menuImport"></button>
     <button id="menuSettings"></button>
+    <button id="menuHelp"></button>
+  </dialog>
+
+  <!-- 도움말. 앱의 메뉴 > 도움말에 해당. 내용은 help/<언어>.html을 불러와 넣는다(오프라인에서도 보이게 앱 파일로 캐시) -->
+  <dialog id="helpBox">
+    <div class="picker-head">
+      <h2 id="helpTitle"></h2>
+      <button id="helpClose" class="icon">✕</button>
+    </div>
+    <div id="helpBody" class="scroll help"></div>
   </dialog>
 
   <!-- 본문화면설정. 앱 설정의 "본문화면설정" 화면(화면 구성, 색)에 해당. 앱처럼 바꾸면 바로 적용(확인 단추 없음) -->

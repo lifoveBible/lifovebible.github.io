@@ -9,13 +9,15 @@
 //   (바꾸지 않으면 브라우저가 새 버전을 알아채지 못한다. tests/sw.test.js가 잊은 것을 잡는다)
 // - 모듈 서비스 워커는 파이어폭스 지원이 늦어서 보통 스크립트로 둔다
 
-const VERSION = '7f2788ef4c65';
+const VERSION = '2cfcdb6c8edf';
 const CACHE = 'lifove-app-' + VERSION;
 const CACHE_PREFIX = 'lifove-app-'; // 이 이름으로 시작하는 옛 캐시만 지운다(lfa-v1은 남긴다)
 
 // 이 서비스 워커 위치 기준 경로. 고르는 규칙: index.html, manifest, css/·js/·icons/ 아래 모든 파일
 const APP_FILES = [
   'css/app.css',
+  'help/en.html',
+  'help/ko.html',
   'icons/apple-touch-icon.png',
   'icons/icon-192.png',
   'icons/icon-512.png',
@@ -34,6 +36,7 @@ const APP_FILES = [
   'js/localBible.js',
   'js/localStore.js',
   'js/navBar.js',
+  'js/platform.js',
   'js/pwa.js',
   'js/search.js',
   'js/strings.js',

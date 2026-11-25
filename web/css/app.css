@@ -193,6 +193,21 @@ html:not(.show-vname) #verses.compare .vname { display: none; }
 button.link { border: 0; background: none; color: var(--accent); padding: 4px 0; text-align: left; }
 .hint { font-size: 0.85rem; color: var(--muted); margin: 6px 0; }
 .hint.error { color: var(--error); }
+
+/* ---- 도움말 ---- 글이 길어 본문처럼 줄 간격을 넉넉히. 기기별 설치 방법은 details로 접는다 */
+.help { line-height: 1.55; font-size: 0.95rem; padding-bottom: 16px; }
+.help h3 { color: var(--fg); font-size: 1rem; margin: 18px 0 6px; }
+.help h3:first-child { margin-top: 8px; }
+.help h4 { font-size: 0.9rem; margin: 12px 0 4px; }
+.help p { margin: 6px 0; }
+.help ul, .help ol { margin: 6px 0; padding-left: 1.4em; }
+.help li { margin: 3px 0; }
+.help a { color: var(--accent); }
+.help details { border: 1px solid var(--line); border-radius: 8px; margin: 8px 0; padding: 0 12px; }
+.help details[open] { padding-bottom: 8px; }
+.help summary { cursor: pointer; font-weight: 600; padding: 10px 0; }
+.help .note { border-left: 3px solid var(--accent); background: var(--accent-bg); padding: 8px 10px; border-radius: 4px; }
+.help code { font-size: 0.9em; }
 .ver-list { list-style: none; margin: 0; padding: 0; }
 .ver-list li {
   display: flex;
