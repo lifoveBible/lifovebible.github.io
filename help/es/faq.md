@@ -35,6 +35,11 @@ Los marcadores se incluyen en la copia. Haz una copia antes de cambiar de teléf
 
 Desde la versión 7.5.2, el icono es un libro con marcador. El nombre sigue siendo Lifove Bible; si no lo encuentras en la pantalla de inicio, búscalo por su nombre.
 
+### ¿Puedo usarla en iPhone o PC?
+
+Sí. Puede obtener la aplicación web en [https://lifovebible.github.io/](https://lifovebible.github.io/) e instalarla. Abra la aplicación web, toque el botón de menú y consulte la Ayuda para ver cómo instalarla en su dispositivo.
+Por ahora solo admite las funciones básicas de lectura; se irán añadiendo más funciones en próximas actualizaciones.
+
 ## Lectura
 
 ### ¿Cómo me muevo rápidamente?

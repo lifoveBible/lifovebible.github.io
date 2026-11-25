@@ -35,6 +35,11 @@ Bookmarks are included in the backup. Please back up before changing phones or u
 
 Starting with 7.5.2, the app icon is a book with a bookmark. The name is still Lifove Bible, so if you can't find it on your home screen, search for it by name.
 
+### Can I use it on iPhone or PC?
+
+Yes. You can get the web app at [https://lifovebible.github.io/](https://lifovebible.github.io/) and install it. Open the web app, tap the menu button, and see Help for how to install it on your device.
+For now it supports basic reading only; more features will keep coming in future updates.
+
 ## Reading
 
 ### How do I move around quickly?

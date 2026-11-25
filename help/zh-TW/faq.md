@@ -35,6 +35,11 @@
 
 從 7.5.2 開始，App 圖示改成附書籤的書本。名稱仍是 Lifove Bible，如果在主畫面找不到，請用名稱搜尋。
 
+### 不能在 iPhone 或電腦上使用嗎？
+
+可以在 [https://lifovebible.github.io/](https://lifovebible.github.io/) 取得網頁 App 並安裝。開啟網頁 App 後，點選選單按鈕，在說明中查看如何在裝置上安裝 App。
+目前僅支援基本閱讀功能，之後會陸續更新更多功能。
+
 ## 閱讀
 
 ### 如何快速移動到想讀的章？
