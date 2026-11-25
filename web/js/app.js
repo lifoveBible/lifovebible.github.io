@@ -1,4 +1,4 @@
-// 읽기 화면: 책·장 고르기, 본문, 이전/다음 장, 글자 크기, 마지막 읽은 곳 기억(2단계),
+// 읽기 화면: 책·장·절 고르기, 본문, 이전/다음 장, 글자 크기(본문화면설정), 마지막 읽은 곳 기억(2단계),
 // 역본 고르기와 대조 보기(3단계), 성경 파일 수동 넣기, 검색(4단계),
 // 앱처럼 ☰ 메뉴 → 성경다운로드·성경 파일 넣기. 역본대조보기에서는 받은 것과 넣은 것만 고른다.
 
@@ -45,8 +45,9 @@ document.documentElement.lang = lang;
 
 const $ = (id) => document.getElementById(id);
 const $status = $('status'), $verses = $('verses');
-// 장 이동은 오른쪽 가운데 이동 버튼(‹ ›)과 키보드 ←/→. 바의 ◀ ▶와 본문 끝 이전/다음 장 단추는 앱처럼 없앴다
-const $ref = $('ref');
+// 장 이동은 오른쪽 가운데 이동 버튼(‹ ›)과 키보드 ←/→. 바의 ◀ ▶와 본문 끝 이전/다음 장 단추는 앱처럼 없앴다.
+// 바에는 앱처럼 책·장·절 단추를 따로 둔다(처음에는 "책 장 ▾" 한 단추였다)
+const $ref = $('bookBtn'), $chapterBtn = $('chapterBtn'), $verseBtn = $('verseBtn');
 const $main = document.querySelector('main');
 const $picker = $('picker'), $pickerTitle = $('pickerTitle');
 const $pickerBody = $('pickerBody'), $pickerBack = $('pickerBack');
@@ -118,6 +119,9 @@ function label(el, text) {
 label($('smaller'), S.textSize + ' ' + S.smaller);
 label($('larger'), S.textSize + ' ' + S.larger);
 $('fontGroup').setAttribute('aria-label', S.textSize);
+$('fontSizeLabel').textContent = S.textSize;
+label($ref, S.pickBook);
+label($chapterBtn, S.pickChapter);
 label($('pickerClose'), S.close);
 label($('verClose'), S.close);
 $pickerBack.textContent = '◀ ' + S.backToBooks;
@@ -168,6 +172,7 @@ function applyFont() {
   document.documentElement.style.setProperty('--verse-size', size + 'px');
   $('smaller').disabled = size <= FONT_MIN;
   $('larger').disabled = size >= FONT_MAX;
+  $('fontSizeNow').textContent = size; // 본문화면설정의 글자 크기 칸. 미리보기 글도 --verse-size를 따른다
 }
 
 function changeFont(delta) {
@@ -175,6 +180,7 @@ function changeFont(delta) {
   prefs.fontSize = Math.min(FONT_MAX, Math.max(FONT_MIN, now + delta));
   savePrefs();
   applyFont();
+  queueVerseBtn(); // 글자 크기가 바뀌면 맨 위 절도 바뀔 수 있다
 }
 
 // ---- 역본 ----
@@ -304,7 +310,8 @@ async function render() {
   const slide = slideDir; // 이번 그리기에만 쓴다(뒤로 가기 등 다른 길로 그릴 때는 움직이지 않게)
   slideDir = null;
   const name = NAMES[pos.book];
-  $ref.textContent = S.ref(name, pos.chapter) + ' ▾';
+  $ref.textContent = name;
+  $chapterBtn.textContent = pos.chapter; // 앱처럼 숫자만("장"을 붙이면 폰 폭에서 책 이름 칸이 좁아진다)
   fitRef();
   document.title = S.ref(name, pos.chapter) + ' - Lifove Bible';
 
@@ -323,6 +330,7 @@ async function render() {
   $('emptyBox').hidden = vers.length > 0 || !versionList.length;
   if (!vers.length) {
     $verses.replaceChildren();
+    updateVerseBtn();
     if (versionList.length) setStatus(S.noVersions);
     return;
   }
@@ -355,7 +363,28 @@ async function render() {
   else if (!$verses.childElementCount) setStatus(S.noChapter);
   else setStatus('');
   showPendingVerse();
+  updateVerseBtn(); // 스크롤이 그대로(맨 위)면 scroll 이벤트가 오지 않아서 직접
 }
+
+/**
+ * 절 단추: 맨 위에 보이는 절과 마지막 절 번호(앱 getVersePositionInfo). 어디까지 읽었고 얼마나 남았는지 보이게.
+ * 대조 보기도 한 절이 한 줄(li)이라 줄 수가 절 수다(앱은 단 수로 나눠 셈한다)
+ */
+function updateVerseBtn() {
+  const last = $verses.childElementCount;
+  const now = last ? Number(firstVisible()?.id.slice(1)) || 1 : 0;
+  $('verseNow').textContent = last ? now : '-';
+  $('verseLast').textContent = last ? last : '';
+  $verseBtn.disabled = !last;
+  label($verseBtn, last ? S.pickVerse + ' (' + S.versePos(now, last) + ')' : S.pickVerse);
+}
+// 스크롤할 때마다 세지 않고 화면을 그릴 때 한 번만
+let verseBtnFrame = 0;
+const queueVerseBtn = () => {
+  if (!verseBtnFrame) verseBtnFrame = requestAnimationFrame(() => { verseBtnFrame = 0; updateVerseBtn(); });
+};
+window.addEventListener('scroll', queueVerseBtn, { passive: true });
+window.addEventListener('resize', queueVerseBtn);
 
 /**
  * 검색 결과에서 왔으면 그 절로 스크롤하고 잠깐 칠한다(flash). 최근목록에서 왔으면 읽던 절을 맨 위에.
@@ -480,10 +509,11 @@ window.addEventListener('hashchange', () => {
   render();
 });
 
-// ---- 책·장 고르기 ----
-function openPicker() {
+// ---- 책·장·절 고르기 ----
+// 앱처럼 단추마다 따로 연다. 책 → (장이 여럿이면) 장, 장 단추는 지금 책의 장(◀ 책 목록으로 갈 수 있다), 절 단추는 지금 장의 절
+function openPicker(show) {
   $picker.showModal();
-  showBooks(); // 열린 뒤에 그려야 지금 책으로 스크롤이 된다
+  show(); // 열린 뒤에 그려야 지금 책·절로 스크롤이 된다
 }
 
 function showBooks() {
@@ -533,7 +563,33 @@ function pick(p) {
   jumpTo(p);
 }
 
-$ref.addEventListener('click', openPicker);
+/** 지금 장의 절 번호. 누르면 그 절을 맨 위로(앱 DialogVerseSelectionTable). 같은 장이라 최근목록은 그대로 */
+function showVerses() {
+  $pickerTitle.textContent = S.pickVerse;
+  $pickerBack.hidden = true;
+  const now = firstVisible();
+  const grid = document.createElement('div');
+  grid.className = 'grid chapters';
+  for (const li of $verses.children) {
+    const btn = document.createElement('button');
+    btn.textContent = li.id.slice(1);
+    if (li === now) btn.className = 'current';
+    btn.addEventListener('click', () => {
+      $picker.close();
+      if (li === $verses.firstElementChild) window.scrollTo(0, 0);
+      else scrollToTop(li);
+      updateVerseBtn();
+    });
+    grid.append(btn);
+  }
+  $pickerBody.replaceChildren(grid);
+  $pickerBody.scrollTop = 0;
+  $pickerBody.querySelector('.current')?.scrollIntoView({ block: 'center' });
+}
+
+$ref.addEventListener('click', () => openPicker(showBooks));
+$chapterBtn.addEventListener('click', () => openPicker(() => showChapters(pos.book)));
+$verseBtn.addEventListener('click', () => openPicker(showVerses));
 $pickerBack.addEventListener('click', showBooks);
 $('pickerClose').addEventListener('click', () => $picker.close());
 // 바깥(배경)을 누르면 닫는다. 대화 상자 안쪽을 누르면 target이 안쪽 요소다
@@ -1475,7 +1531,7 @@ new ResizeObserver(([e]) => {
   root.style.setProperty('--bar-h', `${Math.ceil(e.borderBoxSize?.[0]?.blockSize ?? e.target.offsetHeight)}px`);
 }).observe(document.querySelector('.bar'));
 
-// ---- 이동 ----
+// ---- 글자 크기(본문화면설정) ----
 $('smaller').addEventListener('click', () => changeFont(-FONT_STEP));
 $('larger').addEventListener('click', () => changeFont(FONT_STEP));
 

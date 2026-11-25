@@ -16,15 +16,17 @@ const STRINGS = {
     next: '다음 장',
     pickBook: '책 고르기',
     pickChapter: '장 고르기',
+    pickVerse: '절 고르기',
+    versePos: (now, last) => `${last}절 중 ${now}절`, // 절 단추를 읽어 줄 때
     backToBooks: '책 목록',
     close: '닫기',
     version: '역본',
     pickVersions: '역본대조보기', // menu_sel_ver
     pickOneVersion: '다른성경보기', // menu_sel_one_ver
-    barBottom: '책·장 바를 아래에 표시', // text_pref_header_bottom에서 "절"을 뺐다(웹에는 절 버튼이 없다)
+    barBottom: '책·장·절 바를 아래에 표시', // text_pref_header_bottom
     viewerSettings: '본문화면설정', // text_title_pref_1
     groupScreen: '화면 구성', // pref_group_screen
-    groupColors: '색', // pref_group_colors
+    groupColors: '글자와 색', // 앱은 pref_group_text(글자)와 pref_group_colors(색)가 따로
     oneColumnHint: '끄면 화면 폭에 맞춰 2단 이상으로 나란히 봅니다. 넓은 화면에서는 여러 역본이 한 줄에 섭니다.',
     showVerName: '역본명 보이기', // 앱은 반대 뜻의 "여백 및 역본명 제거"(text_pref_nomargin_preferences)
     showVerNameHint: '여러 역본을 볼 때 칸마다 역본 이름을 보입니다.',
@@ -154,6 +156,8 @@ const STRINGS = {
     next: 'Next chapter',
     pickBook: 'Choose a book',
     pickChapter: 'Choose a chapter',
+    pickVerse: 'Choose a verse',
+    versePos: (now, last) => `Verse ${now} of ${last}`,
     backToBooks: 'Books',
     close: 'Close',
     version: 'Version',
@@ -162,7 +166,7 @@ const STRINGS = {
     barBottom: 'Book/chapter bar at bottom', // text_pref_header_bottom
     viewerSettings: 'Viewer Settings', // text_title_pref_1
     groupScreen: 'Screen layout', // pref_group_screen
-    groupColors: 'Colors', // pref_group_colors
+    groupColors: 'Text and colors', // app: pref_group_text + pref_group_colors
     oneColumnHint: 'When off, versions sit side by side in two or more columns to fit the screen width.',
     showVerName: 'Show version names',
     showVerNameHint: 'Show the version name in each column when reading several versions.',

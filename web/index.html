@@ -16,15 +16,15 @@
   <!-- 읽기 화면. 문구는 js/strings.js에서 채운다.
        책·장 바는 앱처럼 아래가 기본이고 메뉴에서 위로 바꾼다(html에 bar-top). 위치는 CSS order로 정한다 -->
   <header class="bar">
+    <!-- 앱 verselist.xml처럼 책·장·절 단추를 따로 둔다. 절 단추는 맨 위 절과 마지막 절 번호를 두 줄로(어디까지 읽었는지).
+         글자 크기 가-/가+는 본문화면설정으로 옮겼다 -->
     <div class="nav">
-      <button id="ref" class="ref"></button>
+      <button id="bookBtn" class="ref"></button>
+      <button id="chapterBtn" class="chap"></button>
+      <button id="verseBtn" class="verse"><span id="verseNow"></span><span id="verseLast"></span></button>
     </div>
     <div class="tools">
       <button id="searchBtn" class="icon">🔍</button>
-      <span class="font" role="group" id="fontGroup">
-        <button id="smaller" class="icon">가-</button>
-        <button id="larger" class="icon">가+</button>
-      </span>
     </div>
     <!-- 앱의 메뉴처럼 오른쪽 위 끝. 폰 폭에서도 첫 줄 끝에 오게 CSS order로 자리를 정한다 -->
     <button id="menuBtn" class="icon" aria-haspopup="menu">☰</button>
@@ -116,7 +116,16 @@
         <span><span id="setOneColumnLabel"></span><small id="setOneColumnHint"></small></span></label>
       <label class="setting"><input type="checkbox" id="setVerName">
         <span><span id="setVerNameLabel"></span><small id="setVerNameHint"></small></span></label>
+      <!-- 앱은 "글자"(글자 크기)와 "색"이 따로지만, 미리보기 하나로 크기와 색을 함께 보게 한 묶음으로 -->
       <h3 id="groupColors"></h3>
+      <div class="setting color">
+        <span id="fontSizeLabel"></span>
+        <span class="stepper" role="group" id="fontGroup">
+          <button id="smaller" class="icon">−</button>
+          <output id="fontSizeNow"></output>
+          <button id="larger" class="icon">+</button>
+        </span>
+      </div>
       <label class="setting color"><span id="fontColorLabel"></span><input type="color" id="fontColor"></label>
       <label class="setting color"><span id="bgColorLabel"></span><input type="color" id="bgColor"></label>
       <div id="colorPresets" class="presets"></div>

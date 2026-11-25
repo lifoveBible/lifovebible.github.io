@@ -81,19 +81,19 @@ select {
   border-top: 0;
   border-bottom: 1px solid var(--line);
 }
-.nav { display: flex; gap: 4px; flex: 1 1 140px; min-width: 0; }
+.nav { display: flex; gap: 4px; flex: 1 1 170px; min-width: 0; }
 .tools { display: flex; gap: 4px; flex: none; justify-content: flex-end; }
-/* ☰는 늘 바의 오른쪽 끝(앱의 메뉴 자리). 장 이동 ◀ ▶를 없애 폰 폭(360px)에서도 한 줄에 들어간다.
-   더 좁아서 두 줄이 되면 책 장 줄 끝에 오고 검색·글자 크기가 다른 줄로 간다(그 줄은 오른쪽으로 붙인다).
-   352px = 패딩 16 + 책 장 140 + tools 140 + ☰ 44 + 틈 12 */
+/* ☰는 늘 바의 오른쪽 끝(앱의 메뉴 자리). 책·장·절 🔍 ☰가 폰 폭(360px)에서 한 줄에 들어간다.
+   더 좁아서 두 줄이 되면 ☰는 책 장 절 줄 끝에 오고 검색이 다른 줄로 간다(그 줄은 오른쪽으로 붙인다).
+   글자 크기 가-/가+는 본문화면설정으로 옮겼다.
+   290px = 패딩 16 + 책 장 절 170 + 🔍 44 + ☰ 44 + 틈 12 */
 #menuBtn { flex: none; order: 3; }
-@media (max-width: 351px) {
+@media (max-width: 289px) {
   .tools { flex: 1 1 100%; }
   .nav { order: 1; }
   #menuBtn { order: 2; }
   .tools { order: 3; }
 }
-.font { display: flex; gap: 4px; }
 .icon { min-width: 44px; padding: 4px 6px; }
 .ref {
   flex: 1 1 auto;
@@ -104,6 +104,24 @@ select {
   overflow: hidden;
   text-overflow: ellipsis;
 }
+/* 장 단추: 숫자만(앱처럼). 세 자리(시 150)도 들어가게 */
+.chap { flex: none; min-width: 44px; padding: 4px 6px; font-weight: 600; }
+/* 절 단추: 맨 위 절 / 마지막 절을 두 줄로 작게(앱 verse_select, 12sp) */
+.verse {
+  flex: none;
+  min-width: 44px;
+  padding: 2px 6px;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  font-size: 0.75rem;
+  line-height: 1.15;
+  font-variant-numeric: tabular-nums;
+}
+#verseNow { font-weight: 600; }
+#verseLast { color: var(--muted); border-top: 1px solid var(--line); min-width: 2.2em; text-align: center; }
+#verseLast:empty { display: none; }
 
 /* ---- 본문 ---- */
 /* 여러 단 대조 보기는 넓게. 한 칸이 너무 넓어지지 않게 역본 수(--nver, app.js) × 글자 34자쯤까지만 */
@@ -408,8 +426,12 @@ dialog.menu button:hover, dialog.menu button:focus-visible { background: var(--b
   background: var(--page-bg);
   color: var(--page-fg);
   font-size: var(--verse-size);
+  word-break: keep-all; /* 본문과 같게 낱말 가운데서 줄을 바꾸지 않는다 */
 }
 #colorReset { width: 100%; }
+/* 글자 크기 − 18 + */
+.stepper { display: flex; align-items: center; gap: 6px; }
+.stepper output { min-width: 2em; text-align: center; font-variant-numeric: tabular-nums; }
 /* 고르기 상자는 문구가 길어("화면 + 장 + 최근목록 이동 버튼") 이름 밑에 한 줄을 다 쓴다 */
 .setting.stack { flex-direction: column; align-items: stretch; gap: 6px; padding: 8px 0; }
 .setting.stack select { width: 100%; }
