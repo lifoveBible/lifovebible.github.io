@@ -55,6 +55,8 @@ const STRINGS = {
     },
     navUnit: '위·아래 버튼으로 이동', // 앱은 "볼륨키로 이동"(text_pref_volumekey_preference)을 따른다
     navUnits: { verse: '한 절 이동', page: '한 화면(여러절) 이동', chapter: '한 장 이동' }, // entries_volumekey
+    swipeChapter: '옆으로 밀어 장 넘기기', // text_pref_swipe_chapter
+    swipeChapterHint: '본문을 왼쪽이나 오른쪽으로 밀면 다음 장이나 이전 장으로 넘어갑니다. 스크롤하다가 장이 넘어가는 일이 잦으면 끄세요.',
     navUp: '위로',
     navDown: '아래로',
     navBack: '최근목록 뒤로',
@@ -191,6 +193,8 @@ const STRINGS = {
     },
     navUnit: 'Move with up/down buttons',
     navUnits: { verse: 'Move One Verse', page: 'Move One Screen(verses)', chapter: 'Move One Chapter' }, // entries_volumekey
+    swipeChapter: 'Swipe to change chapters', // text_pref_swipe_chapter
+    swipeChapterHint: 'Swipe the text left or right to go to the next or previous chapter. Turn off if chapters change when you only meant to scroll.',
     navUp: 'Up',
     navDown: 'Down',
     navBack: 'History back',

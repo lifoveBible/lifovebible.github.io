@@ -21,6 +21,7 @@ import {
   NAV_OPTIONS, NAV_DEFAULT, navButtons, NAV_UNITS, NAV_UNIT_DEFAULT, NAV_POSITIONS, navPosition,
   loadHistory, jumpHistory, updateHistory, stepHistory, canBack, canForward,
 } from './navBar.js';
+import { swipeDirection } from './swipe.js';
 import { groupFiles, prepareGroup, openRecord, mergeLocal, classifyName } from './localBible.js';
 import { listLocal, getLocal, putLocal, deleteLocal } from './localStore.js';
 import {
@@ -82,7 +83,8 @@ function savePrefs() {
 const prefs = loadPrefs();
 // prefs: { pos: {book, chapter}, fontSize, versions: [{code, url, name, lang}], oneColumn, started, barTop,
 //          showVerName, fontColor, bgColor, navBar(앱 값 1~8), navUnit('verse'|'page'|'chapter'),
-//          navPos('right-middle'|'right-bottom'|'left-middle'|'left-bottom', 웹에만. 기본 오른쪽 아래) }
+//          navPos('right-middle'|'right-bottom'|'left-middle'|'left-bottom', 웹에만. 기본 오른쪽 아래),
+//          swipeChapter(옆으로 밀어 장 넘기기. 없으면 켬) }
 // started: 역본을 한 번이라도 골랐다. 처음 쓰는 사람에게만 기본 역본을 받아 주려고(syncPrefsVersions).
 // 시작할 때 한 번만 보면 첫 방문에서 다 지웠을 때 또 받아 버려서 그때그때 본다
 
@@ -99,6 +101,7 @@ const opening = new Map(); // url → Promise<LfaFile>. 받는 중(같은 파일
 const downloads = new Map(); // url → {name, got, total}. 받는 중 진행률 표시
 let renderSeq = 0; // 빠르게 장을 넘길 때 늦게 끝난 옛 결과를 버리려고
 let pendingVerse = null; // 검색 결과에서 왔을 때 그린 뒤 보여 줄 절 {book, chapter, verse}
+let slideDir = null; // 'next'|'prev'. 이전/다음 장으로 왔으면 그린 뒤 그쪽에서 들어오게(playSlide)
 
 function setStatus(text, isError = false) {
   $status.textContent = text;
@@ -298,6 +301,8 @@ window.addEventListener('resize', fitRef);
 // ---- 본문 ----
 async function render() {
   const seq = ++renderSeq;
+  const slide = slideDir; // 이번 그리기에만 쓴다(뒤로 가기 등 다른 길로 그릴 때는 움직이지 않게)
+  slideDir = null;
   const name = NAMES[pos.book];
   $ref.textContent = S.ref(name, pos.chapter) + ' ▾';
   fitRef();
@@ -344,6 +349,7 @@ async function render() {
     const names = vers.map((v) => v.name);
     $verses.replaceChildren(...alignChapters(chapters, S.missingVerse).map((r) => compareItem(r, names)));
   }
+  playSlide(slide);
 
   if (errors.length) setStatus(S.loadFailed + ': ' + errors.join(', '), true);
   else if (!$verses.childElementCount) setStatus(S.noChapter);
@@ -428,6 +434,44 @@ function go(newPos) {
   if (location.hash === hash) render();
   else location.hash = hash;
 }
+
+/** 이전/다음 장(‹ › 버튼, ←/→ 키, 위·아래 버튼, 옆으로 밀기). 앱처럼 새 장이 그쪽에서 미끄러져 들어온다 */
+function goChapter(dir) {
+  const to = dir === 'next' ? nextChapter(pos) : prevChapter(pos);
+  if (!to) return;
+  slideDir = dir;
+  go(to);
+}
+
+/** 그린 뒤 본문을 옆에서 들어오게 한다(앱 slide_left_in/slide_right_in). 움직임 줄이기 설정이면 CSS에서 끈다 */
+function playSlide(dir) {
+  $verses.classList.remove('slide-next', 'slide-prev');
+  if (!dir) return;
+  void $verses.offsetWidth; // 같은 쪽으로 연달아 넘겨도 다시 움직이게
+  $verses.classList.add('slide-' + dir);
+}
+
+// ---- 옆으로 밀어 장 넘기기 ----
+// 손가락을 뗄 때 한 번만 판정한다(앱과 같게). passive로 받아 세로 스크롤은 건드리지 않는다.
+// 손가락을 따라 화면이 끌려오게 하는 방식은 코드가 커지고 세로 스크롤과 부딪혀서 쓰지 않았다.
+// 터치만 본다. 마우스 끌기는 글자 선택이고 PC에는 ←/→ 키와 ‹ › 버튼이 있다
+let touchStart = null;
+$main.addEventListener('touchstart', (e) => {
+  // 두 손가락(확대)이면 이번 터치는 장을 넘기지 않는다
+  touchStart = e.touches.length === 1 ? { x: e.touches[0].clientX, y: e.touches[0].clientY } : null;
+}, { passive: true });
+$main.addEventListener('touchcancel', () => { touchStart = null; }, { passive: true });
+$main.addEventListener('touchend', (e) => {
+  const start = touchStart;
+  touchStart = null;
+  if (!start || e.touches.length || prefs.swipeChapter === false) return;
+  // 길게 눌러 글자를 고르는 중이거나, 화면을 확대해서 옆으로 움직여 보는 중이면 넘기지 않는다
+  if (!window.getSelection()?.isCollapsed) return;
+  if ((window.visualViewport?.scale ?? 1) > 1.01) return;
+  const t = e.changedTouches[0];
+  const dir = swipeDirection(start, { x: t.clientX, y: t.clientY }, window.innerWidth);
+  if (dir) goChapter(dir);
+}, { passive: true });
 
 window.addEventListener('hashchange', () => {
   const p = parseHash(location.hash);
@@ -543,6 +587,7 @@ function openSettings() {
   $('setNavBar').value = String(NAV_OPTIONS.includes(prefs.navBar) ? prefs.navBar : NAV_DEFAULT);
   $('setNavUnit').value = NAV_UNITS.includes(prefs.navUnit) ? prefs.navUnit : NAV_UNIT_DEFAULT;
   $('setNavPos').value = navPosition(prefs.navPos);
+  $('setSwipe').checked = prefs.swipeChapter !== false;
   showColorInputs();
   $('settingsBox').showModal();
 }
@@ -1304,7 +1349,7 @@ function moveUp() {
   const first = $verses.firstElementChild;
   const atTop = !first || window.scrollY <= 0 || first.getBoundingClientRect().top >= area.top - 1;
   if (unit === 'chapter' || atTop) {
-    go(prevChapter(pos));
+    goChapter('prev');
     return;
   }
   const fv = firstVisible(area);
@@ -1328,12 +1373,12 @@ function moveDown() {
   if (cameToLast || unit === 'chapter') {
     cameToLast = false;
     $('toast').hidden = true; // 다음 장에서는 "한 번 더" 알림이 남지 않게
-    go(nextChapter(pos));
+    goChapter('next');
     return;
   }
   const items = [...$verses.children];
   if (!items.length) {
-    go(nextChapter(pos));
+    goChapter('next');
     return;
   }
   const area = viewArea();
@@ -1381,8 +1426,8 @@ label($('navUp'), S.navUp);
 label($('navDown'), S.navDown);
 label($('navBack'), S.navBack);
 label($('navForward'), S.navForward);
-$('navPrevCh').addEventListener('click', () => go(prevChapter(pos)));
-$('navNextCh').addEventListener('click', () => go(nextChapter(pos)));
+$('navPrevCh').addEventListener('click', () => goChapter('prev'));
+$('navNextCh').addEventListener('click', () => goChapter('next'));
 $('navUp').addEventListener('click', moveUp);
 $('navDown').addEventListener('click', moveDown);
 $('navBack').addEventListener('click', () => stepTo(1));
@@ -1411,6 +1456,13 @@ $('setNavUnit').addEventListener('change', (e) => {
   prefs.navUnit = e.target.value;
   savePrefs();
 });
+// 앱 swipe_chapter_preference(기본 켬). 저장 값이 없으면 켬
+$('setSwipeLabel').textContent = S.swipeChapter;
+$('setSwipeHint').textContent = S.swipeChapterHint;
+$('setSwipe').addEventListener('change', (e) => {
+  prefs.swipeChapter = e.target.checked;
+  savePrefs();
+});
 $('setNavPos').append(...NAV_POSITIONS.map((p) => option(p, S.navPositions[p])));
 $('setNavPos').addEventListener('change', (e) => {
   prefs.navPos = e.target.value;
@@ -1431,8 +1483,8 @@ document.addEventListener('keydown', (e) => {
   if (anyDialogOpen() || e.altKey || e.ctrlKey || e.metaKey) return;
   // 입력 칸·선택 상자에서는 화살표가 그 안에서 움직인다
   if (e.target instanceof HTMLInputElement || e.target instanceof HTMLSelectElement) return;
-  if (e.key === 'ArrowLeft') go(prevChapter(pos));
-  else if (e.key === 'ArrowRight') go(nextChapter(pos));
+  if (e.key === 'ArrowLeft') goChapter('prev');
+  else if (e.key === 'ArrowRight') goChapter('next');
 });
 
 // ---- 시작 ----

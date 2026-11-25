@@ -464,6 +464,18 @@ mark { background: #ffe066; color: #222; border-radius: 2px; }
   to { background: transparent; }
 }
 
+/* 이전/다음 장으로 넘기면 새 장이 그쪽에서 짧게 들어온다(앱 slide_left_in/slide_right_in).
+   앱처럼 화면 폭 전체가 아니라 조금만 움직인다. 글이 길어 화면 전체를 옮기면 눈이 따라가기 힘들다.
+   들어오는 동안 옆으로 삐져나와 가로 스크롤이 생기지 않게 main에서 자른다(clip은 스크롤 칸을 만들지 않는다) */
+main { overflow-x: clip; }
+#verses.slide-next { animation: slide-next 0.2s ease-out; }
+#verses.slide-prev { animation: slide-prev 0.2s ease-out; }
+@keyframes slide-next { from { transform: translateX(48px); opacity: 0.3; } }
+@keyframes slide-prev { from { transform: translateX(-48px); opacity: 0.3; } }
+@media (prefers-reduced-motion: reduce) {
+  #verses.slide-next, #verses.slide-prev { animation: none; }
+}
+
 /* ---- 새 버전 알림 (js/pwa.js) ---- */
 /* 바와 겹치지 않게 바 반대쪽에 띄운다 */
 #updateBar {
