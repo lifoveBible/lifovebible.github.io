@@ -538,6 +538,8 @@ $verses.addEventListener('click', (e) => {
 function updateSelBar() {
   const n = selected.size;
   $selBar.hidden = !n;
+  showTtsBtn(); // 절을 고르면 ▶는 '고른 절부터 듣기'
+
   if (!n) return;
   const can = highlightActions(targetsOf(shown.rows, selected, shown.codes), marks);
   $('selHl').hidden = !can.add;
@@ -1447,8 +1449,9 @@ function showTtsBtn() {
     label($ttsBtn, S.ttsSpeed(speedLabel(ttsRate())));
   } else {
     $ttsBtn.textContent = '▶︎';
-    label($ttsBtn, S.ttsPlay);
+    label($ttsBtn, selected.size ? S.ttsPlayVerse : S.ttsPlay);
   }
+  $ttsBtn.classList.toggle('from-verse', !tts && selected.size > 0);
   $ttsBar.hidden = !tts;
   if (tts) {
     $ttsPause.textContent = tts.paused ? '▶︎' : '❚❚';
@@ -1479,7 +1482,12 @@ function ttsStart() {
     openVoiceBox(true);
     return;
   }
-  tts = { ...ch, i: 0, voice, paused: false };
+  // 절을 골랐으면 그 절(여럿이면 맨 앞)부터. 앱의 '꾹 누른 절 TTS 듣기'. 장 제목은 건너뛴다
+  const from = selected.size ? Math.min(...selected) : 0;
+  const i = from ? ch.items.findIndex((it) => it.verse >= from) : 0;
+  if (i < 0) return; // 고른 절부터 끝까지 읽을 것이 없다(빠진 절만)
+  tts = { ...ch, i, voice, paused: false };
+  if (from) clearSelection();
   showTtsBtn();
   ttsWake(true);
   ttsSpeak();

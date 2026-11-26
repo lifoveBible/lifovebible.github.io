@@ -80,6 +80,7 @@ const STRINGS = {
     swipeChapter: '옆으로 밀어 장 넘기기', // text_pref_swipe_chapter
     swipeChapterHint: '본문을 왼쪽이나 오른쪽으로 밀면 다음 장이나 이전 장으로 넘어갑니다. 스크롤하다가 장이 넘어가는 일이 잦으면 끄세요.',
     ttsPlay: '현재 장 TTS 듣기', // text_launch_tts_player
+    ttsPlayVerse: '고른 절부터 TTS 듣기', // text_launch_tts_player_for_a_verse (앱은 '꾹 누른 절'. 웹은 눌러서 고른 절이라 바꿈)
     ttsSpeed: (rate) => `읽기 속도 ${rate}`, // 읽는 동안 ▶ 단추(속도)를 읽어 줄 때
     ttsPause: '잠시 멈춤',
     ttsResume: '이어 듣기',
@@ -385,6 +386,7 @@ const STRINGS = {
     swipeChapter: 'Swipe to change chapters', // text_pref_swipe_chapter
     swipeChapterHint: 'Swipe the text left or right to go to the next or previous chapter. Turn off if chapters change when you only meant to scroll.',
     ttsPlay: 'Read a chapter (TTS)', // text_launch_tts_player
+    ttsPlayVerse: 'Read from the selected verse (TTS)', // text_launch_tts_player_for_a_verse를 고침
     ttsSpeed: (rate) => `Speech speed ${rate}`,
     ttsPause: 'Pause',
     ttsResume: 'Resume',
@@ -691,6 +693,7 @@ const STRINGS = {
     swipeChapter: 'スワイプで章を移動', // text_pref_swipe_chapter
     swipeChapterHint: '本文を左右にスワイプすると、次の章や前の章に移動します。スクロール中に章が変わってしまうことが多ければ、オフにしてください。',
     ttsPlay: '章を読み上げる', // text_launch_tts_player
+    ttsPlayVerse: '選んだ節から読み上げる', // text_launch_tts_player_for_a_verse를 고침
     ttsSpeed: (rate) => `読み上げ速度 ${rate}`,
     ttsPause: '一時停止',
     ttsResume: '再開',
@@ -999,6 +1002,7 @@ const STRINGS = {
     swipeChapter: '左右滑動換章', // text_pref_swipe_chapter
     swipeChapterHint: '將經文向左或向右滑動，即可前往下一章或上一章。若捲動時常常不小心換章，請關閉此功能。',
     ttsPlay: '朗讀本章（語音）', // text_launch_tts_player
+    ttsPlayVerse: '從選取的經節開始朗讀（語音）', // text_launch_tts_player_for_a_verse를 고침
     ttsSpeed: (rate) => `朗讀速度 ${rate}`,
     ttsPause: '暫停',
     ttsResume: '繼續朗讀',
@@ -1307,6 +1311,7 @@ const STRINGS = {
     swipeChapter: '左右滑动换章', // text_pref_swipe_chapter
     swipeChapterHint: '将经文向左或向右滑动，即可前往下一章或上一章。若卷动时常常不小心换章，请关闭此功能。',
     ttsPlay: '朗读本章（语音）', // text_launch_tts_player
+    ttsPlayVerse: '从选取的经节开始朗读（语音）', // text_launch_tts_player_for_a_verse를 고침
     ttsSpeed: (rate) => `朗读速度 ${rate}`,
     ttsPause: '暂停',
     ttsResume: '继续朗读',
@@ -1614,6 +1619,7 @@ const STRINGS = {
     swipeChapter: 'Deslizar para cambiar de capítulo', // text_pref_swipe_chapter
     swipeChapterHint: 'Desliza el texto a la izquierda o a la derecha para ir al capítulo siguiente o anterior. Desactívalo si el capítulo cambia cuando solo querías desplazarte.',
     ttsPlay: 'Leer el capítulo (voz)', // text_launch_tts_player
+    ttsPlayVerse: 'Leer desde el versículo elegido (voz)', // text_launch_tts_player_for_a_verse를 고침
     ttsSpeed: (rate) => `Velocidad de lectura ${rate}`,
     ttsPause: 'Pausa',
     ttsResume: 'Reanudar',
@@ -1921,6 +1927,7 @@ const STRINGS = {
     swipeChapter: 'Deslizar para mudar de capítulo', // text_pref_swipe_chapter
     swipeChapterHint: 'Deslize o texto para a esquerda ou para a direita para ir ao próximo capítulo ou ao anterior. Desative se o capítulo mudar quando você só queria rolar.',
     ttsPlay: 'Ler o capítulo (voz)', // text_launch_tts_player
+    ttsPlayVerse: 'Ler a partir do versículo escolhido (voz)', // text_launch_tts_player_for_a_verse를 고침
     ttsSpeed: (rate) => `Velocidade de leitura ${rate}`,
     ttsPause: 'Pausar',
     ttsResume: 'Continuar',
