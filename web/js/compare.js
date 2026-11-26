@@ -59,8 +59,16 @@ export function groupByLang(list, uiLang) {
     groups.get(key).push(v);
   }
   const all = [...groups].map(([lang, items]) => ({ lang, items }));
-  const mine = all.filter((g) => g.lang.split('-')[0].toLowerCase() === uiLang);
-  return [...mine, ...all.filter((g) => !mine.includes(g))];
+  // 화면 언어와 딱 맞는 묶음 → 같은 언어의 다른 지역 → 나머지. 중국어는 화면이 번체(zh)면 zh-TW 등이,
+  // 간체(zh-CN)면 zh-CN이 먼저(예전에는 앞부분만 비교해 zh-CN 화면에서 중국어 묶음이 앞에 오지 않았다)
+  const ui = uiLang.toLowerCase();
+  const uiBase = ui.split('-')[0];
+  const rank = (g) => {
+    const l = g.lang.toLowerCase();
+    if (l === ui || (ui === 'zh' && /^zh-(tw|hk|mo|hant)\b/.test(l))) return 0;
+    return l.split('-')[0] === uiBase ? 1 : 2;
+  };
+  return all.map((g, i) => [rank(g), i, g]).sort((a, b) => a[0] - b[0] || a[1] - b[1]).map((x) => x[2]);
 }
 
 /** 위쪽 막대에 보일 역본 이름. 하나면 그 이름, 둘이면 "가 + 나", 셋 이상이면 "가 + 2" */

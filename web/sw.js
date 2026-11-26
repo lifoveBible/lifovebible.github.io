@@ -9,7 +9,7 @@
 //   (바꾸지 않으면 브라우저가 새 버전을 알아채지 못한다. tests/sw.test.js가 잊은 것을 잡는다)
 // - 모듈 서비스 워커는 파이어폭스 지원이 늦어서 보통 스크립트로 둔다
 
-const VERSION = 'e7a1671b1507';
+const VERSION = 'f9f4f4b0870e';
 const CACHE = 'lifove-app-' + VERSION;
 const CACHE_PREFIX = 'lifove-app-'; // 이 이름으로 시작하는 옛 캐시만 지운다(lfa-v1은 남긴다)
 // vendor/ 아래 라이브러리(sql.js wasm 650KB)는 버전마다 다시 받지 않게 따로 둔다.
@@ -22,7 +22,12 @@ const isVendor = (f) => f.startsWith('vendor/');
 const APP_FILES = [
   'css/app.css',
   'help/en.html',
+  'help/es.html',
+  'help/ja.html',
   'help/ko.html',
+  'help/pt.html',
+  'help/zh-CN.html',
+  'help/zh.html',
   'icons/apple-touch-icon.png',
   'icons/icon-192.png',
   'icons/icon-512.png',

@@ -527,8 +527,10 @@ dialog.menu button:hover, dialog.menu button:focus-visible { background: var(--b
 .bar-top #selBar { top: var(--bar-h, 0px); bottom: auto; border-top: 0; border-bottom: 1px solid var(--line); }
 #selBar[hidden] { display: none; }
 #selBar button[hidden] { display: none; }
-#selCount { flex: 1; min-width: 0; font-size: 0.9rem; font-weight: 600; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
-#selBar button { flex: none; }
+#selCount { flex: 1; min-width: 1.2em; /* 숫자 하나는 늘 보이게(넘치면 app.js가 숫자만 남긴다) */ font-size: 0.9rem; font-weight: 600; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+/* 단추가 넘치면(대조 보기에서 칠하기·지우기가 함께 나오는 등) ✕가 화면 밖으로 밀리지 않게 단추 글을 … 로 줄인다 */
+#selBar button { flex: 0 1 auto; min-width: 0; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+#selBar #selClear { flex: none; min-width: 44px; } /* .icon의 min-width를 위 min-width: 0이 덮지 않게 */
 /* 폰 폭에서 형광펜·지우기·복사·공유·✕가 함께 나오면 "2절 선택"이 22px로 줄어 안 보였다(360px). 단추를 조금 좁힌다 */
 @media (max-width: 400px) {
   #selBar { gap: 4px; padding: 6px; }
@@ -771,3 +773,9 @@ dialog.ask .ask-title { margin: 0 0 10px; font-size: 1.05rem; }
 .mb-opts { display: flex; flex-direction: column; margin: -6px 0 12px; }
 .mb-opts .check { min-height: 40px; justify-content: flex-start; }
 .mb-opts .check:has(input:disabled) { opacity: 0.45; cursor: default; }
+
+/* ---- 일본어·중국어 줄바꿈 ----
+   한국어가 낱말 가운데서 끊기지 않게 여러 곳에 keep-all을 두었는데, 일본어·중국어는 띄어쓰기가 없어
+   keep-all이면 쉼표에서만 줄이 바뀌고 "。iPhone"처럼 문장 부호가 줄 앞에 온다. 화면 언어(html lang)와
+   본문 역본 언어(#verses·.cell의 lang)가 일본어·중국어면 보통 규칙으로. 위의 id 선택자보다 앞서려고 !important */
+:lang(ja), :lang(zh) { word-break: normal !important; }

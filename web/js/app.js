@@ -55,7 +55,8 @@ const LIST_KEY = 'lifove.biblelist';
 // 최근목록(이동 버튼 ↶ ↷). 앱은 history.txt에 둔다. 화면 설정(prefs)과 따로 두어 자주 쓰여도 작게
 const HISTORY_KEY = 'lifove.history';
 // 처음 쓸 때 역본. 앱은 받은 역본 중 첫째를 쓰지만 웹은 받은 것이 없으므로 언어로 정한다
-const DEFAULT_VERSION = { ko: 'korhrv', en: 'engkjv' };
+// 처음 열 때 고르는 역본. 일본어는 口語訳, 번체·간체는 和合本, 스페인어는 Reina-Valera 1909, 포르투갈어는 prtaa(앱에는 언어별 기본 역본이 없어 웹에서 정함)
+const DEFAULT_VERSION = { ko: 'korhrv', en: 'engkjv', ja: 'jpnjct', zh: 'chuni', 'zh-CN': 'chunisimp', es: 'spnrei', pt: 'prtaa' };
 const FONT_MIN = 14, FONT_MAX = 36, FONT_STEP = 2, FONT_DEFAULT = 18;
 
 const lang = pickLang(navigator.languages || [navigator.language]);
@@ -379,6 +380,9 @@ async function render() {
   const wide = vers.length > 1 && !prefs.oneColumn;
   $main.classList.toggle('wide', wide);
   $main.style.setProperty('--nver', vers.length);
+  // 본문 언어를 lang으로 알린다. 일본어·중국어는 CSS가 줄바꿈 규칙을 바꾸고(keep-all이면 쉼표에서만 끊긴다), 글꼴도 맞는 것을 고른다
+  if (vers.length === 1 && vers[0].lang) $verses.lang = vers[0].lang;
+  else $verses.removeAttribute('lang');
   if (vers.length === 1) {
     $verses.className = '';
     $verses.replaceChildren(...(chapters[0] || []).map(verseItem));
@@ -387,7 +391,7 @@ async function render() {
     $verses.className = 'compare ' + (prefs.oneColumn ? 'one' : 'two');
     const names = vers.map((v) => v.name);
     const rows = alignChapters(chapters, S.missingVerse);
-    $verses.replaceChildren(...rows.map((r) => compareItem(r, names)));
+    $verses.replaceChildren(...rows.map((r) => compareItem(r, names, vers.map((v) => v.lang))));
     shown = { rows, names, codes: vers.map((v) => v.code) };
   }
   loadHighlights();
@@ -471,7 +475,7 @@ function verseItem(r) {
  * 대조 보기 한 절. 앱처럼 역본마다 이름을 붙인다.
  * 2단이면 역본을 둘씩 나란히(앱의 VerseAdapterTwoParallel), 1단이면 위아래로. 배치는 CSS가 한다
  */
-function compareItem(r, names) {
+function compareItem(r, names, langs) {
   const li = document.createElement('li');
   li.id = 'v' + r.verse;
   const cells = document.createElement('div');
@@ -481,6 +485,7 @@ function compareItem(r, names) {
   r.cells.forEach((c, i) => {
     const cell = document.createElement('div');
     cell.className = 'cell';
+    if (langs[i]) cell.lang = langs[i];
     const vname = document.createElement('span');
     vname.className = 'vname';
     vname.textContent = names[i];
@@ -525,11 +530,18 @@ function updateSelBar() {
   const n = selected.size;
   $selBar.hidden = !n;
   if (!n) return;
-  $('selCount').textContent = S.selCount(n);
   const can = highlightActions(targetsOf(shown.rows, selected, shown.codes), marks);
   $('selHl').hidden = !can.add;
   $('selHlOff').hidden = !can.remove;
   $('selMemo').hidden = n !== 1; // 메모는 한 절에 하나라 한 절만 골랐을 때
+  // 단추가 다 보인 뒤 잰다. 폰 폭에서 단추 글이 긴 언어(스페인어 등)는 "1 versículo"가 "1.."로 잘려서,
+  // 다 들어가지 않으면 숫자만 보인다(전체 문구는 title·aria-label로)
+  const $count = $('selCount');
+  const full = S.selCount(n);
+  $count.textContent = full;
+  $count.title = full;
+  $count.setAttribute('aria-label', full);
+  if ($count.scrollWidth > $count.clientWidth) $count.textContent = String(n);
 }
 
 function clearSelection() {
@@ -2290,6 +2302,7 @@ $('backupDone').textContent = S.close;
 $('backupSaveTitle').textContent = S.backupSaveTitle;
 $('backupSaveHint').textContent = S.backupSaveHint;
 $('backupRun').textContent = S.backupRun;
+$('backupMoveHint').textContent = S.backupMoveHint;
 $('backupNoticeTitle').textContent = S.backupNoticeTitle;
 $('backupNotice1').textContent = S.backupNotice1;
 $('backupNotice2').textContent = S.backupNotice2;
