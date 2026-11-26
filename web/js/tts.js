@@ -106,6 +106,46 @@ export function pickVoice(voices, lang) {
 }
 
 /**
+ * 고른 목소리를 저장할 키(앱 saveVoice는 언어별). 중국어는 번체·간체가 다른 목소리라 나눈다
+ */
+export function voiceKey(lang) {
+  const tag = norm(lang);
+  const [primary] = tag.split('-');
+  if (primary === 'zh') return zhKind(tag) === 'cn' ? 'zh-cn' : 'zh-tw';
+  return primary;
+}
+
+/** 이 언어로 쓸 수 있는 목소리(앱 voicesFor: 언어가 같은 것). 기기가 준 차례 그대로 */
+export function voicesFor(voices, lang) {
+  const [primary] = norm(lang).split('-');
+  return (voices || []).filter((v) => norm(v.lang).replace(/^cmn\b/, 'zh').replace(/^yue\b/, 'zh').split('-')[0] === primary);
+}
+
+/**
+ * 읽을 때 쓸 목소리. 고른 것(voiceURI)이 지금도 있으면 그것, 없으면(지웠거나 다른 기기) pickVoice
+ * @param saved prefs.ttsVoices({키: voiceURI})
+ */
+export function chosenVoice(voices, lang, saved) {
+  const uri = saved?.[voiceKey(lang)];
+  return (uri && voicesFor(voices, lang).find((v) => v.voiceURI === uri)) || pickVoice(voices, lang);
+}
+
+/**
+ * 목록에 보일 이름. 기기 이름을 쓰되(앱은 "목소리 1"처럼 번호만: 안드로이드 이름은 알아보기 어려워서),
+ * 이름이 비었거나 같은 이름이 여럿이면(안드로이드 크롬은 "한국어 대한민국"이 여럿) 번호를 붙인다.
+ * 인터넷이 필요한 목소리는 꼬리표
+ */
+export function voiceLabels(list, itemName, networkTag) {
+  const count = new Map();
+  for (const v of list) count.set(v.name, (count.get(v.name) || 0) + 1);
+  return list.map((v, i) => {
+    let name = v.name ? v.name : itemName(i + 1);
+    if (v.name && count.get(v.name) > 1) name += ` (${i + 1})`;
+    return v.localService === false ? `${name} · ${networkTag}` : name;
+  });
+}
+
+/**
  * 장 제목(앱 chapterTitle). 앱처럼 책 이름 목록이 있는 한국어·영어·중국어만. 없으면 null.
  * 앱은 가톨릭 역본(korcath)이면 가톨릭 책 이름을 쓰지만 웹에는 그 목록이 없어 개신교 이름으로 읽는다
  */

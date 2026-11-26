@@ -775,6 +775,7 @@ main { overflow-x: clip; }
 dialog.ask .ask-title { margin: 0 0 10px; font-size: 1.05rem; }
 .ask-btns .spacer { flex: 1; }
 .mb-pick { display: flex; flex-direction: column; max-height: 50dvh; overflow-y: auto; margin-bottom: 12px; }
+.mb-pick[hidden] { display: none; } /* 목소리 창: 이 언어의 목소리가 없을 때 */
 .mb-pick .check { min-height: 44px; font-size: 1rem; border-bottom: 1px solid var(--line); overflow-wrap: anywhere; }
 #mbName { width: 100%; box-sizing: border-box; margin-bottom: 14px; padding: 6px 8px; font: inherit; font-size: 16px;
   border: 1px solid var(--line); border-radius: 6px; background: var(--bg); color: var(--fg); }

@@ -91,6 +91,15 @@ const STRINGS = {
     ttsButtonHint: '본문 화면에 오디오 버튼(▶)을 표시합니다. 끄면 오디오 기능을 사용하지 않습니다.', // text_pref_audio_button_summary (앱은 '본문 화면 위쪽에'. 웹은 바가 아래가 기본이라 뺐다)
     ttsReadCheck: '오디오 성경 자동 읽음 체크', // text_pref_autoaudioreadcheck_preference
     ttsReadCheckHint: '오디오 낭독이 끝난 후 다음 장으로 넘어갈 때, 자동으로 읽음 체크 실행합니다.', // text_pref_autoaudioreadcheck_preference_summary
+    ttsVoice: '목소리', // text_pref_tts_voice
+    ttsVoiceSummary: (lang, voice) => `현재 성경 언어: ${lang} / ${voice}`, // text_pref_tts_voice_summary
+    ttsVoiceDefault: '폰 기본', // text_tts_voice_default
+    ttsVoiceNetwork: '인터넷 필요', // text_tts_voice_network
+    ttsVoiceItem: (n) => `목소리 ${n}`, // text_tts_voice_item
+    ttsInstall: '음성 데이터 설치/관리', // text_pref_tts_install
+    ttsInstallHint: '기기에 목소리를 더하는 방법을 봅니다.',
+    ttsNoLanguage: '이 언어의 음성 데이터가 폰에 없습니다. 음성 데이터를 설치하시겠습니까?', // text_tts_no_language
+    ttsOpenSettings: '음성 설치', // text_tts_open_settings
     navUp: '위로',
     navDown: '아래로',
     navBack: '최근목록 뒤로',
@@ -387,6 +396,15 @@ const STRINGS = {
     ttsButtonHint: 'Show the audio button (▶) in the Bible viewer. Turn off if you don\'t use audio.', // text_pref_audio_button_summary
     ttsReadCheck: 'Audio Bible Read Check', // text_pref_autoaudioreadcheck_preference
     ttsReadCheckHint: 'Automatically check the chapter as read when finished reading the chapter by Audio Bible', // text_pref_autoaudioreadcheck_preference_summary
+    ttsVoice: 'Voice', // text_pref_tts_voice
+    ttsVoiceSummary: (lang, voice) => `Current Bible language: ${lang} / ${voice}`, // text_pref_tts_voice_summary
+    ttsVoiceDefault: 'Phone default', // text_tts_voice_default
+    ttsVoiceNetwork: 'needs internet', // text_tts_voice_network
+    ttsVoiceItem: (n) => `Voice ${n}`, // text_tts_voice_item
+    ttsInstall: 'Install/manage voice data', // text_pref_tts_install
+    ttsInstallHint: 'See how to add voices to your device.',
+    ttsNoLanguage: 'No text-to-speech voice for this language on your phone. Install voice data?', // text_tts_no_language
+    ttsOpenSettings: 'Install voice', // text_tts_open_settings
     navUp: 'Up',
     navDown: 'Down',
     navBack: 'History back',
@@ -684,6 +702,15 @@ const STRINGS = {
     ttsButtonHint: '本文画面に音声ボタン(▶)を表示します。音声を使わない場合はオフにしてください。', // text_pref_audio_button_summary
     ttsReadCheck: '音声で既読にする', // text_pref_autoaudioreadcheck_preference
     ttsReadCheckHint: 'オーディオ聖書が章を読み終えると、その章を既読にします', // text_pref_autoaudioreadcheck_preference_summary
+    ttsVoice: '声', // text_pref_tts_voice
+    ttsVoiceSummary: (lang, voice) => `今の聖書の言語: ${lang} / ${voice}`, // text_pref_tts_voice_summary
+    ttsVoiceDefault: '端末の既定', // text_tts_voice_default
+    ttsVoiceNetwork: 'インターネットが必要', // text_tts_voice_network
+    ttsVoiceItem: (n) => `声 ${n}`, // text_tts_voice_item
+    ttsInstall: '音声データのインストール/管理', // text_pref_tts_install
+    ttsInstallHint: '端末に声を追加する方法を見ます。',
+    ttsNoLanguage: 'この言語の読み上げ音声が端末にありません。音声データをインストールしますか?', // text_tts_no_language
+    ttsOpenSettings: '音声をインストール', // text_tts_open_settings
     navUp: '上へ',
     navDown: '下へ',
     navBack: '履歴を戻る',
@@ -983,6 +1010,15 @@ const STRINGS = {
     ttsButtonHint: '在閱讀器中顯示音訊按鈕（▶）。不使用音訊時可以關閉。', // text_pref_audio_button_summary
     ttsReadCheck: '有聲聖經閱讀標記', // text_pref_autoaudioreadcheck_preference
     ttsReadCheckHint: '有聲聖經讀完一章時，自動將該章標記為已讀', // text_pref_autoaudioreadcheck_preference_summary
+    ttsVoice: '聲音', // text_pref_tts_voice
+    ttsVoiceSummary: (lang, voice) => `目前聖經語言：${lang} / ${voice}`, // text_pref_tts_voice_summary
+    ttsVoiceDefault: '手機預設', // text_tts_voice_default
+    ttsVoiceNetwork: '需要網路', // text_tts_voice_network
+    ttsVoiceItem: (n) => `聲音 ${n}`, // text_tts_voice_item
+    ttsInstall: '安裝/管理語音資料', // text_pref_tts_install
+    ttsInstallHint: '查看如何在裝置上新增聲音。',
+    ttsNoLanguage: '手機上沒有這個語言的朗讀語音。要安裝語音資料嗎？', // text_tts_no_language
+    ttsOpenSettings: '安裝語音', // text_tts_open_settings
     navUp: '向上',
     navDown: '向下',
     navBack: '歷史上一筆',
@@ -1282,6 +1318,15 @@ const STRINGS = {
     ttsButtonHint: '在阅读器中显示音讯按钮（▶）。不使用音讯时可以关闭。', // text_pref_audio_button_summary
     ttsReadCheck: '有声圣经阅读标记', // text_pref_autoaudioreadcheck_preference
     ttsReadCheckHint: '有声圣经读完一章时，自动将该章标记为已读', // text_pref_autoaudioreadcheck_preference_summary
+    ttsVoice: '声音', // text_pref_tts_voice
+    ttsVoiceSummary: (lang, voice) => `目前圣经语言：${lang} / ${voice}`, // text_pref_tts_voice_summary
+    ttsVoiceDefault: '手机预设', // text_tts_voice_default
+    ttsVoiceNetwork: '需要网路', // text_tts_voice_network
+    ttsVoiceItem: (n) => `声音 ${n}`, // text_tts_voice_item
+    ttsInstall: '安装/管理语音资料', // text_pref_tts_install
+    ttsInstallHint: '查看如何在装置上新增声音。',
+    ttsNoLanguage: '手机上没有这个语言的朗读语音。要安装语音资料吗？', // text_tts_no_language
+    ttsOpenSettings: '安装语音', // text_tts_open_settings
     navUp: '向上',
     navDown: '向下',
     navBack: '历史上一笔',
@@ -1580,6 +1625,15 @@ const STRINGS = {
     ttsButtonHint: 'Muestra el botón de audio (▶) en el lector. Desactívalo si no usas audio.', // text_pref_audio_button_summary
     ttsReadCheck: 'Marcar lectura con audio', // text_pref_autoaudioreadcheck_preference
     ttsReadCheckHint: 'Marca el capítulo como leído cuando el audio de la Biblia termina el capítulo', // text_pref_autoaudioreadcheck_preference_summary
+    ttsVoice: 'Voz', // text_pref_tts_voice
+    ttsVoiceSummary: (lang, voice) => `Idioma de la Biblia actual: ${lang} / ${voice}`, // text_pref_tts_voice_summary
+    ttsVoiceDefault: 'Predeterminada del teléfono', // text_tts_voice_default
+    ttsVoiceNetwork: 'requiere internet', // text_tts_voice_network
+    ttsVoiceItem: (n) => `Voz ${n}`, // text_tts_voice_item
+    ttsInstall: 'Instalar/gestionar datos de voz', // text_pref_tts_install
+    ttsInstallHint: 'Mira cómo añadir voces a tu dispositivo.',
+    ttsNoLanguage: 'No hay voz de lectura para este idioma en tu teléfono. ¿Instalar datos de voz?', // text_tts_no_language
+    ttsOpenSettings: 'Instalar voz', // text_tts_open_settings
     navUp: 'Arriba',
     navDown: 'Abajo',
     navBack: 'Atrás en el historial',
@@ -1878,6 +1932,15 @@ const STRINGS = {
     ttsButtonHint: 'Mostra o botão de áudio (▶) no leitor. Desative se você não usa áudio.', // text_pref_audio_button_summary
     ttsReadCheck: 'Marcar leitura com áudio', // text_pref_autoaudioreadcheck_preference
     ttsReadCheckHint: 'Marca o capítulo como lido quando o áudio da Bíblia termina o capítulo', // text_pref_autoaudioreadcheck_preference_summary
+    ttsVoice: 'Voz', // text_pref_tts_voice
+    ttsVoiceSummary: (lang, voice) => `Idioma da Bíblia atual: ${lang} / ${voice}`, // text_pref_tts_voice_summary
+    ttsVoiceDefault: 'Padrão do celular', // text_tts_voice_default
+    ttsVoiceNetwork: 'requer internet', // text_tts_voice_network
+    ttsVoiceItem: (n) => `Voz ${n}`, // text_tts_voice_item
+    ttsInstall: 'Instalar/gerenciar dados de voz', // text_pref_tts_install
+    ttsInstallHint: 'Veja como adicionar vozes ao seu aparelho.',
+    ttsNoLanguage: 'Não há voz de leitura para este idioma no seu celular. Instalar dados de voz?', // text_tts_no_language
+    ttsOpenSettings: 'Instalar voz', // text_tts_open_settings
     navUp: 'Para cima',
     navDown: 'Para baixo',
     navBack: 'Voltar no histórico',

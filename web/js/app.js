@@ -41,7 +41,10 @@ import { backupReminder, DAY, SNOOZE_DAYS } from './backupReminder.js';
 import { loadSqlJs } from './sqlite.js';
 import { highlightMap, targetsOf, highlightActions, highlightList, highlightsText } from './highlight.js';
 import { bookmarkList } from './bookmark.js';
-import { SPEEDS, nextSpeed, speedLabel, speechLang, speechItems, chapterTitle, pickVoice } from './tts.js';
+import {
+  SPEEDS, nextSpeed, speedLabel, speechLang, speechItems, chapterTitle, pickVoice, cleanForSpeech,
+  voiceKey, voicesFor, chosenVoice, voiceLabels,
+} from './tts.js';
 import { memoMap, isBlankMemo, memoList, memoWords, memoMatches, memosText } from './memo.js';
 import {
   defaultMemoBookRow, memoBookList, memoBookName, currentMemoBook, movedUids, memoCounts, DEFAULT_MEMO_BOOK,
@@ -1455,19 +1458,25 @@ function showTtsBtn() {
 
 /** 지금 장의 읽을 차례. 대조 보기면 첫 역본만(앱과 같다) */
 function ttsChapter() {
-  const v = prefs.versions[0];
-  const texts = shown.rows.slice(0, 5).map((r) => r.cells?.[0]?.text || '');
-  const lang = speechLang(v?.lang, v?.code, texts);
+  const lang = ttsLangNow();
   return { items: speechItems(shown.rows, chapterTitle(lang, pos.book, pos.chapter)), lang, book: pos.book, chapter: pos.chapter };
+}
+
+/** 지금 성경(첫 역본)을 읽을 언어 */
+function ttsLangNow() {
+  const v = prefs.versions[0];
+  return speechLang(v?.lang, v?.code, shown.rows.slice(0, 5).map((r) => r.cells?.[0]?.text || ''));
 }
 
 function ttsStart() {
   const ch = ttsChapter();
   if (!ch.items.length) return;
-  const voice = pickVoice(ttsVoices, ch.lang);
-  // 목소리 목록이 왔는데 이 언어가 없으면 알린다. 목록이 비어 있으면(아직 안 왔거나 알려 주지 않는 브라우저) lang만 주고 해 본다
+  ttsVoices = synth.getVoices(); // 목소리를 새로 설치했는데 voiceschanged가 오지 않는 브라우저도 있어서
+  const voice = chosenVoice(ttsVoices, ch.lang, prefs.ttsVoices);
+  // 목소리 목록이 왔는데 이 언어가 없으면 앱처럼 '음성 데이터를 설치하시겠습니까?'(목소리 창에서 설치 안내로).
+  // 목록이 비어 있으면(아직 안 왔거나 알려 주지 않는 브라우저) lang만 주고 해 본다
   if (ttsVoices.length && !voice) {
-    showToast(S.ttsNoVoice);
+    openVoiceBox(true);
     return;
   }
   tts = { ...ch, i: 0, voice, paused: false };
@@ -1546,7 +1555,7 @@ function ttsAfterRender() {
       ttsStop();
       return;
     }
-    Object.assign(tts, ch, { i: 0, paused: false, voice: pickVoice(ttsVoices, ch.lang) || tts.voice });
+    Object.assign(tts, ch, { i: 0, paused: false, voice: chosenVoice(ttsVoices, ch.lang, prefs.ttsVoices) || tts.voice });
     showTtsBtn();
     ttsWake(true);
     ttsSpeak();
@@ -1635,6 +1644,114 @@ $('ttsPrev').addEventListener('click', () => tts && ttsMove('prev'));
 $('ttsNext').addEventListener('click', () => tts && ttsMove('next'));
 window.addEventListener('pagehide', () => synth?.cancel()); // 페이지를 떠난 뒤에도 읽지 않게
 showTtsBtn();
+
+// ---- 목소리 고르기(앱 Settings.showVoiceList) ----
+// 언어별로 voiceURI를 prefs.ttsVoices에 남긴다(앱 saveVoice). 비우면 '폰 기본'(pickVoice가 고름).
+// 앱 설정은 앱 백업에 없어서 앱과 주고받지 않는다
+const $voiceBox = $('voiceBox'), $voiceList = $('voiceList');
+let voicePick = null; // 창이 열려 있으면 {lang, picked: voiceURI|'', missing}
+const sampleTexts = new Map(); // 역본 코드 → 창세기 1:1(미리 듣기, 앱 sampleText)
+$('voiceTitle').textContent = S.ttsVoice;
+$('voiceInstall').textContent = S.ttsOpenSettings;
+$('voiceCancel').textContent = S.cancel;
+$('voiceOk').textContent = S.ok;
+
+/** 설정 줄과 창에 보일 "현재 성경 언어: 한국어 / 폰 기본"(앱 updateVoiceSummary) */
+function voiceSummary(lang) {
+  const list = voicesFor(ttsVoices, lang);
+  const uri = prefs.ttsVoices?.[voiceKey(lang)];
+  const i = list.findIndex((v) => v.voiceURI === uri);
+  const name = i < 0 ? S.ttsVoiceDefault : voiceLabels(list, S.ttsVoiceItem, S.ttsVoiceNetwork)[i];
+  return S.ttsVoiceSummary(langNameOf()(lang), name);
+}
+
+/** @param fromPlay ▶를 눌렀는데 목소리가 없을 때(앱 text_tts_no_language: 설치하시겠습니까?) */
+function openVoiceBox(fromPlay = false) {
+  const lang = ttsLangNow();
+  ttsVoices = synth.getVoices();
+  if (tts && !tts.paused) ttsPauseToggle(); // 미리 듣기가 읽던 것을 끊으므로 멈춰 둔다
+  const uri = prefs.ttsVoices?.[voiceKey(lang)] || '';
+  voicePick = { lang, fromPlay, picked: voicesFor(ttsVoices, lang).some((v) => v.voiceURI === uri) ? uri : '' };
+  drawVoiceList();
+  $voiceBox.showModal();
+}
+
+function drawVoiceList() {
+  const { lang, fromPlay, picked } = voicePick;
+  const list = voicesFor(ttsVoices, lang);
+  const none = !list.length;
+  $('voiceNote').textContent = none ? (fromPlay ? S.ttsNoLanguage : S.ttsNoVoice) : voiceSummary(lang);
+  $('voiceOk').hidden = none;
+  const labels = voiceLabels(list, S.ttsVoiceItem, S.ttsVoiceNetwork);
+  const row = (uri, text, voice) => {
+    const l = document.createElement('label');
+    l.className = 'check';
+    const r = document.createElement('input');
+    r.type = 'radio';
+    r.name = 'voicePick';
+    r.checked = uri === voicePick.picked;
+    // 다시 눌러도 또 들려주게 change가 아니라 click
+    r.addEventListener('click', () => {
+      voicePick.picked = uri;
+      voiceSample(lang, voice || pickVoice(ttsVoices, lang));
+    });
+    l.append(r, text);
+    return l;
+  };
+  $voiceList.replaceChildren(...(none ? [] : [row('', S.ttsVoiceDefault, null), ...list.map((v, i) => row(v.voiceURI, labels[i], v))]));
+  $voiceList.hidden = none;
+  // 고른 목소리가 목록에서 없어졌으면 '폰 기본'으로
+  if (picked && !list.some((v) => v.voiceURI === picked)) voicePick.picked = '';
+}
+
+/** 미리 듣기: 지금 역본의 창세기 1:1. 못 읽으면 장 제목, 그것도 없으면 언어 이름 */
+async function voiceSample(lang, voice) {
+  const v = prefs.versions[0];
+  let text = v && sampleTexts.get(v.code);
+  if (!text) {
+    try {
+      const rows = await chapterRows(v, { book: 0, chapter: 1 });
+      text = cleanForSpeech(rows?.find((r) => !r.missing)?.text);
+    } catch (e) {
+      console.warn(e);
+    }
+    text ||= chapterTitle(lang, 0, 1) || langNameOf()(lang);
+    if (v) sampleTexts.set(v.code, text);
+  }
+  if (!$voiceBox.open) return;
+  ++ttsGen; // 멈춰 둔 읽기의 옛 조각이 이어지지 않게
+  synth.cancel();
+  const u = new SpeechSynthesisUtterance(text);
+  u.lang = lang;
+  if (voice) u.voice = voice;
+  u.rate = ttsRate();
+  synth.speak(u);
+}
+
+$('voiceOk').addEventListener('click', () => {
+  const key = voiceKey(voicePick.lang);
+  const saved = { ...prefs.ttsVoices };
+  if (voicePick.picked) saved[key] = voicePick.picked;
+  else delete saved[key];
+  prefs.ttsVoices = saved;
+  savePrefs();
+  if (tts && voiceKey(tts.lang) === key) tts.voice = chosenVoice(ttsVoices, tts.lang, saved); // 이어 읽을 때부터
+  $('setTtsVoiceHint').textContent = voiceSummary(voicePick.lang);
+  $voiceBox.close();
+});
+$('voiceCancel').addEventListener('click', () => $voiceBox.close());
+$('voiceInstall').addEventListener('click', () => {
+  $voiceBox.close();
+  openHelp('helpVoices');
+});
+$voiceBox.addEventListener('click', (e) => { if (e.target === $voiceBox) $voiceBox.close(); });
+// 미리 듣기를 멈춘다. 읽던 것은 창을 열 때 멈춰 두었으므로 재생 줄의 ▶로 이어 듣는다
+$voiceBox.addEventListener('close', () => {
+  synth.cancel();
+  voicePick = null;
+});
+// 목소리 목록이 늦게 오거나(크롬) 바뀌면 창을 다시 그린다
+if (synth) synth.addEventListener?.('voiceschanged', () => { if (voicePick) drawVoiceList(); });
 
 // ---- 책갈피 ----
 // 앱 BookmarkStore·HistoryList. 역본과 상관없이 위치(책·장·절)만 남긴다. 추가는 맨 위에 보이는 절(앱 topVerseNumber)
@@ -2582,6 +2699,7 @@ function openSettings() {
   $('setSwipe').checked = prefs.swipeChapter !== false;
   $('setTtsBtn').checked = prefs.ttsButton !== false;
   $('setTtsRead').checked = !!prefs.ttsReadCheck;
+  if (synth) $('setTtsVoiceHint').textContent = voiceSummary(ttsLangNow());
   showColorInputs();
   $('settingsBox').showModal();
 }
@@ -2945,8 +3063,15 @@ $menu.addEventListener('click', (e) => { if (e.target === $menu) $menu.close(); 
 const $helpBox = $('helpBox'), $helpBody = $('helpBody');
 let helpLoaded = false;
 
-async function openHelp() {
+/** @param section 도움말 안의 절 id(예 'helpVoices'). 주면 그 절로 스크롤한다 */
+async function openHelp(section) {
   $helpBox.showModal();
+  await loadHelp();
+  const target = typeof section === 'string' && $helpBody.querySelector('#' + section);
+  if (target) target.scrollIntoView({ block: 'start' });
+}
+
+async function loadHelp() {
   if (helpLoaded) return;
   try {
     const res = await fetch(`help/${lang}.html`);
@@ -3750,7 +3875,15 @@ $('setTtsBtnLabel').textContent = S.ttsButton;
 $('setTtsBtnHint').textContent = S.ttsButtonHint;
 $('setTtsReadLabel').textContent = S.ttsReadCheck;
 $('setTtsReadHint').textContent = S.ttsReadCheckHint;
-if (!synth) for (const id of ['groupTts', 'setTtsBtn', 'setTtsRead']) $(id).closest('h3, label').hidden = true;
+$('setTtsVoiceLabel').textContent = S.ttsVoice;
+$('setTtsInstallLabel').textContent = S.ttsInstall;
+$('setTtsInstallHint').textContent = S.ttsInstallHint;
+$('setTtsVoice').addEventListener('click', () => openVoiceBox());
+$('setTtsInstall').addEventListener('click', () => openHelp('helpVoices'));
+if (!synth) {
+  for (const id of ['groupTts', 'setTtsBtn', 'setTtsRead']) $(id).closest('h3, label').hidden = true;
+  $('setTtsVoice').hidden = $('setTtsInstall').hidden = true;
+}
 $('setTtsBtn').addEventListener('change', (e) => {
   prefs.ttsButton = e.target.checked;
   savePrefs();

@@ -227,6 +227,20 @@
     </div>
   </dialog>
 
+  <!-- 목소리 고르기. 앱 Settings.showVoiceList(누르면 창세기 1:1을 들려주고, 확인을 눌러야 저장).
+       이 언어의 목소리가 없으면 목록 대신 앱 text_tts_no_voice/text_tts_no_language와 [음성 설치](도움말 안내) -->
+  <dialog id="voiceBox" class="ask">
+    <h2 id="voiceTitle" class="ask-title"></h2>
+    <p id="voiceNote"></p>
+    <div id="voiceList" class="mb-pick"></div>
+    <div class="ask-btns">
+      <button id="voiceInstall"></button>
+      <span class="spacer"></span>
+      <button id="voiceCancel"></button>
+      <button id="voiceOk" class="primary"></button>
+    </div>
+  </dialog>
+
   <!-- 메모책 관리. 앱 MemoBookList(설정 > 메모 설정 > 메모책): 누르면 고치기, 맨 아래 "+ 메모책 추가".
        앱은 꾹 눌러 위로·아래로·삭제인데, 웹은 줄마다 단추로(형광펜 목록의 🗑처럼) -->
   <dialog id="mbBox">
@@ -334,6 +348,11 @@
         <span><span id="setTtsBtnLabel"></span><small id="setTtsBtnHint"></small></span></label>
       <label class="setting"><input type="checkbox" id="setTtsRead">
         <span><span id="setTtsReadLabel"></span><small id="setTtsReadHint"></small></span></label>
+      <!-- 앱 설정 > 음성(TTS) 설정의 목소리, 음성 데이터 설치/관리. 웹은 폰 설정 화면을 열 수 없어 설치는 도움말 안내로 -->
+      <button id="setTtsVoice" type="button" class="setting nav">
+        <span><span id="setTtsVoiceLabel"></span><small id="setTtsVoiceHint"></small></span></button>
+      <button id="setTtsInstall" type="button" class="setting nav">
+        <span><span id="setTtsInstallLabel"></span><small id="setTtsInstallHint"></small></span></button>
       <!-- 앱은 설정 > 메모 설정 > 메모책. 웹은 설정 화면이 이것 하나라 여기 묶음으로 -->
       <h3 id="groupMemo"></h3>
       <button id="setMemoBooks" type="button" class="setting nav">
