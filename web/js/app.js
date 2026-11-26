@@ -62,7 +62,7 @@ const LIST_KEY = 'lifove.biblelist';
 const HISTORY_KEY = 'lifove.history';
 // 처음 쓸 때 역본. 앱은 받은 역본 중 첫째를 쓰지만 웹은 받은 것이 없으므로 언어로 정한다
 // 처음 열 때 고르는 역본. 일본어는 口語訳, 번체·간체는 和合本, 스페인어는 Reina-Valera 1909, 포르투갈어는 prtaa(앱에는 언어별 기본 역본이 없어 웹에서 정함)
-const DEFAULT_VERSION = { ko: 'korhrv', en: 'engkjv', ja: 'jpnjct', zh: 'chuni', 'zh-CN': 'chunisimp', es: 'spnrei', pt: 'prtaa' };
+const DEFAULT_VERSION = { ko: 'korhrv', en: 'engkjv', ja: 'jpnjct', zh: 'chuni', 'zh-CN': 'chunisimp', es: 'spnrei', pt: 'prtaa', fr: 'frsegond' };
 const FONT_MIN = 14, FONT_MAX = 36, FONT_STEP = 2, FONT_DEFAULT = 18;
 
 const lang = pickLang(navigator.languages || [navigator.language]);
@@ -1287,6 +1287,25 @@ function openPicker(show) {
   show(); // 열린 뒤에 그려야 지금 책·절로 스크롤이 된다
 }
 
+/**
+ * 가장 긴 낱말이 단추 폭에 안 들어가는 책 단추는 글자를 줄인다(.long).
+ * 프랑스어 Deutéronome·Thessaloniciens가 좁은 폰에서 "Deutéronom/e"처럼 글자 중간에 끊겼다.
+ * CSS hyphens: auto는 사전이 없는 브라우저(Windows 크롬 등)에서 먹지 않았고, 책 이름에 보이지 않는
+ * 하이픈을 넣으면 복사·검색·음성 읽기 글에 섞여 버렸다. 창이 열린 뒤 부르므로 폭을 잴 수 있다.
+ * 일본어·중국어는 글자 사이에서 줄이 바뀌는 게 보통이라 그대로 둔다
+ */
+function fitLongBookNames(buttons) {
+  if (lang === 'ja' || lang.startsWith('zh')) return;
+  const ctx = document.createElement('canvas').getContext('2d');
+  for (const btn of buttons) {
+    const cs = getComputedStyle(btn);
+    const room = btn.clientWidth - parseFloat(cs.paddingLeft) - parseFloat(cs.paddingRight);
+    ctx.font = `${cs.fontWeight} ${cs.fontSize} ${cs.fontFamily}`;
+    const widest = Math.max(...btn.textContent.split(/\s+/).map((w) => ctx.measureText(w).width));
+    if (room > 0 && widest > room) btn.classList.add('long');
+  }
+}
+
 function showBooks() {
   $pickerTitle.textContent = S.pickBook;
   $pickerBack.hidden = true;
@@ -1309,6 +1328,7 @@ function showBooks() {
     return [h, grid];
   };
   $pickerBody.replaceChildren(...section(S.ot, 0, OT_COUNT), ...section(S.nt, OT_COUNT, BOOK_COUNT));
+  fitLongBookNames($pickerBody.querySelectorAll('.grid.books button'));
   $pickerBody.scrollTop = 0;
   $pickerBody.querySelector('.current')?.scrollIntoView({ block: 'center' });
 }

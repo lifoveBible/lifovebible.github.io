@@ -146,7 +146,7 @@ export function voiceLabels(list, itemName, networkTag) {
 }
 
 /**
- * 장 제목(앱 chapterTitle). 앱처럼 책 이름 목록이 있는 한국어·영어·중국어만. 없으면 null.
+ * 장 제목(앱 chapterTitle). 앱처럼 책 이름 목록이 있는 한국어·영어·중국어와 웹에서 더한 프랑스어만. 없으면 null.
  * 앱은 가톨릭 역본(korcath)이면 가톨릭 책 이름을 쓰지만 웹에는 그 목록이 없어 개신교 이름으로 읽는다
  */
 export function chapterTitle(lang, book, chapter) {
@@ -154,6 +154,8 @@ export function chapterTitle(lang, book, chapter) {
   const [primary] = tag.split('-');
   if (primary === 'ko') return `${bookNames('ko')[book]} ${chapter}장.`;
   if (primary === 'en') return `${bookNames('en')[book]}, chapter ${chapter}.`;
+  // 프랑스어는 앱에 없고 웹에서 더했다(사용자 요청 2026-11-27)
+  if (primary === 'fr') return `${bookNames('fr')[book]}, chapitre ${chapter}.`;
   if (primary === 'zh') {
     const names = bookNames(zhKind(tag) === 'cn' ? 'zh-CN' : 'zh');
     return `${names[book]} 第${chapter}章。`;

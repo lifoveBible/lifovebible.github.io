@@ -128,6 +128,22 @@ const NAMES = {
     '1 Pedro', '2 Pedro', '1 João', '2 João', '3 João',
     'Judas', 'Apocalipse',
   ],
+  fr: [ // 앱에 프랑스어 목록이 없어 루이 스공(Segond) 성경의 이름을 썼다
+    'Genèse', 'Exode', 'Lévitique', 'Nombres', 'Deutéronome',
+    'Josué', 'Juges', 'Ruth', '1 Samuel', '2 Samuel',
+    '1 Rois', '2 Rois', '1 Chroniques', '2 Chroniques', 'Esdras',
+    'Néhémie', 'Esther', 'Job', 'Psaumes', 'Proverbes',
+    'Ecclésiaste', 'Cantique', 'Ésaïe', 'Jérémie', 'Lamentations',
+    'Ézéchiel', 'Daniel', 'Osée', 'Joël', 'Amos',
+    'Abdias', 'Jonas', 'Michée', 'Nahum', 'Habacuc',
+    'Sophonie', 'Aggée', 'Zacharie', 'Malachie',
+    'Matthieu', 'Marc', 'Luc', 'Jean', 'Actes',
+    'Romains', '1 Corinthiens', '2 Corinthiens', 'Galates', 'Éphésiens',
+    'Philippiens', 'Colossiens', '1 Thessaloniciens', '2 Thessaloniciens', '1 Timothée',
+    '2 Timothée', 'Tite', 'Philémon', 'Hébreux', 'Jacques',
+    '1 Pierre', '2 Pierre', '1 Jean', '2 Jean', '3 Jean',
+    'Jude', 'Apocalypse',
+  ],
 };
 
 /** 책 이름 목록. 없는 언어는 영어 */
