@@ -249,8 +249,9 @@ footer .flinks { display: flex; flex-wrap: wrap; gap: 8px 20px; margin-left: aut
 <body>
 <!--
   Languages: the Korean text below is the default. Every element with data-i18n gets its
-  innerHTML from the dictionary T at the bottom (en, ja, zh = Traditional, zh-CN = Simplified, es, pt).
-  When you change a text, change it in all seven languages. The same seven as the web app (web/js/strings.js).
+  innerHTML from the dictionary T at the bottom (en, ja, zh = Traditional, zh-CN = Simplified, es, pt, fr).
+  When you change a text, change it in all eight languages. The first seven are the web app's
+  interface languages (web/js/strings.js); French is on this page only, and its text says so.
 -->
 
 <header class="top">
@@ -272,6 +273,7 @@ footer .flinks { display: flex; flex-wrap: wrap; gap: 8px 20px; margin-left: aut
         <option value="zh-CN">简体中文</option>
         <option value="es">Español</option>
         <option value="pt">Português</option>
+        <option value="fr">Français</option>
       </select>
     </label>
   </div>
@@ -1091,11 +1093,93 @@ footer .flinks { display: flex; flex-wrap: wrap; gap: 8px 20px; margin-left: aut
       'road.sync.when': 'Depois<small>Planejado</small>',
       'road.sync.body': '<h4>Sincronização pelo seu próprio Google Drive</h4><p>Sem servidor próprio: estamos preparando uma forma de manter notas, destaques e marcas de lido iguais entre seus celulares e a versão web, usando o seu próprio Google Drive.</p>',
       'foot.tagline': 'Um aplicativo da Bíblia gratuito e sem anúncios', 'foot.feedback': 'Sugestões · problemas', 'foot.privacy': 'Política de privacidade'
+    },
+    fr: {
+      'meta.desc': 'Lifove Bible est une application biblique gratuite et sans publicité. Téléchargez-la sur Google Play pour Android, ou ouvrez et installez la version web dans le navigateur sur iPhone, iPad, Mac et PC. Plus de 70 versions et commentaires, utilisables hors ligne.',
+      'nav.apps': 'Applications', 'nav.install': 'Installer', 'nav.bibles': 'Versions', 'nav.news': 'Nouveautés',
+      'hero.eyebrow': 'Désormais aussi sur iPhone, Mac et PC',
+      'hero.title': 'La Bible, sur <em>tous vos appareils</em>.',
+      'hero.lead': 'Lifove Bible est une application biblique gratuite et sans publicité. Sur Android, téléchargez-la sur Google Play ; sur iPhone, iPad, Mac, PC ou Chromebook, ouvrez la version web dans le navigateur et installez-la sur l’écran d’accueil ou le bureau. Les versions téléchargées se lisent sans connexion.',
+      'cta.openWeb': 'Ouvrir la version web', 'cta.openWebShort': 'Ouvrir la version web', 'cta.play': 'Disponible sur Google Play',
+      'mock.laptop': laptop('Jean 1', 'Segond 1910', ['Au commencement était la Parole, et la Parole était avec Dieu, et la Parole était Dieu.', 'Elle était au commencement avec Dieu.', 'Toutes choses ont été faites par elle, et rien de ce qui a été fait n’a été fait sans elle.'], 'KJV', KJV_JN),
+      'mock.phone': phone('Genèse 1', 'Louis Segond 1910', ['Au commencement, Dieu créa les cieux et la terre.', 'La terre était informe et vide : il y avait des ténèbres à la surface de l’abîme.', 'Dieu dit : Que la lumière soit ! Et la lumière fut.', 'Dieu vit que la lumière était bonne ; et Dieu sépara la lumière d’avec les ténèbres.', 'Dieu appela la lumière jour, et il appela les ténèbres nuit.']),
+      'apps.title': 'Une Bible, deux applications',
+      'apps.sub': 'Choisissez celle qui convient à votre appareil. Les deux sont gratuites et sans publicité, et utilisent les mêmes données bibliques et les mêmes fichiers de sauvegarde.',
+      'android.name': 'Application Android',
+      'android.tag': 'L’application d’origine, la plus complète · Android 5.0+',
+      'android.list': '<li>Notes et carnets de notes : gardez vos copies, traductions ou notes de prédication comme des livres séparés</li><li>Surlignages, signets, historique récent, statistiques de lecture</li><li>Lecture à voix haute, lecture de fichiers mp3, défilement automatique</li><li>Widget « verset du jour » sur l’écran d’accueil</li><li>Sauvegarde et restauration par fusion, import depuis les anciens dossiers de données</li><li>Fonctionne sur les liseuses à encre électronique, pages tournées avec les touches de volume</li>',
+      'web.name': 'Version web',
+      'web.tag': 'Tout appareil avec un navigateur · s’installe comme une application',
+      'web.list': '<li>S’ouvre instantanément sur iPhone, iPad, Mac, PC Windows et Chromebook ; installez-la pour lire hors ligne</li><li>Notes et carnets de notes, avec un mode copie qui passe au verset suivant à l’enregistrement</li><li>Surlignages (couleurs et styles au choix), signets, marques de lecture et statistiques de lecture</li><li>Copier et partager des versets ou un chapitre entier, signaler une erreur dans le texte</li><li>Lecture à voix haute : écoutez un chapitre avec la voix de votre appareil (TTS), en enchaînant sur le suivant, à vitesse réglable (si le navigateur le permet)</li><li>Sauvegarde et restauration par fusion, avec les mêmes fichiers que l’application Android</li><li>Vue parallèle : plusieurs versions en colonnes adaptatives</li><li>Recherche avec deux termes, dans toute la Bible, l’AT, le NT, par thème ou par livre</li><li>Glissez-déposez vos propres fichiers bibliques (.lfa, .bdf)</li><li>Écrans et aide en 7 langues (pas encore en français), couleurs du texte et du fond, balayage pour changer de chapitre</li>',
+      'shared.backup': '<b>Reprenez sur votre PC là où vous vous êtes arrêté sur votre téléphone.</b> Les deux applications utilisent le même fichier de sauvegarde. Ouvrez une sauvegarde Android dans « Sauvegarde et restauration » de la version web : ses notes, surlignages, signets et marques de lecture sont fusionnés avec les vôtres. Les sauvegardes de la version web s’ouvrent dans l’application Android à partir de la 7.6.0, sous Paramètres &gt; Restaurer les données.',
+      'shared.files': 'Les deux applications téléchargent les mêmes fichiers bibliques depuis le même serveur. Vous pouvez aussi déposer directement dans la version web le dossier de Bibles exporté par l’application Android (<code>Download/LifoveBible/bible</code>).',
+      'cmp.title': 'Ce que fait chaque application',
+      'cmp.sub': 'La version web a maintenant elle aussi les notes, les surlignages, les sauvegardes et la lecture à voix haute. La lecture de mp3, le défilement automatique et les widgets restent propres à l’application Android.',
+      'cmp.feature': 'Fonction', 'cmp.android': 'Android', 'cmp.web': 'Web',
+      'row.download': 'Télécharger des versions · lire hors ligne',
+      'row.parallel': 'Versions en parallèle · commentaires',
+      'row.search': 'Recherche',
+      'row.files': 'Ajouter des fichiers bibliques (.lfa, .bdf)',
+      'row.view': 'Couleurs, balayage pour changer de chapitre',
+      'row.memo': 'Notes · carnets de notes · liste des notes',
+      'row.highlight': 'Surlignages · liste des surlignages · signets',
+      'row.read': 'Marques de lecture · statistiques de lecture',
+      'row.copy': 'Copier · partager versets et chapitres',
+      'row.report': 'Signaler une erreur dans le texte',
+      'row.backup': 'Sauvegarde · restauration par fusion (compatible entre les deux)',
+      'row.lang': '7 langues d’interface (sans le français)',
+      'row.style': 'Choisir couleurs et styles de surlignage',
+      'row.tts': 'Lecture à voix haute (TTS)',
+      'row.audio': 'Lecture de mp3 · défilement automatique',
+      'row.widget': 'Widget d’écran d’accueil',
+      'cmp.ttsNote': '* Dans la version web, la lecture à voix haute utilise la synthèse vocale (TTS) du navigateur. Elle fonctionne dans la plupart des versions récentes de Chrome, Edge, Safari et Samsung Internet ; si le navigateur ne la prend pas en charge, le bouton ▶ n’apparaît pas. La voix vient de votre appareil, elle varie donc d’un appareil à l’autre, et une langue sans voix installée ne peut pas être lue.',
+      'cmp.legend': 'Sur les téléphones Android, nous recommandons pour l’instant l’application Google Play, même si la version web y fonctionne aussi.',
+      'inst.title': 'Installer la version web',
+      'inst.sub': 'Pas besoin de boutique d’applications. Quelques gestes suffisent, et elle prend très peu de place.',
+      'why.icon': '<b>S’ouvre depuis une icône</b><span>Plein écran, sans barre d’adresse</span>',
+      'why.offline': '<b>Fonctionne hors ligne</b><span>Les versions téléchargées, même en avion</span>',
+      'why.update': '<b>Se met à jour seule</b><span>Vous êtes prévenu quand une nouvelle version est prête</span>',
+      'tab.ios': 'iPhone · iPad', 'tab.desktop': 'PC · Mac · Chromebook', 'tab.android': 'Android',
+      'ios.safari.h': 'Safari',
+      'ios.safari.steps': '<li>Ouvrez <a href="web/">lifovebible.github.io/web</a> dans Safari.</li><li>Touchez le bouton Partager <kbd>□↑</kbd> : en bas sur iPhone, à côté de la barre d’adresse sur iPad.</li><li>Faites défiler, touchez <b>Sur l’écran d’accueil</b>, puis <b>Ajouter</b>.</li>',
+      'ios.safari.note': 'Nécessite iOS / iPadOS 16.4 ou plus récent.',
+      'ios.other.h': 'Chrome · Edge · Firefox',
+      'ios.other.steps': '<li>Touchez le bouton Partager <kbd>□↑</kbd> à côté de la barre d’adresse. Dans Edge ou Firefox, il peut se trouver dans le menu <kbd>⋯</kbd>.</li><li>Touchez <b>Sur l’écran d’accueil</b> → <b>Ajouter</b>.</li>',
+      'dt.chrome.h': 'Chrome (Windows · Mac · Linux · Chromebook)',
+      'dt.chrome.steps': '<li>Ouvrez la <a href="web/">version web</a>.</li><li>Cliquez sur l’icône d’installation à droite de la barre d’adresse, puis sur <b>Installer</b>.</li>',
+      'dt.chrome.note': 'Pas d’icône ? Menu <kbd>⋮</kbd> → Caster, enregistrer et partager → Installer la page en tant qu’application.',
+      'dt.edge.h': 'Edge · Whale',
+      'dt.edge.steps': '<li>Cliquez sur l’icône d’installation d’application dans la barre d’adresse.</li><li>Cliquez sur <b>Installer</b>.</li>',
+      'dt.edge.note': 'Dans Edge, vous pouvez aussi passer par le menu <kbd>⋯</kbd> → Applications → Installer ce site en tant qu’application.',
+      'dt.safari.h': 'Safari sur Mac',
+      'dt.safari.steps': '<li>Ouvrez la <a href="web/">version web</a> dans Safari.</li><li>Choisissez <b>Fichier</b> → <b>Ajouter au Dock</b>.</li>',
+      'dt.safari.note': 'macOS 14 Sonoma ou plus récent. Firefox ne peut pas installer d’applications web : ajoutez un marque-page ou utilisez Chrome ou Edge.',
+      'and.play.h': 'Application Google Play (recommandée)',
+      'and.play.p': 'Toutes les fonctions, y compris la lecture à voix haute, la lecture de mp3, le défilement automatique et les widgets.',
+      'and.web.h': 'Installer la version web',
+      'and.web.steps': '<li>Ouvrez la <a href="web/">version web</a> dans Chrome et touchez la bannière d’installation.</li><li>Pas de bannière ? Menu <kbd>⋮</kbd> → <b>Installer l’application</b> ou <b>Ajouter à l’écran d’accueil</b>.</li>',
+      'and.web.note': 'Samsung Internet : l’icône d’installation ↓ dans la barre d’adresse, ou menu ≡ → Ajouter la page à → Écran d’accueil.',
+      'inst.tip': '<b>Pour les utilisateurs d’iPhone.</b> Sur iPhone, Safari et les applications installées sur l’écran d’accueil ont des espaces de stockage séparés. Après l’installation, ouvrez l’application depuis son icône et téléchargez à nouveau vos versions. Si vous n’utilisez que le navigateur, iOS peut effacer les versions téléchargées au bout d’un certain temps : l’installation est donc recommandée.',
+      'inst.backupTip': '<b>Pensez à sauvegarder vos données.</b> La version web conserve les notes, surlignages et signets uniquement dans le navigateur de cet appareil. Effacer les données du navigateur ou supprimer l’application les efface aussi : enregistrez de temps en temps un fichier de sauvegarde depuis le menu ☰ → Sauvegarde et restauration. La version web vous le rappelle si vous n’avez pas sauvegardé depuis longtemps.',
+      'bib.title': 'Des Bibles et des commentaires en de nombreuses langues',
+      'bib.sub': 'Seuls des textes du domaine public ou sous licence sont proposés. Téléchargez seulement ceux dont vous avez besoin.',
+      'bib.versions': 'versions et commentaires', 'bib.languages': 'langues', 'bib.uiLangs': 'langues d’interface',
+      'bib.examples': 'Quelques versions', 'bib.more': 'et bien d’autres',
+      'bib.comm': 'Commentaires et références croisées (à lire côte à côte)',
+      'road.title': 'Nouveautés et prochaines étapes',
+      'road.sub': 'Nous continuons d’améliorer l’application, une suggestion après l’autre.',
+      'road.web.when': 'Version web<small>Novembre · nouveau</small>',
+      'road.web.body': '<h4>Notes, surlignages, signets, sauvegardes et 7 langues</h4><p>Vos données personnelles de l’application Android arrivent aussi dans la version web : carnets de notes et mode copie, listes des surlignages et des notes, copie et partage de versets ou de chapitres entiers, marques de lecture et statistiques de lecture, et sauvegardes qui passent de l’application Android à la version web et inversement. Vous pouvez aussi choisir les couleurs et styles de surlignage et signaler des erreurs dans le texte. Si le navigateur le permet, la version web peut aussi lire un chapitre à voix haute avec la voix de votre appareil. Les écrans et l’aide sont en coréen, anglais, japonais, chinois (traditionnel et simplifié), espagnol et portugais.</p>',
+      'road.android.when': '7.6.0<small>Android · début décembre</small>',
+      'road.android.body': '<h4>Carnets de notes et restauration par fusion</h4><p>Des carnets de notes pour les copies, traductions et notes de prédication, un mode copie qui enregistre et passe au verset suivant avec Entrée, la restauration d’une sauvegarde par fusion avec les données actuelles, l’ouverture des sauvegardes de la version web, et le signalement d’une erreur dans le texte par un appui long sur un verset.</p>',
+      'road.sync.when': 'Plus tard<small>Prévu</small>',
+      'road.sync.body': '<h4>Synchronisation par votre propre Google Drive</h4><p>Sans serveur à nous : nous préparons un moyen de garder notes, surlignages et marques de lecture identiques entre vos téléphones et la version web, grâce à votre propre Google Drive.</p>',
+      'foot.tagline': 'Une application biblique gratuite et sans publicité', 'foot.feedback': 'Suggestions · problèmes', 'foot.privacy': 'Politique de confidentialité'
     }
   };
 
-  var LANGS = ['ko', 'en', 'ja', 'zh', 'zh-CN', 'es', 'pt'];
-  var HTML_LANG = { ko: 'ko', en: 'en', ja: 'ja', zh: 'zh-Hant', 'zh-CN': 'zh-Hans', es: 'es', pt: 'pt' };
+  var LANGS = ['ko', 'en', 'ja', 'zh', 'zh-CN', 'es', 'pt', 'fr'];
+  var HTML_LANG = { ko: 'ko', en: 'en', ja: 'ja', zh: 'zh-Hant', 'zh-CN': 'zh-Hans', es: 'es', pt: 'pt', fr: 'fr' };
   var root = document.documentElement;
   var nodes = document.querySelectorAll('[data-i18n]');
   var metaDesc = document.querySelector('meta[name="description"]');
