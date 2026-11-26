@@ -48,6 +48,13 @@ const STRINGS = {
     colorPresets: { light: '밝게', dark: '어둡게', sepia: '세피아', green: '연두' },
     colorSample: '태초에 하나님이 천지를 창조하시니라',
     colorReset: '기본 색으로',
+    groupHighlight: '형광펜 설정', // text_title_pref_highlight
+    hlStyle: '형광펜 모양', // text_pref_underline_preferences
+    hlStyleHint: '형광펜을 칠한 절이 어떻게 보일지 고릅니다. 여러 개를 함께 고를 수 있습니다.', // text_pref_underline_preferences_summary
+    hlStyles: ['배경 칠하기(형광펜)', '밑줄', '글자색', '굵게'], // entries_highlight_style(highlightStyle.STYLES 차례)
+    hlColor: '형광펜 색', // text_pref_highlightcolor
+    hlTextColor: '밑줄·글자 색', // text_pref_underlinecolor
+    hlNeedOne: '형광펜 모양을 하나 이상 골라 주세요.', // text_highlight_style_need_one
     groupNav: '이동과 터치', // pref_group_navigation
     navBar: '이동 버튼 표시', // text_pref_navigation_bar_preference
     navBarHint: '본문 위에 이동 버튼을 보입니다.',
@@ -183,6 +190,13 @@ const STRINGS = {
     hlLoadFailed: '형광펜을 읽지 못했습니다',
     noSuchVersion: (name) => `${name} 역본을 찾을 수 없습니다. 성경다운로드나 성경 파일 넣기로 다시 넣어 주세요.`,
     addBookmark: '책갈피 추가', // menu_add_bookmark
+    copyChapter: '장 전체 복사', // menu_copy_chapter
+    sendChapter: '장 전체 전송', // menu_chapter_send
+    copiedChapter: '클립보드에 장 전체를 복사했습니다.', // text_copied_this_chapter
+    reportVerseError: '본문 오류 신고', // menu_report_verse_error
+    verseErrorSubject: '[본문 오류] Lifove Bible', // text_verse_error_subject
+    verseErrorGuide: '아래 절에서 어느 부분이 틀렸는지, 어떻게 고쳐야 하는지 자세히 적어 주세요. 가능하면 근거(인쇄본 성경과 쪽수 등)도 함께 적어 주세요.', // text_verse_error_guide
+    reportMailHint: '메일 앱이 열리지 않으면 bible@lifove.net 으로 보내 주세요.', // text_no_mail_app를 고침(웹은 메일 앱이 열렸는지 알 수 없다)
     bookmarks: '책갈피', // menu_bookmark
     bookmarkAdded: (ref) => `${ref} 책갈피를 성공적으로 저장했습니다!`, // text_bookmark_added에 위치를 붙임
     bookmarkFailed: '책갈피를 저장하지 못했습니다',
@@ -318,6 +332,13 @@ const STRINGS = {
     colorPresets: { light: 'Light', dark: 'Dark', sepia: 'Sepia', green: 'Green' },
     colorSample: 'In the beginning God created the heaven and the earth.',
     colorReset: 'Default colors',
+    groupHighlight: 'Highlight Settings', // text_title_pref_highlight
+    hlStyle: 'Highlight style', // text_pref_underline_preferences
+    hlStyleHint: 'Choose how highlighted verses look. You can pick more than one.', // text_pref_underline_preferences_summary
+    hlStyles: ['Highlighter background', 'Underline', 'Text color', 'Bold'], // entries_highlight_style(highlightStyle.STYLES 차례)
+    hlColor: 'Highlighter color', // text_pref_highlightcolor
+    hlTextColor: 'Underline/text color', // text_pref_underlinecolor
+    hlNeedOne: 'Pick at least one highlight style.', // text_highlight_style_need_one
     groupNav: 'Navigation and touch', // pref_group_navigation
     navBar: 'Show navigation buttons', // text_pref_navigation_bar_preference
     navBarHint: 'Show move buttons over the text.',
@@ -453,6 +474,13 @@ const STRINGS = {
     hlLoadFailed: 'Could not read the highlights',
     noSuchVersion: (name) => `${name} is not available. Download or import it again.`,
     addBookmark: 'Add Bookmark', // menu_add_bookmark
+    copyChapter: 'Copy a chapter', // menu_copy_chapter
+    sendChapter: 'Send the chapter', // menu_chapter_send
+    copiedChapter: 'Copied this chapter', // text_copied_this_chapter
+    reportVerseError: 'Report Text Error', // menu_report_verse_error
+    verseErrorSubject: '[Text error] Lifove Bible', // text_verse_error_subject
+    verseErrorGuide: 'Please describe below which part of the verse is wrong and what it should be. If you can, also tell us your source (e.g., a printed Bible and its page).', // text_verse_error_guide
+    reportMailHint: 'If no email app opens, please send your report to bible@lifove.net.', // text_no_mail_app를 고침(웹은 메일 앱이 열렸는지 알 수 없다)
     bookmarks: 'Bookmark', // menu_bookmark
     bookmarkAdded: (ref) => `Bookmark saved successfully! (${ref})`, // text_bookmark_added with the place
     bookmarkFailed: 'Could not save the bookmark',
@@ -589,6 +617,13 @@ const STRINGS = {
     colorPresets: { light: '明るい', dark: '暗い', sepia: 'セピア', green: '黄緑' },
     colorSample: '初めに、神が天と地を創造した。',
     colorReset: '標準の色に戻す',
+    groupHighlight: 'マイラインの設定', // text_title_pref_highlight
+    hlStyle: '線の種類', // text_pref_underline_preferences
+    hlStyleHint: '線を引いた節の見た目を選びます。複数選べます。', // text_pref_underline_preferences_summary
+    hlStyles: ['マーカー(背景)', '下線', '文字の色', '太字'], // entries_highlight_style(highlightStyle.STYLES 차례)
+    hlColor: 'マーカーの色', // text_pref_highlightcolor
+    hlTextColor: '下線・文字の色', // text_pref_underlinecolor
+    hlNeedOne: '線の種類を1つ以上選んでください。', // text_highlight_style_need_one
     groupNav: '移動とタッチ', // pref_group_navigation
     navBar: '移動ボタンを表示', // text_pref_navigation_bar_preference
     navBarHint: '本文の上に移動ボタンを表示します。',
@@ -724,6 +759,13 @@ const STRINGS = {
     hlLoadFailed: '線を読み込めませんでした',
     noSuchVersion: (name) => `${name}が見つかりません。[ダウンロード]か[聖書ファイルの追加]でもう一度追加してください。`,
     addBookmark: 'しおりを追加', // menu_add_bookmark
+    copyChapter: 'この章をコピー', // menu_copy_chapter
+    sendChapter: 'この章を送る', // menu_chapter_send
+    copiedChapter: 'この章をコピーしました', // text_copied_this_chapter
+    reportVerseError: '本文の誤りを報告', // menu_report_verse_error
+    verseErrorSubject: '[本文の誤り] Lifove Bible', // text_verse_error_subject
+    verseErrorGuide: '下の節のどの部分が誤っていて、どう直すべきかを詳しくご記入ください。可能であれば、根拠(印刷版の聖書とページなど)もお書きください。', // text_verse_error_guide
+    reportMailHint: 'メールアプリが開かない場合は、bible@lifove.net までお送りください。', // text_no_mail_app를 고침(웹은 메일 앱이 열렸는지 알 수 없다)
     bookmarks: 'しおり', // menu_bookmark
     bookmarkAdded: (ref) => `しおりを保存しました。(${ref})`, // text_bookmark_added에 위치를 붙임
     bookmarkFailed: 'しおりを保存できませんでした',
@@ -862,6 +904,13 @@ const STRINGS = {
     colorPresets: { light: '淺色', dark: '深色', sepia: '復古', green: '淺綠' },
     colorSample: '起初，神創造天地。',
     colorReset: '恢復預設顏色',
+    groupHighlight: '精選設定', // text_title_pref_highlight
+    hlStyle: '精選標示方式', // text_pref_underline_preferences
+    hlStyleHint: '選擇精選經節的顯示方式，可以複選。', // text_pref_underline_preferences_summary
+    hlStyles: ['螢光筆背景', '底線', '文字顏色', '粗體'], // entries_highlight_style(highlightStyle.STYLES 차례)
+    hlColor: '螢光筆顏色', // text_pref_highlightcolor
+    hlTextColor: '底線/文字顏色', // text_pref_underlinecolor
+    hlNeedOne: '請至少選擇一種精選標示方式。', // text_highlight_style_need_one
     groupNav: '移動與觸控', // pref_group_navigation
     navBar: '顯示移動按鈕', // text_pref_navigation_bar_preference
     navBarHint: '在經文上方顯示移動按鈕。',
@@ -997,6 +1046,13 @@ const STRINGS = {
     hlLoadFailed: '無法讀取精選',
     noSuchVersion: (name) => `找不到譯本「${name}」。請透過「下載」或「加入聖經檔案」重新加入。`,
     addBookmark: '加入書籤', // menu_add_bookmark
+    copyChapter: '複製本章', // menu_copy_chapter
+    sendChapter: '傳送本章', // menu_chapter_send
+    copiedChapter: '已複製本章', // text_copied_this_chapter (앱은 메뉴와 같은 '複製本章')
+    reportVerseError: '回報經文錯誤', // menu_report_verse_error
+    verseErrorSubject: '[經文錯誤] 靈愛聖經', // text_verse_error_subject
+    verseErrorGuide: '請在下方詳細寫明經節哪個部分有誤，以及應如何修正。若可以，也請附上依據（例如紙本聖經及頁數）。', // text_verse_error_guide
+    reportMailHint: '若沒有開啟電子郵件 App，請將回報寄到 bible@lifove.net。', // text_no_mail_app를 고침(웹은 메일 앱이 열렸는지 알 수 없다)
     bookmarks: '書籤', // menu_bookmark
     bookmarkAdded: (ref) => `儲存書籤成功！（${ref}）`, // text_bookmark_added에 위치를 붙임
     bookmarkFailed: '無法儲存書籤',
@@ -1135,6 +1191,13 @@ const STRINGS = {
     colorPresets: { light: '浅色', dark: '深色', sepia: '复古', green: '浅绿' },
     colorSample: '起初，神创造天地。',
     colorReset: '恢复预设颜色',
+    groupHighlight: '精选设定', // text_title_pref_highlight
+    hlStyle: '精选标示方式', // text_pref_underline_preferences
+    hlStyleHint: '选择精选经节的显示方式，可以复选。', // text_pref_underline_preferences_summary
+    hlStyles: ['萤光笔背景', '底线', '文字颜色', '粗体'], // entries_highlight_style(highlightStyle.STYLES 차례)
+    hlColor: '萤光笔颜色', // text_pref_highlightcolor
+    hlTextColor: '底线/文字颜色', // text_pref_underlinecolor
+    hlNeedOne: '请至少选择一种精选标示方式。', // text_highlight_style_need_one
     groupNav: '移动与触控', // pref_group_navigation
     navBar: '显示移动按钮', // text_pref_navigation_bar_preference
     navBarHint: '在经文上方显示移动按钮。',
@@ -1270,6 +1333,13 @@ const STRINGS = {
     hlLoadFailed: '无法读取精选',
     noSuchVersion: (name) => `找不到译本「${name}」。请透过「下载」或「加入圣经档案」重新加入。`,
     addBookmark: '加入书签', // menu_add_bookmark
+    copyChapter: '复制本章', // menu_copy_chapter
+    sendChapter: '传送本章', // menu_chapter_send
+    copiedChapter: '已复制本章', // text_copied_this_chapter (앱은 메뉴와 같은 '复制本章')
+    reportVerseError: '回报经文错误', // menu_report_verse_error
+    verseErrorSubject: '[经文错误] 灵爱圣经', // text_verse_error_subject
+    verseErrorGuide: '请在下方详细写明经节哪个部分有误，以及应如何修正。若可以，也请附上依据（例如纸本圣经及页数）。', // text_verse_error_guide
+    reportMailHint: '若没有开启电子邮件 App，请将回报寄到 bible@lifove.net。', // text_no_mail_app를 고침(웹은 메일 앱이 열렸는지 알 수 없다)
     bookmarks: '书签', // menu_bookmark
     bookmarkAdded: (ref) => `储存书签成功！（${ref}）`, // text_bookmark_added에 위치를 붙임
     bookmarkFailed: '无法储存书签',
@@ -1407,6 +1477,13 @@ const STRINGS = {
     colorPresets: { light: 'Claro', dark: 'Oscuro', sepia: 'Sepia', green: 'Verde' },
     colorSample: 'En el principio creó Dios los cielos y la tierra.',
     colorReset: 'Colores predeterminados',
+    groupHighlight: 'Ajustes de resaltados', // text_title_pref_highlight
+    hlStyle: 'Tipo de resaltado', // text_pref_underline_preferences
+    hlStyleHint: 'Elige cómo se ven los versículos resaltados. Puedes elegir más de uno.', // text_pref_underline_preferences_summary
+    hlStyles: ['Fondo de resaltador', 'Subrayado', 'Color del texto', 'Negrita'], // entries_highlight_style(highlightStyle.STYLES 차례)
+    hlColor: 'Color del resaltador', // text_pref_highlightcolor
+    hlTextColor: 'Color del subrayado/texto', // text_pref_underlinecolor
+    hlNeedOne: 'Elige al menos un tipo de resaltado.', // text_highlight_style_need_one
     groupNav: 'Navegación y toque', // pref_group_navigation
     navBar: 'Mostrar botones de navegación', // text_pref_navigation_bar_preference
     navBarHint: 'Muestra botones para moverte sobre el texto.',
@@ -1542,6 +1619,13 @@ const STRINGS = {
     hlLoadFailed: 'No se pudieron leer los resaltados',
     noSuchVersion: (name) => `${name} no está disponible. Descárgala o añádela de nuevo.`,
     addBookmark: 'Añadir marcador', // menu_add_bookmark
+    copyChapter: 'Copiar el capítulo', // menu_copy_chapter
+    sendChapter: 'Enviar el capítulo', // menu_chapter_send
+    copiedChapter: 'Capítulo copiado', // text_copied_this_chapter
+    reportVerseError: 'Informar error en el texto', // menu_report_verse_error
+    verseErrorSubject: '[Error en el texto] Lifove Bible', // text_verse_error_subject
+    verseErrorGuide: 'Describa abajo qué parte del versículo está mal y cómo debería ser. Si es posible, indique también la fuente (por ejemplo, una Biblia impresa y la página).', // text_verse_error_guide
+    reportMailHint: 'Si no se abre ninguna aplicación de correo, envía tu informe a bible@lifove.net.', // text_no_mail_app를 고침(웹은 메일 앱이 열렸는지 알 수 없다)
     bookmarks: 'Marcadores', // menu_bookmark
     bookmarkAdded: (ref) => `¡Marcador guardado! (${ref})`, // text_bookmark_added에 위치를 붙임
     bookmarkFailed: 'No se pudo guardar el marcador',
@@ -1679,6 +1763,13 @@ const STRINGS = {
     colorPresets: { light: 'Claro', dark: 'Escuro', sepia: 'Sépia', green: 'Verde' },
     colorSample: 'No princípio criou Deus os céus e a terra.',
     colorReset: 'Cores padrão',
+    groupHighlight: 'Configurações de destaques', // text_title_pref_highlight
+    hlStyle: 'Tipo de destaque', // text_pref_underline_preferences
+    hlStyleHint: 'Escolha como os versículos destacados aparecem. Você pode escolher mais de um.', // text_pref_underline_preferences_summary
+    hlStyles: ['Fundo de marca-texto', 'Sublinhado', 'Cor do texto', 'Negrito'], // entries_highlight_style(highlightStyle.STYLES 차례)
+    hlColor: 'Cor do marca-texto', // text_pref_highlightcolor
+    hlTextColor: 'Cor do sublinhado/texto', // text_pref_underlinecolor
+    hlNeedOne: 'Escolha pelo menos um tipo de destaque.', // text_highlight_style_need_one
     groupNav: 'Navegação e toque', // pref_group_navigation
     navBar: 'Mostrar botões de navegação', // text_pref_navigation_bar_preference
     navBarHint: 'Mostra botões para se mover sobre o texto.',
@@ -1814,6 +1905,13 @@ const STRINGS = {
     hlLoadFailed: 'Não foi possível ler os destaques',
     noSuchVersion: (name) => `${name} não está disponível. Baixe ou adicione de novo.`,
     addBookmark: 'Adicionar marcador', // menu_add_bookmark
+    copyChapter: 'Copiar o capítulo', // menu_copy_chapter
+    sendChapter: 'Enviar o capítulo', // menu_chapter_send
+    copiedChapter: 'Capítulo copiado', // text_copied_this_chapter
+    reportVerseError: 'Relatar erro no texto', // menu_report_verse_error
+    verseErrorSubject: '[Erro no texto] Lifove Bible', // text_verse_error_subject
+    verseErrorGuide: 'Descreva abaixo qual parte do versículo está errada e como deveria ser. Se possível, informe também a fonte (por exemplo, uma Bíblia impressa e a página).', // text_verse_error_guide
+    reportMailHint: 'Se nenhum aplicativo de e-mail abrir, envie seu relato para bible@lifove.net.', // text_no_mail_app를 고침(웹은 메일 앱이 열렸는지 알 수 없다)
     bookmarks: 'Marcadores', // menu_bookmark
     bookmarkAdded: (ref) => `Marcador salvo! (${ref})`, // text_bookmark_added에 위치를 붙임
     bookmarkFailed: 'Não foi possível salvar o marcador',

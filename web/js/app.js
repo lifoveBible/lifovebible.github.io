@@ -24,7 +24,9 @@ import {
 import { swipeDirection } from './swipe.js';
 import { groupFiles, prepareGroup, openRecord, mergeLocal, classifyName } from './localBible.js';
 import { listLocal, getLocal, putLocal, deleteLocal } from './localStore.js';
-import { formatVerses, rowsOfSingle } from './verseCopy.js';
+import { formatChapter, formatVerses, rowsOfSingle } from './verseCopy.js';
+import { verseErrorMail } from './report.js';
+import { STYLES, normalizeStyle, toggleStyle, styleClasses, cssColorToHex } from './highlightStyle.js';
 import { readSet, isRead, readChaptersOf, readStats, percent } from './readCheck.js';
 import {
   readChecksOf, versWithReadChecks, setReadCheck, clearReadChecks, highlightsOfChapter, setHighlights,
@@ -106,7 +108,8 @@ const prefs = loadPrefs();
 // prefs: { pos: {book, chapter}, fontSize, versions: [{code, url, name, lang}], oneColumn, started, barTop,
 //          showVerName, fontColor, bgColor, navBar(앱 값 1~8), navUnit('verse'|'page'|'chapter'),
 //          navPos('right-middle'|'right-bottom'|'left-middle'|'left-bottom', 웹에만. 기본 오른쪽 아래),
-//          swipeChapter(옆으로 밀어 장 넘기기. 없으면 켬), memoShown, memoBook(지금 메모책 uid. 없으면 기본) }
+//          swipeChapter(옆으로 밀어 장 넘기기. 없으면 켬), memoShown, memoBook(지금 메모책 uid. 없으면 기본),
+//          hlStyle(형광펜 모양 배열, highlightStyle.STYLES), hlColor(형광펜 색), hlTextColor(밑줄·글자 색) }
 // started: 역본을 한 번이라도 골랐다. 처음 쓰는 사람에게만 기본 역본을 받아 주려고(syncPrefsVersions).
 // 시작할 때 한 번만 보면 첫 방문에서 다 지웠을 때 또 받아 버려서 그때그때 본다
 
@@ -598,9 +601,64 @@ $('selShare').addEventListener('click', async () => {
 });
 $('selClear').addEventListener('click', clearSelection);
 
+// 장 전체 복사·전송(☰ 메뉴). 대조 보기면 보이는 역본 모두
+$('menuCopyChapter').textContent = S.copyChapter;
+$('menuSendChapter').textContent = S.sendChapter;
+$('menuSendChapter').hidden = typeof navigator.share !== 'function';
+
+const chapterText = () => formatChapter(S.ref(NAMES[pos.book], pos.chapter), shown.rows, shown.names);
+
+async function copyChapter() {
+  const text = chapterText();
+  if (!text) return;
+  try {
+    await copyText(text);
+    showToast(S.copiedChapter);
+  } catch (e) {
+    console.warn(e);
+    showToast(S.copyFailed);
+  }
+}
+async function sendChapter() {
+  const text = chapterText();
+  if (!text) return;
+  try {
+    await navigator.share({ text });
+  } catch (e) {
+    if (e.name !== 'AbortError') {
+      console.warn(e);
+      showToast(S.shareFailed);
+    }
+  }
+}
+
+// ---- 본문 오류 신고(☰ 메뉴) ----
+// 앱 Util.sendVerseErrorReport. 메일 앱을 mailto로 연다. 웹은 메일 앱이 열렸는지 알 수 없어서(PC에 메일 앱이 없으면
+// 아무 일도 안 일어난다) 늘 주소 안내를 알림으로 띄운다
+$('menuReportError').textContent = S.reportVerseError;
+
+async function reportVerseError() {
+  let web = '?';
+  try { // 웹 앱 버전 = 서비스 워커 캐시 이름(lifove-app-<VERSION>). 새 버전이 기다리는 중이면 둘
+    web = (await caches.keys()).filter((k) => k.startsWith('lifove-app-')).map((k) => k.slice(11)).join(', ') || '?';
+  } catch { /* Cache Storage가 없는 주소 */ }
+  const vers = prefs.versions.map((v) => v.code + (v.local ? ' (local)' : '')).join(', ');
+  const mail = verseErrorMail({
+    subject: S.verseErrorSubject,
+    ref: S.ref(NAMES[pos.book], pos.chapter),
+    guide: S.verseErrorGuide,
+    verses: selected.size ? selectedText() : '',
+    info: [['Browser', navigator.userAgent], ['Lifove Bible Web version', web], ['Language', lang], ['Bibles', vers]],
+  });
+  const a = document.createElement('a');
+  a.href = mail.url;
+  a.click();
+  showToast(S.reportMailHint);
+}
+
 // ---- 형광펜 ----
 // 앱 my_underline. 역본마다 따로 칠한다. 대조 보기에서 칠하면 보이는 역본 모두에(앱은 2단의 두 역본에) 칠한다.
-// 칠한 절의 본문(.text)에 배경색을 입힌다(앱 기본 모양 HighlightStyle.BACKGROUND). 색·모양 설정은 아직 없다
+// 칠한 절의 본문(.text)에 .hl을 붙이고, 모양·색은 본문화면설정의 형광펜 묶음(applyView가 뿌리에 클래스)을 CSS가 입힌다
 $('selHl').textContent = S.highlight;
 $('selHlOff').textContent = S.highlightOff;
 label($('selHl'), S.highlightVerses);
@@ -2199,6 +2257,11 @@ function applyView() {
   const fg = validColor(prefs.fontColor), bg = validColor(prefs.bgColor);
   if (fg) root.style.setProperty('--page-fg', fg); else root.style.removeProperty('--page-fg');
   if (bg) root.style.setProperty('--page-bg', bg); else root.style.removeProperty('--page-bg');
+  // 형광펜 모양·색. 고르지 않은 색은 CSS가 바탕색에 맞춰 섞는다(css "형광펜")
+  for (const [cls, on] of styleClasses(prefs.hlStyle)) root.classList.toggle(cls, on);
+  const hb = validColor(prefs.hlColor), hf = validColor(prefs.hlTextColor);
+  if (hb) root.style.setProperty('--hl-bg', hb); else root.style.removeProperty('--hl-bg');
+  if (hf) root.style.setProperty('--hl-fg', hf); else root.style.removeProperty('--hl-fg');
 }
 applyView();
 
@@ -2225,7 +2288,70 @@ $('colorPresets').replaceChildren(...PRESETS.map((p) => {
   return b;
 }));
 
+// 형광펜 설정. 앱은 고르지 않은 채 끄려 하면 알림(Toast)이지만 웹 창은 알림을 가리므로 묶음 안에 문구로
+$('groupHighlight').textContent = S.groupHighlight;
+$('hlStyleLabel').textContent = S.hlStyle;
+$('hlStyleHint').textContent = S.hlStyleHint;
+$('hlColorLabel').textContent = S.hlColor;
+$('hlTextColorLabel').textContent = S.hlTextColor;
+$('hlNeedOne').textContent = S.hlNeedOne;
+$('hlSample').textContent = S.colorSample;
+$('hlReset').textContent = S.colorReset;
+$('hlStyles').replaceChildren(...STYLES.map((key, i) => {
+  const l = document.createElement('label');
+  l.className = 'setting';
+  const c = document.createElement('input');
+  c.type = 'checkbox';
+  c.dataset.key = key;
+  c.addEventListener('change', () => {
+    const { style, refused } = toggleStyle(prefs.hlStyle, key, c.checked);
+    $('hlNeedOne').hidden = !refused;
+    prefs.hlStyle = style;
+    savePrefs();
+    applyView();
+    showHighlightInputs();
+  });
+  const t = document.createElement('span');
+  t.textContent = S.hlStyles[i];
+  l.append(c, ' ', t);
+  return l;
+}));
+
+/** 체크와 색 칸. 고르지 않은 색은 견본에 지금 보이는 색(CSS가 섞은 색)을 읽어 넣는다 */
+function showHighlightInputs() {
+  const style = normalizeStyle(prefs.hlStyle);
+  for (const c of $('hlStyles').querySelectorAll('input')) c.checked = style.includes(c.dataset.key);
+  // 모양을 꺼 둔 색도 고를 수 있게, 잠깐 모든 모양을 켠 견본에서 읽는다
+  const sample = $('hlSample');
+  const off = STYLES.filter((k) => !style.includes(k)).map((k) => `hl-${k}`);
+  root.classList.add(...off);
+  const cs = getComputedStyle(sample);
+  const bgNow = cssColorToHex(cs.backgroundColor), fgNow = cssColorToHex(cs.color);
+  root.classList.remove(...off);
+  $('hlColor').value = validColor(prefs.hlColor) || bgNow || '#ffe066';
+  $('hlTextColor').value = validColor(prefs.hlTextColor) || fgNow || '#ebc83d';
+}
+
+$('hlColor').addEventListener('input', (e) => {
+  prefs.hlColor = e.target.value;
+  savePrefs();
+  applyView();
+});
+$('hlTextColor').addEventListener('input', (e) => {
+  prefs.hlTextColor = e.target.value;
+  savePrefs();
+  applyView();
+});
+$('hlReset').addEventListener('click', () => {
+  delete prefs.hlColor;
+  delete prefs.hlTextColor;
+  savePrefs();
+  applyView();
+  showHighlightInputs();
+});
+
 function openSettings() {
+  $('hlNeedOne').hidden = true;
   $('setBarBottom').checked = !prefs.barTop;
   $('setOneColumn').checked = !!prefs.oneColumn;
   $('setVerName').checked = !!prefs.showVerName;
@@ -2245,6 +2371,7 @@ function showColorInputs() {
   $('bgColor').value = now('--bg', prefs.bgColor);
   const cur = presetOf(prefs.fontColor, prefs.bgColor);
   for (const b of $('colorPresets').children) b.classList.toggle('current', b.dataset.key === cur);
+  showHighlightInputs(); // 형광펜 기본 색은 배경·글자색에 섞으므로 함께 바뀐다
 }
 
 /** CSS 변수에 쓴 #fff 같은 값을 #ffffff로 */
@@ -2580,6 +2707,9 @@ $('menuHighlights').addEventListener('click', fromMenu(openHighlights));
 $('menuMemoList').addEventListener('click', fromMenu(openMemoList));
 $('menuMemoToggle').addEventListener('click', fromMenu(toggleMemos));
 $('menuAddBookmark').addEventListener('click', fromMenu(saveBookmark));
+$('menuCopyChapter').addEventListener('click', fromMenu(copyChapter));
+$('menuSendChapter').addEventListener('click', fromMenu(sendChapter));
+$('menuReportError').addEventListener('click', fromMenu(reportVerseError));
 $('menuBookmarks').addEventListener('click', fromMenu(openBookmarks));
 $('menuSearch').addEventListener('click', fromMenu(openSearch));
 $('menuHelp').addEventListener('click', fromMenu(openHelp));

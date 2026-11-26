@@ -164,14 +164,29 @@ html:not(.bar-top) main { padding-bottom: calc(24px + var(--sel-h, 0px) + var(--
 #verses { touch-action: manipulation; }
 #verses li.selected { background: color-mix(in srgb, var(--accent) 22%, transparent); border-radius: 4px; }
 #verses .missing { color: var(--page-muted); }
-/* 형광펜(app.js paintHighlights). 노랑을 본문 배경색에 섞어 밝은·어두운·고른 배경 어디서나 글자가 읽히게
-   (어두운 배경이면 앱 기본 형광펜 색 rgb(51,51,0)과 비슷한 어두운 노랑이 된다). 여러 줄이면 줄마다 둥글게 */
-#verses .text.hl {
-  background: color-mix(in srgb, #e6c200 38%, var(--page-bg));
+/* 형광펜(app.js paintHighlights). 본문, 나의형광펜목록, 설정 창 견본에 같은 모양.
+   모양은 뿌리의 클래스(app.js applyView: hl-bg·hl-underline·hl-color·hl-bold, 앱 HighlightStyle), 고른 색은 --hl-bg·--hl-fg.
+   색을 고르지 않았으면 노랑을 바탕색(--hl-base)에 섞어 밝은·어두운·고른 배경 어디서나 글자가 읽히게
+   (어두운 배경이면 앱 기본 형광펜 색 rgb(51,51,0)과 비슷한 어두운 노랑). 글자·밑줄 색은 앱 기본 rgb(235,200,61)이
+   밝은 배경에서 잘 안 보여서 금색을 글자색(--hl-ink)에 섞는다. 여러 줄이면 줄마다 둥글게 */
+#verses, .color-sample { --hl-base: var(--page-bg); --hl-ink: var(--page-fg); }
+.hl-list { --hl-base: var(--bg); --hl-ink: var(--fg); }
+.hl-bg :is(#verses .text.hl, .hl-list .htext, .hl-sample) {
+  background: var(--hl-bg, color-mix(in srgb, #e6c200 38%, var(--hl-base)));
   border-radius: 2px;
   -webkit-box-decoration-break: clone;
   box-decoration-break: clone;
 }
+.hl-underline :is(#verses .text.hl, .hl-list .htext, .hl-sample) {
+  text-decoration: underline;
+  text-decoration-color: var(--hl-fg, color-mix(in srgb, #d4a800 70%, var(--hl-ink)));
+  text-decoration-thickness: 0.1em;
+  text-underline-offset: 0.18em;
+}
+.hl-color :is(#verses .text.hl, .hl-list .htext, .hl-sample) {
+  color: var(--hl-fg, color-mix(in srgb, #d4a800 70%, var(--hl-ink)));
+}
+.hl-bold :is(#verses .text.hl, .hl-list .htext, .hl-sample) { font-weight: 700; }
 
 
 /* ---- 책·장 고르기 ---- */
@@ -268,13 +283,6 @@ ul.hl-list { list-style: none; margin: 0; padding: 0 0 8px; word-break: keep-all
 }
 .hl-list .go:hover { background: var(--bar); }
 .hl-list .sref { display: block; color: var(--accent); font-weight: 600; font-size: 0.85em; }
-/* 본문에 칠한 색(#verses .text.hl)과 같은 노랑. 창 배경(--bg)에 섞는다 */
-.hl-list .htext {
-  background: color-mix(in srgb, #e6c200 38%, var(--bg));
-  border-radius: 2px;
-  -webkit-box-decoration-break: clone;
-  box-decoration-break: clone;
-}
 .hl-list .del { flex: none; margin: 6px 0 0 4px; border: 0; background: none; color: var(--muted); }
 
 /* ---- 대조 보기 ----
@@ -435,6 +443,10 @@ dialog.menu {
   width: max-content;
   min-width: 180px;
   max-width: calc(100vw - 16px);
+  /* 바(52px) 반대쪽에 8px 남긴다. 브라우저 기본 max-height(화면 - 약 38px)로는 항목이 많을 때(장 전체 복사·전송을
+     더한 뒤 16개) 낮은 폰에서 메뉴 위쪽이 화면 밖으로 나갔다 */
+  max-height: calc(100dvh - 60px);
+  overflow-y: auto;
   padding: 4px 0;
   box-shadow: 0 4px 16px rgb(0 0 0 / 0.25);
 }
@@ -641,7 +653,11 @@ dialog.ask p { margin: 0 0 14px; }
   font-size: var(--verse-size);
   word-break: keep-all; /* 본문과 같게 낱말 가운데서 줄을 바꾸지 않는다 */
 }
-#colorReset { width: 100%; }
+#colorReset, #hlReset { width: 100%; }
+.setting-hint { margin: 8px 0 2px; }
+.setting-hint small { display: block; font-size: 0.8rem; color: var(--muted); }
+.hl-need { display: block; color: var(--error); font-size: 0.85rem; }
+.hl-need[hidden] { display: none; } /* 위 display가 hidden 속성을 덮어 늘 보였다 */
 /* 글자 크기 − 18 + */
 .stepper { display: flex; align-items: center; gap: 6px; }
 .stepper output { min-width: 2em; text-align: center; font-variant-numeric: tabular-nums; }

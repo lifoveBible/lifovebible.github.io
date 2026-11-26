@@ -127,6 +127,11 @@
   <dialog id="menu" class="menu">
     <!-- 순서는 앱 메뉴를 따른다(검색, 다른성경보기, 역본대조보기 … 설정의 성경다운로드) -->
     <button id="menuAddBookmark"></button>
+    <!-- 장 전체 복사·전송: 앱은 절을 꾹 눌러 나오는 메뉴에 있다. 웹 동작 바는 폰 폭에서 꽉 차서 여기에(사용자와 정함) -->
+    <button id="menuCopyChapter"></button>
+    <button id="menuSendChapter"></button>
+    <!-- 본문 오류 신고: 앱은 절 메뉴. 고른 절이 있으면 그 절, 없으면 장 이름으로 메일을 연다 -->
+    <button id="menuReportError"></button>
     <button id="menuSearch"></button>
     <button id="menuOneVersion"></button>
     <button id="menuVersions"></button>
@@ -296,6 +301,15 @@
       <div id="colorPresets" class="presets"></div>
       <p id="colorSample" class="color-sample"></p>
       <button id="colorReset"></button>
+      <!-- 형광펜 모양·색. 앱 설정 > 형광펜 설정(HighlightStyle 네 가지를 여러 개, 형광펜 색, 밑줄·글자 색) -->
+      <h3 id="groupHighlight"></h3>
+      <p class="setting-hint"><span id="hlStyleLabel"></span><small id="hlStyleHint"></small></p>
+      <div id="hlStyles"></div>
+      <small id="hlNeedOne" class="hl-need" hidden></small>
+      <label class="setting color"><span id="hlColorLabel"></span><input type="color" id="hlColor"></label>
+      <label class="setting color"><span id="hlTextColorLabel"></span><input type="color" id="hlTextColor"></label>
+      <p class="color-sample"><span id="hlSample" class="hl-sample"></span></p>
+      <button id="hlReset"></button>
       <h3 id="groupNav"></h3>
       <label class="setting stack"><span><span id="navBarLabel"></span><small id="navBarHint"></small></span>
         <select id="setNavBar"></select></label>

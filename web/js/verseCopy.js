@@ -22,6 +22,26 @@ export function formatVerses(bookName, chapter, rows, names) {
   return lines.join('\n');
 }
 
+/**
+ * 장 전체를 복사·공유할 글로. 앱 VerseList.getWholeChapterText와 같은 꼴:
+ *   "창세기 1장 (개역한글)" 빈 줄, 다음부터 한 줄에 "<절> <본문>"
+ * 대조 보기는 제목에 역본 이름을 모두 적고, 절마다 역본 순서대로 "(이름) <절> <본문>".
+ * 앱과 다른 점: 앱은 제목에 "장"을 박아 두고 주 역본 이름만 적으며, 대조 보기가 아니어도 빈 둘째 줄이 절마다 들어간다.
+ * 이 장에 없는 절은 formatVerses처럼 적지 않는다
+ * @param {string} title 화면 언어의 장 이름(S.ref, 예: "창세기 1장", "Genesis 1")
+ */
+export function formatChapter(title, rows, names) {
+  const many = names.length > 1;
+  const lines = [`${title} (${names.join(', ')})`, ''];
+  for (const r of [...rows].sort((a, b) => a.verse - b.verse)) {
+    r.cells.forEach((c, i) => {
+      if (!c || c.missing) return;
+      lines.push(`${many ? `(${names[i]}) ` : ''}${r.verse} ${c.text}`);
+    });
+  }
+  return lines.length > 2 ? lines.join('\n') : '';
+}
+
 /** 화면에 보이는 장(한 역본의 readChapter 결과 또는 대조 보기의 alignChapters 결과)을 rows 꼴로 */
 export function rowsOfSingle(lines) {
   return lines.map((l) => ({ verse: l.verse, cells: [{ text: l.text, missing: l.missing }] }));
