@@ -140,7 +140,8 @@ main.wide { max-width: calc(var(--nver, 2) * var(--verse-size) * 34 + 80px); }
 }
 main { flex: 1 0 auto; width: 100%; max-width: 760px; margin: 0 auto; padding: 8px 16px 24px; color: var(--page-fg); }
 /* 아래쪽 동작 바(#selBar)가 마지막 절을 가리지 않게 */
-html:not(.bar-top) main { padding-bottom: calc(24px + var(--sel-h, 0px)); }
+html:not(.bar-top) main { padding-bottom: calc(24px + var(--sel-h, 0px) + var(--memo-h, 0px)); }
+.bar-top main { padding-bottom: calc(24px + var(--memo-h, 0px)); }
 #status { color: var(--muted); font-size: 0.9rem; margin: 8px 0; }
 #status.error { color: var(--error); }
 #emptyBox { margin: 8px 0; }
@@ -163,6 +164,14 @@ html:not(.bar-top) main { padding-bottom: calc(24px + var(--sel-h, 0px)); }
 #verses { touch-action: manipulation; }
 #verses li.selected { background: color-mix(in srgb, var(--accent) 22%, transparent); border-radius: 4px; }
 #verses .missing { color: var(--page-muted); }
+/* 형광펜(app.js paintHighlights). 노랑을 본문 배경색에 섞어 밝은·어두운·고른 배경 어디서나 글자가 읽히게
+   (어두운 배경이면 앱 기본 형광펜 색 rgb(51,51,0)과 비슷한 어두운 노랑이 된다). 여러 줄이면 줄마다 둥글게 */
+#verses .text.hl {
+  background: color-mix(in srgb, #e6c200 38%, var(--page-bg));
+  border-radius: 2px;
+  -webkit-box-decoration-break: clone;
+  box-decoration-break: clone;
+}
 
 
 /* ---- 책·장 고르기 ---- */
@@ -219,6 +228,54 @@ ul.stats { list-style: none; margin: 0; padding: 0 0 8px; }
 .stat.summary .stat-bar { height: 10px; }
 .stat-bar span { display: block; height: 100%; border-radius: 5px; background: var(--reading); }
 .stat-bar span.done { background: var(--read); }
+
+/* ---- 나의형광펜목록, 책갈피(같은 목록 꼴) ---- */
+#hlCount, #bmCount, #mlCount { font-weight: normal; font-size: 0.85rem; color: var(--muted); }
+#hlBox .empty, #bmBox .empty, #mlBox .empty {
+  margin: 24px 16px; color: var(--muted); white-space: pre-line; text-align: center;
+  word-break: keep-all; overflow-wrap: anywhere; /* 한국어가 낱말 가운데서 끊기지 않게 */
+}
+#hlBox .empty[hidden], #bmBox .empty[hidden], #mlBox .empty[hidden] { display: none; }
+/* 나의메모목록: 검색 칸이 넓게, 정렬은 글자만큼 */
+#mlBox .stats-head select { flex: 0 1 auto; }
+.ml-search { flex: 1 1 8em; min-width: 0; position: relative; display: flex; }
+.ml-search input {
+  flex: 1; min-width: 0; min-height: 40px; padding: 4px 2.2em 4px 8px;
+  border: 1px solid var(--line); border-radius: 6px; background: var(--bg); color: inherit; font: inherit;
+}
+/* 검색할 때마다 창 높이가 바뀌면 입력하는 동안 창이 들썩이므로 높이를 고정한다 */
+#mlBox[open] { height: min(720px, calc(100dvh - 32px)); }
+#mlBox .ml-list { flex: 1; }
+.ml-search .icon { position: absolute; right: 0; top: 0; bottom: 0; border: 0; background: none; color: var(--muted); }
+.ml-search .icon[hidden] { display: none; }
+/* 메모는 3줄까지(앱 MEMO_MAX_LINES). 줄바꿈은 그대로 보인다 */
+.ml-list .mtext {
+  display: -webkit-box; -webkit-box-orient: vertical; -webkit-line-clamp: 3; line-clamp: 3; overflow: hidden;
+  white-space: pre-line;
+}
+.ml-list .more { border-bottom: 0; }
+.ml-list .more button { flex: 1; margin: 8px 4px 0; }
+/* 책갈피 창 아래 줄은 알릴 것이 있을 때만 */
+#bmBox .picker-foot:has(> .foot-status[hidden]) { display: none; }
+.bm-list .go { padding: 12px 4px; }
+.bm-list .sref { font-size: 1em; } /* 본문 없이 참조만 있는 줄이라 크게 */
+.bm-list .del { margin-top: 8px; }
+ul.hl-list { list-style: none; margin: 0; padding: 0 0 8px; word-break: keep-all; overflow-wrap: anywhere; }
+.hl-list li { display: flex; align-items: flex-start; border-bottom: 1px solid var(--line); }
+.hl-list .go {
+  flex: 1; min-width: 0; display: block; padding: 8px 4px;
+  border: 0; border-radius: 0; background: none; text-align: left; line-height: 1.6;
+}
+.hl-list .go:hover { background: var(--bar); }
+.hl-list .sref { display: block; color: var(--accent); font-weight: 600; font-size: 0.85em; }
+/* 본문에 칠한 색(#verses .text.hl)과 같은 노랑. 창 배경(--bg)에 섞는다 */
+.hl-list .htext {
+  background: color-mix(in srgb, #e6c200 38%, var(--bg));
+  border-radius: 2px;
+  -webkit-box-decoration-break: clone;
+  box-decoration-break: clone;
+}
+.hl-list .del { flex: none; margin: 6px 0 0 4px; border: 0; background: none; color: var(--muted); }
 
 /* ---- 대조 보기 ----
    앱의 2단 보기(VerseList)는 역본을 둘씩 한 줄에 놓는다(1·2, 3·4 …). 1단(VerseListOneColumn)은 위아래로.
@@ -341,6 +398,31 @@ button.primary { background: var(--accent); color: var(--bg); border-color: var(
   color: var(--fg);
   text-align: center;
 }
+#backupNote { white-space: pre-line; }
+/* 한글이 낱말 가운데서 끊기지 않게(긴 파일 이름은 anywhere로 끊는다) */
+#updateText, #backupBody, #backupNote { word-break: keep-all; overflow-wrap: anywhere; }
+.backup-notice { margin: 14px 0 4px; padding: 4px 12px; border: 1px solid var(--line); border-left: 4px solid var(--accent);
+  border-radius: 6px; font-size: 0.85rem; line-height: 1.5; }
+#backupBody .backup-notice h3 { margin: 6px 0; color: var(--fg); }
+.backup-notice p { margin: 0 0 8px; }
+.backup-last { font-weight: 600; }
+/* ---- 데이터 복구 ---- */
+.restore-modes { display: flex; flex-direction: column; gap: 4px; margin-bottom: 14px; }
+.restore-mode { display: flex; align-items: flex-start; gap: 8px; padding: 8px 0; border-bottom: 1px solid var(--line);
+  cursor: pointer; font-size: 0.9rem; line-height: 1.4; }
+.restore-mode input { flex: none; width: 18px; height: 18px; margin: 2px 0 0; }
+.restore-mode b { display: block; font-size: 1rem; }
+#restoreResultText { white-space: pre-line; }
+#conflictBox[open] { display: flex; flex-direction: column; max-height: calc(100dvh - 32px); }
+.conflict-body { flex: 1 1 auto; min-height: 0; overflow-y: auto; margin-bottom: 10px; }
+#conflictBox .conflict-ref { margin: 0 0 4px; font-weight: 700; font-size: 1.05rem; }
+.conflict-body h3 { margin: 12px 0 4px; font-size: 0.9rem; color: var(--muted); }
+#conflictBox .conflict-text { margin: 0; white-space: pre-wrap; overflow-wrap: anywhere; user-select: text; }
+#conflictRestRow { margin-bottom: 10px; }
+#conflictRestRow[hidden] { display: none; }
+/* 앱처럼 [이 기기] [백업] [둘 다] 순서로 같은 너비(다른 언어에서 글이 길어도 밖으로 밀리지 않게) */
+.conflict-btns { display: flex; gap: 8px; }
+.conflict-btns button { flex: 1 1 0; min-width: 0; min-height: 40px; }
 #importBox.dropping { outline: 3px dashed var(--accent); outline-offset: -3px; }
 
 /* ---- 메뉴 ----
@@ -391,10 +473,10 @@ dialog.menu button:hover, dialog.menu button:focus-visible { background: var(--b
 .side-nav[data-pos^="left"] { right: auto; left: 2px; }
 .side-nav[data-pos$="bottom"] {
   top: auto;
-  bottom: calc(var(--bar-h, 0px) + var(--sel-h, 0px) + 8px); /* 절을 고르면 동작 바 위로 */
+  bottom: calc(var(--bar-h, 0px) + var(--sel-h, 0px) + var(--memo-h, 0px) + 8px); /* 절을 고르면 동작 바 위로 */
   transform: none;
 }
-.bar-top .side-nav[data-pos$="bottom"] { bottom: 8px; }
+.bar-top .side-nav[data-pos$="bottom"] { bottom: calc(var(--memo-h, 0px) + 8px); }
 .side-nav button {
   pointer-events: auto;
   width: 40px;
@@ -413,7 +495,7 @@ dialog.menu button:hover, dialog.menu button:focus-visible { background: var(--b
 #toast {
   position: fixed;
   left: 50%;
-  bottom: max(120px, calc(var(--bar-h, 0px) + var(--sel-h, 0px) + 16px));
+  bottom: max(120px, calc(var(--bar-h, 0px) + var(--sel-h, 0px) + var(--memo-h, 0px) + 16px));
   transform: translateX(-50%);
   z-index: 6;
   max-width: calc(100% - 32px);
@@ -433,7 +515,7 @@ dialog.menu button:hover, dialog.menu button:focus-visible { background: var(--b
   position: fixed;
   left: 0;
   right: 0;
-  bottom: var(--bar-h, 0px);
+  bottom: calc(var(--bar-h, 0px) + var(--memo-h, 0px));
   z-index: 2;
   display: flex;
   align-items: center;
@@ -447,6 +529,77 @@ dialog.menu button:hover, dialog.menu button:focus-visible { background: var(--b
 #selBar button[hidden] { display: none; }
 #selCount { flex: 1; min-width: 0; font-size: 0.9rem; font-weight: 600; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
 #selBar button { flex: none; }
+/* 폰 폭에서 형광펜·지우기·복사·공유·✕가 함께 나오면 "2절 선택"이 22px로 줄어 안 보였다(360px). 단추를 조금 좁힌다 */
+@media (max-width: 400px) {
+  #selBar { gap: 4px; padding: 6px; }
+  #selBar button { padding: 4px 6px; }
+}
+
+/* ---- 메모 ----
+   본문의 메모 글(app.js paintMemos). 앱처럼 본문보다 작고(앱 memosize 0.8) 흐린 색(앱 기본 #AAAAAA).
+   고른 글자색·배경색에 맞추려고 흐린 글자(--page-muted)를 쓴다. 줄바꿈은 쓴 그대로 */
+#verses .memo {
+  font-size: 0.8em;
+  color: var(--page-muted);
+  white-space: pre-wrap;
+  margin-top: 0.15em;
+}
+#verses li > .memo { grid-column: 2; } /* 단일 보기: 본문 칸 밑에 */
+/* 메모를 숨겼을 때 본문 앞의 ★(누르면 입력판) */
+#verses .memo-star {
+  min-height: 0;
+  padding: 0 0.1em;
+  border: 0;
+  background: none;
+  color: var(--page-muted);
+  font: inherit;
+  cursor: pointer;
+}
+
+/* 입력판(앱 MemoPanel). 책·장 바 바로 위(바가 위면 화면 맨 아래)에 떠 있다.
+   키보드가 화면을 덮는 아이폰은 덮인 만큼(--kb) 올리고, 그때는 아래쪽 바가 키보드에 덮이므로 키보드에 붙인다 */
+#memoPanel {
+  position: fixed;
+  left: 0;
+  right: 0;
+  bottom: var(--bar-h, 0px);
+  z-index: 3;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 6px;
+  padding: 6px 12px 8px;
+  background: var(--bar);
+  border-top: 1px solid var(--line);
+}
+.bar-top #memoPanel { bottom: var(--kb, 0px); }
+.kb-open #memoPanel { bottom: var(--kb, 0px); }
+#memoPanel[hidden] { display: none; }
+#memoPanel > * { width: 100%; max-width: 760px; }
+#memoTitle { font-size: 0.9rem; font-weight: 600; }
+/* 16px 밑이면 아이폰이 눌렀을 때 화면을 확대해 버린다. 높이는 본문이 보일 자리를 남기게(앱: 세로 폰 5줄쯤) */
+#memoText {
+  display: block;
+  font: inherit;
+  font-size: 16px;
+  line-height: 1.4;
+  min-height: calc(3 * 1.4em + 12px);
+  max-height: min(calc(6 * 1.4em + 12px), 30dvh);
+  padding: 6px 8px;
+  resize: vertical;
+  border: 1px solid var(--line);
+  border-radius: 6px;
+  background: var(--bg);
+  color: var(--fg);
+}
+.memo-btns { display: flex; align-items: center; gap: 8px; }
+.memo-btns .spacer { flex: 1; }
+.memo-btns button[hidden] { display: none; }
+
+/* 묻는 작은 창(저장 / 저장 안 함 / 취소) */
+dialog.ask { width: min(360px, calc(100vw - 32px)); padding: 16px; }
+dialog.ask p { margin: 0 0 14px; }
+.ask-btns { display: flex; flex-wrap: wrap; justify-content: flex-end; gap: 8px; }
 
 /* ---- 본문화면설정 ---- */
 .settings { padding-bottom: 16px; }
@@ -577,4 +730,44 @@ main { overflow-x: clip; }
 }
 #updateBar[hidden] { display: none; }
 .bar-top #updateBar { top: auto; bottom: 16px; }
+#updateLater { flex: none; }
+#updateBtn { flex: none; }
 #updateBtn { background: var(--accent); color: var(--bg); border-color: var(--accent); }
+
+/* ---- 메모책 ----
+   제목 단추(입력판·나의메모목록): 메모책이 하나뿐이면 꺼 두는데, 흐리지 않게 그냥 글자처럼 보인다 */
+.book-pick {
+  min-height: 0; padding: 0; border: 0; border-radius: 0; background: none;
+  font-weight: inherit; text-align: left; overflow-wrap: anywhere;
+}
+.book-pick:disabled { opacity: 1; }
+.book-pick:not(:disabled) { color: var(--accent); }
+#memoTitle.book-pick { min-height: 28px; font-size: 0.9rem; font-weight: 600; }
+#mlTitle.book-pick { font-size: inherit; text-align: center; }
+dialog.ask .ask-title { margin: 0 0 10px; font-size: 1.05rem; }
+.ask-btns .spacer { flex: 1; }
+.mb-pick { display: flex; flex-direction: column; max-height: 50dvh; overflow-y: auto; margin-bottom: 12px; }
+.mb-pick .check { min-height: 44px; font-size: 1rem; border-bottom: 1px solid var(--line); overflow-wrap: anywhere; }
+#mbName { width: 100%; box-sizing: border-box; margin-bottom: 14px; padding: 6px 8px; font: inherit; font-size: 16px;
+  border: 1px solid var(--line); border-radius: 6px; background: var(--bg); color: var(--fg); }
+.mb-list .go { padding: 10px 4px; }
+.mb-list .mname { display: block; font-weight: 600; }
+.mb-list .msum { display: block; font-size: 0.85em; color: var(--muted); }
+.mb-list .add { color: var(--accent); }
+.mb-list .icon { flex: none; margin: 6px 0 0 2px; min-width: 36px; border: 0; background: none; color: var(--muted); }
+.mb-list .icon:disabled { visibility: hidden; }
+.setting.nav { width: 100%; border: 0; border-bottom: 1px solid var(--line); border-radius: 0; background: none;
+  padding: 4px 0; text-align: left; }
+#mbBox .picker-foot:has(> .foot-status[hidden]) { display: none; } /* 알릴 것이 있을 때만(책갈피 창과 같다) */
+
+/* ---- 메모 입력 방식 ----
+   아이콘은 앱 ic_memo_*_on/off를 그대로 옮긴 SVG(memoOptionIcon). 켜짐은 굵은 선, 꺼짐은 가는 선에 조금 흐리게
+   (선 굵기만으로는 작은 화면에서 구별이 약했다. 앱과 같은 이유) */
+.memo-head { display: flex; align-items: center; gap: 2px; }
+.memo-head #memoTitle { flex: 1; min-width: 0; }
+.memo-opt { flex: none; min-width: 32px; min-height: 32px; padding: 4px; border: 0; background: none; color: var(--fg); }
+.opt-icon { width: 18px; height: 18px; display: block; flex: none; }
+.opt-icon.off { opacity: 0.6; }
+.mb-opts { display: flex; flex-direction: column; margin: -6px 0 12px; }
+.mb-opts .check { min-height: 40px; justify-content: flex-start; }
+.mb-opts .check:has(input:disabled) { opacity: 0.45; cursor: default; }

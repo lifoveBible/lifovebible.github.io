@@ -26,7 +26,24 @@ import { groupFiles, prepareGroup, openRecord, mergeLocal, classifyName } from '
 import { listLocal, getLocal, putLocal, deleteLocal } from './localStore.js';
 import { formatVerses, rowsOfSingle } from './verseCopy.js';
 import { readSet, isRead, readChaptersOf, readStats, percent } from './readCheck.js';
-import { readChecksOf, versWithReadChecks, setReadCheck, clearReadChecks } from './userStore.js';
+import {
+  readChecksOf, versWithReadChecks, setReadCheck, clearReadChecks, highlightsOfChapter, setHighlights,
+  allHighlights, deleteHighlight, clearHighlights, addBookmark, allBookmarks, deleteBookmark,
+  memosOfChapter, saveMemo, deleteMemo, allMemos, clearMemos,
+  allMemoBooks, addMemoBook, updateMemoBook, setMemoBookOrder, deleteMemoBook, onDbNotice, allUserData,
+  putUserRows, replaceUserRows,
+} from './userStore.js';
+import { buildBackup, backupName, openBackup, readBackup, planMerge, planReplace } from './appBackup.js';
+import { resolveMemo, PICK_LOCAL, PICK_OTHER, PICK_BOTH } from './mergeRules.js';
+import { backupReminder, DAY, SNOOZE_DAYS } from './backupReminder.js';
+import { loadSqlJs } from './sqlite.js';
+import { highlightMap, targetsOf, highlightActions, highlightList, highlightsText } from './highlight.js';
+import { bookmarkList } from './bookmark.js';
+import { memoMap, isBlankMemo, memoList, memoWords, memoMatches, memosText } from './memo.js';
+import {
+  defaultMemoBookRow, memoBookList, memoBookName, currentMemoBook, movedUids, memoCounts, DEFAULT_MEMO_BOOK,
+  MEMO_OPTIONS, memoBookOptions, nextMemoVerse,
+} from './memoBook.js';
 import {
   THEMES, booksOfRange, normalizeQuery, checkQuery, searchText, readJobs, highlightParts, sortResults,
 } from './search.js';
@@ -88,7 +105,7 @@ const prefs = loadPrefs();
 // prefs: { pos: {book, chapter}, fontSize, versions: [{code, url, name, lang}], oneColumn, started, barTop,
 //          showVerName, fontColor, bgColor, navBar(앱 값 1~8), navUnit('verse'|'page'|'chapter'),
 //          navPos('right-middle'|'right-bottom'|'left-middle'|'left-bottom', 웹에만. 기본 오른쪽 아래),
-//          swipeChapter(옆으로 밀어 장 넘기기. 없으면 켬) }
+//          swipeChapter(옆으로 밀어 장 넘기기. 없으면 켬), memoShown, memoBook(지금 메모책 uid. 없으면 기본) }
 // started: 역본을 한 번이라도 골랐다. 처음 쓰는 사람에게만 기본 역본을 받아 주려고(syncPrefsVersions).
 // 시작할 때 한 번만 보면 첫 방문에서 다 지웠을 때 또 받아 버려서 그때그때 본다
 
@@ -109,6 +126,8 @@ let slideDir = null; // 'next'|'prev'. 이전/다음 장으로 왔으면 그린 
 // 화면에 그린 장(복사·공유할 글을 만들 때). rows는 verseCopy.formatVerses 꼴, names는 역본 이름
 let shown = { rows: [], names: [] };
 const selected = new Set(); // 고른 절 번호. 장을 다시 그리면 비운다
+let marks = new Map(); // 지금 장의 형광펜: 역본 코드 → 칠한 절 번호(highlight.highlightMap)
+let marksSeq = 0; // 늦게 끝난 옛 장의 형광펜 읽기를 버리려고
 
 function setStatus(text, isError = false) {
   $status.textContent = text;
@@ -316,7 +335,9 @@ async function render() {
   const slide = slideDir; // 이번 그리기에만 쓴다(뒤로 가기 등 다른 길로 그릴 때는 움직이지 않게)
   slideDir = null;
   clearSelection(); // 다른 장(또는 다른 역본)에서 고른 절이 남지 않게
-  shown = { rows: [], names: [] };
+  shown = { rows: [], names: [], codes: [] };
+  marks = new Map();
+  memos = new Map();
   const name = NAMES[pos.book];
   $ref.textContent = name;
   $chapterBtn.textContent = pos.chapter; // 앱처럼 숫자만("장"을 붙이면 폰 폭에서 책 이름 칸이 좁아진다)
@@ -361,14 +382,16 @@ async function render() {
   if (vers.length === 1) {
     $verses.className = '';
     $verses.replaceChildren(...(chapters[0] || []).map(verseItem));
-    shown = { rows: rowsOfSingle(chapters[0] || []), names: [vers[0].name] };
+    shown = { rows: rowsOfSingle(chapters[0] || []), names: [vers[0].name], codes: [vers[0].code] };
   } else {
     $verses.className = 'compare ' + (prefs.oneColumn ? 'one' : 'two');
     const names = vers.map((v) => v.name);
     const rows = alignChapters(chapters, S.missingVerse);
     $verses.replaceChildren(...rows.map((r) => compareItem(r, names)));
-    shown = { rows, names };
+    shown = { rows, names, codes: vers.map((v) => v.code) };
   }
+  loadHighlights();
+  loadMemos();
   playSlide(slide);
 
   if (errors.length) setStatus(S.loadFailed + ': ' + errors.join(', '), true);
@@ -415,7 +438,9 @@ function showPendingVerse() {
     else window.scrollTo(0, 0);
     return;
   }
-  li.scrollIntoView({ block: 'center' });
+  // 책갈피는 저장할 때 맨 위 절이었으므로 맨 위로(읽던 자리 그대로). 검색 결과 등은 눈에 띄게 가운데로
+  if (p.top) scrollToTop(li);
+  else li.scrollIntoView({ block: 'center' });
   li.classList.remove('flash');
   void li.offsetWidth; // 같은 절을 또 눌러도 다시 칠해지게
   li.classList.add('flash');
@@ -430,7 +455,7 @@ function verseNum(verse) {
 
 function verseText(text, missing) {
   const body = document.createElement('span');
-  if (missing) body.className = 'missing';
+  body.className = missing ? 'text missing' : 'text'; // .text: 형광펜을 칠할 곳(paintHighlights)
   body.textContent = text; // 본문은 textContent로만 넣는다(HTML로 해석하지 않음)
   return body;
 }
@@ -486,6 +511,10 @@ $verses.addEventListener('click', (e) => {
   const li = e.target.closest('#verses > li');
   if (!li) return;
   const verse = Number(li.id.slice(1));
+  if (e.target.closest('.memo-star')) { // 숨긴 메모의 ★: 고르지 않고 입력판(앱 메모 아이콘)
+    openMemo(verse);
+    return;
+  }
   if (selected.has(verse)) selected.delete(verse);
   else selected.add(verse);
   li.classList.toggle('selected', selected.has(verse));
@@ -495,7 +524,12 @@ $verses.addEventListener('click', (e) => {
 function updateSelBar() {
   const n = selected.size;
   $selBar.hidden = !n;
-  if (n) $('selCount').textContent = S.selCount(n);
+  if (!n) return;
+  $('selCount').textContent = S.selCount(n);
+  const can = highlightActions(targetsOf(shown.rows, selected, shown.codes), marks);
+  $('selHl').hidden = !can.add;
+  $('selHlOff').hidden = !can.remove;
+  $('selMemo').hidden = n !== 1; // 메모는 한 절에 하나라 한 절만 골랐을 때
 }
 
 function clearSelection() {
@@ -551,10 +585,569 @@ $('selShare').addEventListener('click', async () => {
   }
 });
 $('selClear').addEventListener('click', clearSelection);
+
+// ---- 형광펜 ----
+// 앱 my_underline. 역본마다 따로 칠한다. 대조 보기에서 칠하면 보이는 역본 모두에(앱은 2단의 두 역본에) 칠한다.
+// 칠한 절의 본문(.text)에 배경색을 입힌다(앱 기본 모양 HighlightStyle.BACKGROUND). 색·모양 설정은 아직 없다
+$('selHl').textContent = S.highlight;
+$('selHlOff').textContent = S.highlightOff;
+label($('selHl'), S.highlightVerses);
+label($('selHlOff'), S.removeHighlight);
+
+/** 지금 장의 형광펜을 읽어 칠한다. IndexedDB를 못 쓰면(개인 정보 보호 모드 등) 칠하지 않고 넘어간다 */
+async function loadHighlights() {
+  const seq = ++marksSeq;
+  const at = { book: pos.book, chapter: pos.chapter };
+  let map = new Map();
+  try {
+    map = highlightMap(await highlightsOfChapter(at.book, at.chapter));
+  } catch (e) {
+    console.warn('highlights unavailable', e);
+  }
+  if (seq !== marksSeq || at.book !== pos.book || at.chapter !== pos.chapter) return;
+  marks = map;
+  paintHighlights();
+  updateSelBar();
+}
+
+/** 절마다 역본 칸(.text, 역본 순서)에 칠한 표시를 맞춘다 */
+function paintHighlights() {
+  for (const li of $verses.children) {
+    const verse = Number(li.id.slice(1));
+    li.querySelectorAll('.text').forEach((el, i) => {
+      el.classList.toggle('hl', !el.classList.contains('missing') && !!marks.get(shown.codes[i])?.has(verse));
+    });
+  }
+}
+
+async function changeHighlights(on) {
+  const targets = targetsOf(shown.rows, selected, shown.codes);
+  if (!targets.length) return;
+  try {
+    await setHighlights(pos.book, pos.chapter, targets, on);
+  } catch (e) {
+    console.warn(e);
+    showToast(S.highlightFailed);
+    return;
+  }
+  // 칠한 뒤 고름을 푼다. 고름 표시에 가려 칠한 색이 잘 보이지 않아서
+  clearSelection();
+  loadHighlights();
+}
+$('selHl').addEventListener('click', () => changeHighlights(true));
+$('selHlOff').addEventListener('click', () => changeHighlights(false));
 // 동작 바 높이를 --sel-h로 알린다(아래쪽 이동 버튼·알림이 가리지 않게). 숨기면 0
 new ResizeObserver(([e]) => {
   document.documentElement.style.setProperty('--sel-h',`${Math.ceil(e.borderBoxSize?.[0]?.blockSize ?? e.target.offsetHeight)}px`);
 }).observe($selBar);
+
+// ---- 메모 ----
+// 앱 my_memo. 지금 메모책의 메모만 보인다. 절 아래에 메모 글을 작게 보인다(앱 directmemo_preferences, 기본 켬).
+// 숨기면 본문 앞에 ★만(앱과 같다), ★를 누르면 입력판. 쓰기는 화면 아래에 붙는 입력판(앱 MemoPanel).
+// 입력 방식(저장하면 다음 절로 등)은 메모책마다(앱 MemoInput, 메모책 설정). 입력판 제목 줄 아이콘으로 둘을 바로 바꾼다
+const $memoPanel = $('memoPanel'), $memoText = $('memoText'), $memoAsk = $('memoAsk');
+let memos = new Map(); // 지금 장의 메모: 절 번호 → 글(memo.memoMap)
+let memosSeq = 0; // 늦게 끝난 옛 장의 메모 읽기를 버리려고
+// 입력판이 가리키는 절 {book, chapter, verse, original(읽어 온 글), exists, ver}. 닫혀 있으면 null.
+// 열어 둔 채 다른 장으로 가도 그 절을 그대로 가리킨다(제목에 위치가 보인다. 앱도 저장은 처음 절에 한다)
+let memoAt = null;
+let memoAskNext = null; // 저장을 묻는 동안 미뤄 둔 일
+let memoPinUntil = 0; // 이때까지는 입력판·키보드 높이가 바뀌면 절을 다시 맞춘다(앱 MemoPanel.pin)
+let memoAskOnCancel = null; // 저장을 묻다가 취소했을 때 할 일(메모책 바꾸기를 되돌리기)
+// 메모책(앱 memo_book). 고른 메모책은 기기마다 다르므로 앱처럼 DB가 아니라 화면 설정(prefs.memoBook)에 둔다
+// (DB에 두면 동기화 때 다른 기기의 선택을 덮어쓴다. 앱 MemoBookList.PREF_CURRENT)
+let memoBooks = [defaultMemoBookRow()]; // 지운 것 뺀 메모책, 목록 순서(memoBook.memoBookList)
+let memoBook = DEFAULT_MEMO_BOOK; // 지금 메모책 uid
+let memoBooksReady = null; // 메모책 목록 읽기(처음 한 번은 loadMemos가 기다린다)
+let memoWaiters = []; // 어느 장의 메모를 다 읽으면 부를 것들(waitMemos)
+$('selMemo').textContent = S.memo;
+label($('selMemo'), S.memoVerse);
+$('memoSave').textContent = S.save;
+$('memoClose').textContent = S.close;
+$('memoDel').textContent = S.del;
+$('memoAskText').textContent = S.memoSaveChanges;
+$('memoAskSave').textContent = S.save;
+$('memoAskDiscard').textContent = S.memoDiscard;
+$('memoAskCancel').textContent = S.cancel;
+
+const memoShown = () => prefs.memoShown !== false;
+
+/** 메모책 목록을 다시 읽고 지금 메모책을 맞춘다. 고른 메모책이 없어졌으면 기본으로(앱 MemoBookList.current) */
+function refreshMemoBooks() {
+  memoBooksReady = (async () => {
+    let rows = [];
+    try {
+      rows = await allMemoBooks();
+    } catch (e) {
+      console.warn('memo books unavailable', e);
+    }
+    // 기본 메모책 행은 DB를 만들 때 넣지만, 혹시 없어도(앱 백업으로 바꾸기 등) 늘 보이게
+    if (!rows.some((r) => r.uid === DEFAULT_MEMO_BOOK && !r.deleted)) rows = [defaultMemoBookRow(), ...rows];
+    memoBooks = memoBookList(rows);
+    memoBook = currentMemoBook(prefs.memoBook, memoBooks);
+    if (prefs.memoBook && prefs.memoBook !== memoBook) {
+      delete prefs.memoBook;
+      savePrefs();
+    }
+  })();
+  return memoBooksReady;
+}
+
+/** 메모책 uid → 보일 이름(이름이 없으면 번역된 기본 이름. 앱 MemoBookList.displayName) */
+const memoBookTitle = (uid) => memoBookName(memoBooks.find((b) => b.uid === uid), S.memoBookDefault);
+
+/** 지금 메모책을 바꿔 남긴다(앱 MemoBookList.setCurrent) */
+function setMemoBook(uid) {
+  memoBook = uid;
+  if (uid === DEFAULT_MEMO_BOOK) delete prefs.memoBook;
+  else prefs.memoBook = uid;
+  savePrefs();
+}
+
+/** 지금 장의 메모를 읽어 보인다. IndexedDB를 못 쓰면 보이지 않고 넘어간다 */
+async function loadMemos() {
+  const seq = ++memosSeq;
+  const at = { book: pos.book, chapter: pos.chapter };
+  let map = new Map();
+  try {
+    await (memoBooksReady || refreshMemoBooks());
+    map = memoMap(await memosOfChapter(at.book, at.chapter), memoBook);
+  } catch (e) {
+    console.warn('memos unavailable', e);
+  }
+  if (seq !== memosSeq || at.book !== pos.book || at.chapter !== pos.chapter) return;
+  memos = map;
+  paintMemos();
+  memoWaiters = memoWaiters.filter((w) => {
+    if (w.book !== at.book || w.chapter !== at.chapter) return true;
+    w.resolve(true);
+    return false;
+  });
+}
+
+/** 그 장을 그리고 메모까지 읽으면 true. 못 그리면(파일 오류 등) 몇 초 뒤 false */
+function waitMemos(book, chapter) {
+  return new Promise((resolve) => {
+    const w = { book, chapter, resolve };
+    memoWaiters.push(w);
+    setTimeout(() => {
+      memoWaiters = memoWaiters.filter((x) => x !== w);
+      resolve(false);
+    }, 8000);
+  });
+}
+
+/**
+ * 절마다 메모를 맞춘다. 보이기면 절 끝에 메모 글(.memo), 숨기기면 본문 앞에 ★(.memo-star).
+ * 대조 보기는 앱처럼 한 절에 한 번(첫 역본 칸에 ★, 메모 글은 절 맨 아래)
+ */
+function paintMemos() {
+  const shownMode = memoShown();
+  for (const li of $verses.children) {
+    li.querySelector(':scope > .memo')?.remove();
+    li.querySelector('.memo-star')?.remove();
+    const verse = Number(li.id.slice(1));
+    const text = memos.get(verse);
+    if (text == null) continue;
+    if (shownMode) {
+      const m = document.createElement('div');
+      m.className = 'memo';
+      m.textContent = text; // 사용자 글도 textContent로만
+      li.append(m);
+    } else {
+      const star = document.createElement('button');
+      star.type = 'button';
+      star.className = 'memo-star';
+      star.textContent = '★';
+      label(star, S.memoOpen(S.verseRef(NAMES[pos.book], pos.chapter, verse)));
+      // 단일 보기의 li는 번호·본문 두 칸 격자라 칸을 늘리지 않게 본문(.text) 안 맨 앞에 넣는다
+      li.querySelector('.text')?.prepend(star, ' ');
+    }
+  }
+}
+
+/** 메모 보이기/숨기기(앱 toggleMemoDisplay). 앱처럼 설정으로 남는다 */
+function toggleMemos() {
+  prefs.memoShown = !memoShown();
+  savePrefs();
+  paintMemos();
+}
+
+/** 지금 장의 한 절에 대한 입력판을 연다. 키보드가 뜨도록 기다리지 않고 바로(이미 읽어 둔 memos를 쓴다) */
+function openMemo(verse) {
+  if (memoAt) {
+    if (memoAt.book === pos.book && memoAt.chapter === pos.chapter && memoAt.verse === verse) {
+      $memoText.focus(); // 같은 절이면 그대로 두고 다시 맞추기만
+      pinMemo();
+      return;
+    }
+    closeMemoOrAsk(() => openMemo(verse)); // 다른 절: 쓰던 것부터 정리
+    return;
+  }
+  memoAt = memoTarget(verse, memoBook);
+  bindMemoPanel();
+}
+
+/**
+ * 지금 장의 한 절을 가리키는 입력판 상태(이미 읽어 둔 memos를 쓴다). 입력 방식은 메모책에서 읽는다
+ * (연속 입력으로 다음 절에 갈 때도 다시 읽는다. 앱 moveTo → load)
+ */
+function memoTarget(verse, book) {
+  const original = memos.get(verse) ?? '';
+  return {
+    book: pos.book, chapter: pos.chapter, verse, original, exists: memos.has(verse), ver: prefs.versions[0]?.code || '',
+    memoBook: book, // 열 때의 메모책. 저장·삭제는 여기에
+    opts: memoBookOptions(memoBooks.find((b) => b.uid === book)),
+  };
+}
+
+/** memoAt을 입력판에 보인다(처음 열 때와 연속 입력으로 옮길 때. 앱 bind) */
+function bindMemoPanel() {
+  const original = memoAt.original;
+  showMemoTitle();
+  showMemoOptions();
+  $memoText.value = original;
+  $('memoDel').hidden = !memoAt.exists; // 지울 메모가 있을 때만
+  $memoPanel.hidden = false;
+  $memoText.focus();
+  $memoText.setSelectionRange(original.length, original.length); // 이어 쓰기 쉽게 커서를 끝으로
+  $memoText.scrollTop = $memoText.scrollHeight;
+  pinMemo();
+}
+
+// 입력 방식 아이콘(앱 ic_memo_*_on/off를 옮긴 것, 24×24). 차례는 MEMO_OPTIONS. 동그라미는 [cx, cy, r(켜짐), r(꺼짐)]
+const OPTION_ICONS = [
+  { lines: ['M12,4 L12,19', 'M6,13 L12,19 L18,13'] },
+  { lines: ['M3.5,17 C4.5,7 15.5,6 19,14.5', 'M14.5,13 L19,15 L21.5,10.5'], dot: [12, 20.2, 1.8, 1.44] },
+  { lines: ['M3,12 L16,12', 'M11,7 L16,12 L11,17', 'M20.5,5 L20.5,19'] },
+  { lines: ['M19,5 L19,13 L6,13', 'M10,9 L6,13 L10,17'] },
+];
+
+/** 입력 방식 아이콘 SVG. 켜짐은 굵은 선(2.6), 꺼짐은 가는 선(1.5)에 조금 흐리게(앱 optionIcon과 같다) */
+function memoOptionIcon(i, on) {
+  const NS = 'http://www.w3.org/2000/svg';
+  const svg = document.createElementNS(NS, 'svg');
+  svg.setAttribute('viewBox', '0 0 24 24');
+  svg.setAttribute('aria-hidden', 'true');
+  svg.classList.add('opt-icon');
+  if (!on) svg.classList.add('off');
+  for (const d of OPTION_ICONS[i].lines) {
+    const path = document.createElementNS(NS, 'path');
+    path.setAttribute('d', d);
+    path.setAttribute('fill', 'none');
+    path.setAttribute('stroke', 'currentColor');
+    path.setAttribute('stroke-width', on ? '2.6' : '1.5');
+    path.setAttribute('stroke-linecap', 'round');
+    path.setAttribute('stroke-linejoin', 'round');
+    svg.append(path);
+  }
+  const dot = OPTION_ICONS[i].dot;
+  if (dot) {
+    const c = document.createElementNS(NS, 'circle');
+    c.setAttribute('cx', dot[0]);
+    c.setAttribute('cy', dot[1]);
+    c.setAttribute('r', on ? dot[2] : dot[3]);
+    c.setAttribute('fill', 'currentColor');
+    svg.append(c);
+  }
+  return svg;
+}
+
+// 입력판에서 바로 바꾸는 옵션은 둘뿐: 저장하면 다음 절로(0), 엔터를 누르면 저장(3). 건너뛰기·다음 장은 세부 설정이라
+// 메모책 고치기 창에서만(앱 PANEL_OPTIONS. 제목 줄이 붐비고 헷갈려서 앱도 줄였다)
+const PANEL_OPTIONS = [0, 3];
+
+/** 입력판의 아이콘 모양과 엔터 방식을 지금 옵션에 맞춘다(앱 bindOptions, applyEnter) */
+function showMemoOptions() {
+  for (const i of PANEL_OPTIONS) {
+    const btn = $('memoOpt' + i);
+    const on = memoAt.opts[MEMO_OPTIONS[i][0]];
+    btn.replaceChildren(memoOptionIcon(i, on));
+    btn.setAttribute('aria-pressed', String(on));
+    label(btn, S.memoOptions[i]);
+  }
+  // 엔터 저장이면 폰 키보드의 엔터 자리에 다음(연속 입력)·완료가 오게. 글 칸은 여러 줄 그대로(긴 글은 줄을 넘겨 보인다)
+  if (memoAt.opts.enterSaves) $memoText.enterKeyHint = memoAt.opts.continuous ? 'next' : 'done';
+  else $memoText.removeAttribute('enterkeyhint');
+}
+
+/** 아이콘을 누르면 그 옵션을 바꿔 메모책에 바로 저장하고 "~: 켜짐/꺼짐"을 알린다(앱 toggleOption) */
+async function toggleMemoOption(i) {
+  const a = memoAt;
+  if (!a) return;
+  const key = MEMO_OPTIONS[i][0];
+  const on = !a.opts[key];
+  a.opts = { ...a.opts, [key]: on };
+  showMemoOptions();
+  showToast(on ? S.memoOptionOn(S.memoOptions[i]) : S.memoOptionOff(S.memoOptions[i]));
+  try {
+    // 이 입력판의 메모책에. 그 사이 다른 곳에서 지웠으면 저장되지 않고 이 입력판에만 남는다(앱과 같다)
+    await updateMemoBook(a.memoBook, null, { [key]: on });
+    await refreshMemoBooks();
+  } catch (e) {
+    console.warn(e);
+    showToast(S.memoBookFailed);
+  }
+}
+for (const i of PANEL_OPTIONS) {
+  const btn = $('memoOpt' + i);
+  // 눌러도 글 칸의 초점(폰 키보드)이 빠지지 않게
+  btn.addEventListener('pointerdown', (e) => e.preventDefault());
+  btn.addEventListener('click', () => toggleMemoOption(i));
+}
+
+const memoChanged = () => !!memoAt && $memoText.value !== memoAt.original;
+
+/**
+ * 입력판 제목. 메모책이 둘 이상이면 "참조 · 메모책 ▾"로 보이고 눌러서 바꾼다. 하나뿐이면 참조만
+ * (메모책을 쓰지 않는 사람에게 군더더기가 되지 않게. 앱 MemoPanel.bind)
+ */
+function showMemoTitle() {
+  if (!memoAt) return;
+  const ref = S.verseRef(NAMES[memoAt.book], memoAt.chapter, memoAt.verse);
+  const many = memoBooks.length > 1;
+  const t = $('memoTitle');
+  t.textContent = many ? `${ref} · ${memoBookTitle(memoAt.memoBook)} ▾` : ref;
+  t.disabled = !many;
+  t.title = many ? S.memoBookPick : '';
+}
+
+function closeMemo() {
+  memoAt = null;
+  $memoPanel.hidden = true;
+  $memoText.blur();
+}
+
+/** 바뀐 게 없으면 닫고, 있으면 저장 / 저장 안 함 / 취소를 묻는다. 닫히면 next, 취소하면 onCancel */
+function closeMemoOrAsk(next, onCancel) {
+  if (!memoChanged()) {
+    closeMemo();
+    next?.();
+    return;
+  }
+  memoAskNext = next || null;
+  memoAskOnCancel = onCancel || null;
+  $memoAsk.showModal();
+  $('memoAskSave').focus();
+}
+
+/** 저장한다. 바뀐 게 없으면 쓰지 않고(updated_at을 괜히 바꾸지 않게) 닫는다. 비웠으면 지운다. 실패하면 false */
+async function saveMemoPanel() {
+  const a = memoAt;
+  if (!a) return true;
+  const text = $memoText.value;
+  if (text !== a.original && (a.exists || !isBlankMemo(text))) {
+    try {
+      await saveMemo(a.book, a.chapter, a.verse, text, a.ver, a.memoBook);
+    } catch (e) {
+      console.warn(e);
+      showToast(S.memoFailed);
+      return false;
+    }
+  }
+  if (memoAt === a) closeMemo();
+  if (a.book === pos.book && a.chapter === pos.chapter) loadMemos();
+  return true;
+}
+
+/**
+ * [저장] 단추, Ctrl+Enter, 엔터 저장. 연속 입력이 켜진 메모책이면 저장한 뒤 입력판을 닫지 않고 다음 절로 옮긴다
+ * (앱 saveAndGoOn). 저장을 묻는 창의 [저장](closeMemoOrAsk)은 넘어가지 않는다: 떠나려는 것이므로
+ */
+async function saveAndGoOn() {
+  const a = memoAt;
+  if (!a) return;
+  const text = $memoText.value;
+  const sameChapter = a.book === pos.book && a.chapter === pos.chapter;
+  // 바뀐 게 없으면 쓰지 않는다. 연속 입력이면 그냥 다음 절로(필사 중 빈 절을 넘길 때)
+  if (text === a.original) {
+    if (a.opts.continuous && sameChapter) goToNextVerse(a);
+    else closeMemo();
+    return;
+  }
+  // 비운 채 저장(=지우기)이거나 입력판을 연 채 다른 장으로 넘어갔으면 예전처럼 저장하고 닫는다
+  if (!a.opts.continuous || isBlankMemo(text) || !sameChapter) {
+    await saveMemoPanel();
+    return;
+  }
+  try {
+    await saveMemo(a.book, a.chapter, a.verse, text, a.ver, a.memoBook);
+  } catch (e) {
+    console.warn(e);
+    showToast(S.memoFailed);
+    return;
+  }
+  if (memoAt !== a) return;
+  // 다시 읽지 않고 본문에 바로 보인다(다음 절을 고를 때 건너뛰기가 이 절을 알게)
+  if (a.memoBook === memoBook && a.book === pos.book && a.chapter === pos.chapter) {
+    memos.set(a.verse, text);
+    paintMemos();
+  }
+  a.original = text;
+  goToNextVerse(a);
+}
+
+/** 다음에 쓸 절로 옮긴다. 장 끝이면 옵션에 따라 다음 장으로, 아니면 닫고 알린다(앱 goToNext) */
+async function goToNextVerse(a) {
+  const filled = a.memoBook === memoBook ? memos : null; // 지금 장의 메모(이 메모책)
+  let next = nextMemoVerse(a.verse, $verses.childElementCount, filled, a.opts.skipFilled);
+  if (next > 0) {
+    moveMemoTo(a, next);
+    return;
+  }
+  const to = nextChapter(pos);
+  if (a.opts.nextChapter && to) {
+    const loaded = waitMemos(to.book, to.chapter);
+    goChapter('next');
+    if (await loaded && memoAt === a) {
+      next = nextMemoVerse(0, $verses.childElementCount, a.memoBook === memoBook ? memos : null, a.opts.skipFilled);
+      if (next > 0) {
+        moveMemoTo(a, next);
+        return;
+      }
+    }
+  }
+  if (memoAt === a) closeMemo();
+  showToast(S.memoNoNextVerse);
+}
+
+/** 열린 입력판을 그대로 둔 채 지금 장의 다른 절로(닫았다 열면 폰 키보드가 내려갔다 올라와 깜빡인다) */
+function moveMemoTo(a, verse) {
+  if (memoAt !== a) return;
+  memoAt = memoTarget(verse, a.memoBook);
+  bindMemoPanel();
+}
+
+async function deleteMemoPanel() {
+  const a = memoAt;
+  if (!a || !confirm(S.memoDeleteConfirm)) return; // 취소하면 입력판으로 돌아간다
+  try {
+    await deleteMemo(a.book, a.chapter, a.verse, a.memoBook);
+  } catch (e) {
+    console.warn(e);
+    showToast(S.memoFailed);
+    return;
+  }
+  if (memoAt === a) closeMemo();
+  if (a.book === pos.book && a.chapter === pos.chapter) loadMemos();
+}
+
+$('selMemo').addEventListener('click', () => {
+  const verse = [...selected][0];
+  if (!verse) return;
+  clearSelection(); // 고름 표시가 남으면 입력판 위의 절이 가려 보인다
+  openMemo(verse);
+});
+$('memoSave').addEventListener('click', saveAndGoOn);
+$('memoClose').addEventListener('click', () => closeMemoOrAsk());
+$('memoDel').addEventListener('click', deleteMemoPanel);
+let memoShiftDown = false; // 엔터 저장에서 Shift+엔터는 줄바꿈으로 두려고(폰 키보드는 keydown이 오지 않아 beforeinput에서 본다)
+$memoText.addEventListener('keydown', (e) => {
+  memoShiftDown = e.shiftKey;
+  if (e.key === 'Escape') {
+    e.preventDefault();
+    closeMemoOrAsk();
+  } else if (e.key === 'Enter' && (e.ctrlKey || e.metaKey)) { // PC: Ctrl+Enter로 저장
+    e.preventDefault();
+    saveAndGoOn();
+  } else if (e.key === 'Enter' && !e.shiftKey && !e.isComposing && memoAt?.opts.enterSaves) {
+    // 한글 조합 중 엔터(isComposing)는 글자를 끝내는 것이라 저장으로 치지 않는다
+    e.preventDefault();
+    saveAndGoOn();
+  }
+});
+$memoText.addEventListener('keyup', (e) => { memoShiftDown = e.shiftKey; });
+// 폰 키보드는 엔터를 keydown(229)으로 알려 주지 않는 일이 많아서 줄바꿈을 넣으려는 순간에 막는다.
+// 여러 줄을 붙여 넣는 것(insertFromPaste)은 그대로 둔다: 앱도 붙여 넣은 줄바꿈은 남는다
+$memoText.addEventListener('beforeinput', (e) => {
+  if (!memoAt?.opts.enterSaves || memoShiftDown) return;
+  if (e.inputType !== 'insertLineBreak' && e.inputType !== 'insertParagraph') return;
+  e.preventDefault();
+  saveAndGoOn();
+});
+$memoText.addEventListener('focus', pinMemo);
+
+$('memoAskSave').addEventListener('click', async () => {
+  memoAskOnCancel = null;
+  $memoAsk.close();
+  const next = memoAskNext;
+  memoAskNext = null;
+  if (await saveMemoPanel()) next?.();
+});
+$('memoAskDiscard').addEventListener('click', () => {
+  memoAskOnCancel = null;
+  $memoAsk.close();
+  const next = memoAskNext;
+  memoAskNext = null;
+  closeMemo();
+  next?.();
+});
+$('memoAskCancel').addEventListener('click', () => $memoAsk.close());
+// 취소나 Esc: 미뤄 둔 일은 버리고 계속 쓴다
+$memoAsk.addEventListener('close', () => {
+  memoAskNext = null;
+  const cancel = memoAskOnCancel;
+  memoAskOnCancel = null;
+  cancel?.();
+  if (memoAt) $memoText.focus();
+});
+// 입력판 제목을 눌러 메모책 바꾸기(앱 MemoPanel.switchBook). 쓰던 것을 정리한 뒤 새 메모책으로 같은 절을 다시 연다.
+// 다른 장으로 넘어간 뒤면 그 절이 화면에 없으니 닫기만 한다. 저장을 묻다가 취소하면 메모책도 되돌린다
+$('memoTitle').addEventListener('click', () => {
+  const a = memoAt;
+  if (!a) return;
+  pickMemoBook(() => {
+    const sameChapter = () => a.book === pos.book && a.chapter === pos.chapter;
+    closeMemoOrAsk(async () => {
+      await loadMemos();
+      if (!memoAt && sameChapter()) openMemo(a.verse);
+    }, () => setMemoBook(a.memoBook));
+  });
+});
+// 쓰던 메모가 있는데 탭을 닫거나 다른 주소로 가면 브라우저가 묻게
+window.addEventListener('beforeunload', (e) => {
+  if (memoChanged()) e.preventDefault();
+});
+
+/**
+ * 입력판을 열거나 키보드가 오르내리는 동안 잠깐(1.5초) 높이가 바뀔 때마다 절을 입력판 바로 위에 맞춘다.
+ * 그 뒤로는 사용자가 앞뒤 절을 보려고 스크롤한 자리를 건드리지 않는다(앱 MemoPanel.watch와 같은 생각)
+ */
+function pinMemo() {
+  memoPinUntil = performance.now() + 1500;
+  requestAnimationFrame(revealMemoVerse);
+}
+
+/** 입력판의 절이 지금 장에 있으면 보이는 곳(바·동작 바·입력판을 뺀 곳)에 들어오게. 절이 길면 처음을 맞춘다 */
+function revealMemoVerse() {
+  if (!memoAt || memoAt.book !== pos.book || memoAt.chapter !== pos.chapter) return;
+  const li = $('v' + memoAt.verse);
+  if (!li) return;
+  const area = viewArea();
+  const r = li.getBoundingClientRect();
+  if (r.bottom > area.bottom) window.scrollBy(0, Math.min(r.bottom - area.bottom + 4, r.top - area.top));
+  else if (r.top < area.top) window.scrollBy(0, r.top - area.top);
+}
+
+// 입력판 높이를 --memo-h로 알린다(동작 바·이동 버튼·알림을 그 위로, 마지막 절이 가리지 않게). 숨기면 0
+new ResizeObserver(([e]) => {
+  document.documentElement.style.setProperty('--memo-h', `${Math.ceil(e.borderBoxSize?.[0]?.blockSize ?? e.target.offsetHeight)}px`);
+  if (performance.now() < memoPinUntil) requestAnimationFrame(revealMemoVerse);
+}).observe($memoPanel);
+
+// 화면 키보드. 안드로이드 크롬은 viewport의 interactive-widget=resizes-content로 화면이 줄어 따로 할 일이 없다.
+// 아이폰 사파리는 화면이 줄지 않고 키보드가 아래를 덮어서, 덮인 높이(--kb)만큼 입력판을 올린다
+if (window.visualViewport) {
+  const vv = window.visualViewport;
+  const fitKeyboard = () => {
+    const kb = Math.max(0, Math.round(innerHeight - vv.height - vv.offsetTop));
+    document.documentElement.style.setProperty('--kb', `${kb}px`);
+    document.documentElement.classList.toggle('kb-open', kb > 80); // 키보드가 떴으면 아래쪽 책·장 바는 키보드에 덮이므로 입력판을 키보드에 붙인다
+    if (performance.now() < memoPinUntil) requestAnimationFrame(revealMemoVerse);
+  };
+  vv.addEventListener('resize', fitKeyboard);
+  vv.addEventListener('scroll', fitKeyboard);
+}
 
 /** 위치를 바꾼다. 주소 뒤 #책:장을 바꾸면 hashchange에서 그린다(뒤로 가기가 되게) */
 function go(newPos) {
@@ -751,6 +1344,723 @@ $readCheck.addEventListener('change', async () => {
   }
   updateReadCheck();
 });
+
+// ---- 책갈피 ----
+// 앱 BookmarkStore·HistoryList. 역본과 상관없이 위치(책·장·절)만 남긴다. 추가는 맨 위에 보이는 절(앱 topVerseNumber)
+const $bmBox = $('bmBox'), $bmList = $('bmList');
+$('menuAddBookmark').textContent = S.addBookmark;
+$('menuBookmarks').textContent = S.bookmarks;
+$('bmTitle').textContent = S.bookmarks;
+label($('bmClose'), S.close);
+$('bmEmpty').textContent = S.bmEmpty;
+
+const bmRef = (it) => S.verseRef(NAMES[it.book], it.chapter, it.verse);
+
+async function saveBookmark() {
+  const at = here();
+  try {
+    await addBookmark(at.book, at.chapter, at.verse);
+    showToast(S.bookmarkAdded(bmRef({ book: at.book, chapter: at.chapter, verse: at.verse })));
+  } catch (e) {
+    console.warn(e);
+    showToast(S.bookmarkFailed);
+  }
+}
+
+function bmNote(text, error = false) {
+  const note = $('bmNote');
+  note.textContent = text;
+  note.classList.toggle('error', error);
+  note.hidden = !text;
+}
+
+function openBookmarks() {
+  bmNote('');
+  $bmList.replaceChildren();
+  $bmBox.showModal();
+  drawBookmarks();
+}
+
+async function drawBookmarks() {
+  let rows = [];
+  try {
+    rows = await allBookmarks();
+  } catch (e) {
+    console.warn('bookmarks unavailable', e);
+    bmNote(S.bmLoadFailed, true);
+  }
+  const items = bookmarkList(rows);
+  $('bmCount').textContent = items.length;
+  $('bmEmpty').hidden = items.length > 0;
+  $bmList.replaceChildren(...items.map(bmItem));
+}
+
+/** 한 줄: 참조(앱처럼 위치만). 누르면 그 절로, 오른쪽 🗑 */
+function bmItem(it) {
+  const li = document.createElement('li');
+  const btn = document.createElement('button');
+  btn.type = 'button';
+  btn.className = 'go';
+  const ref = document.createElement('span');
+  ref.className = 'sref';
+  ref.textContent = bmRef(it);
+  btn.append(ref);
+  btn.addEventListener('click', () => {
+    $bmBox.close();
+    jumpTo({ book: it.book, chapter: it.chapter }, it.verse, true);
+  });
+  const del = document.createElement('button');
+  del.type = 'button';
+  del.className = 'icon del';
+  del.textContent = '🗑';
+  label(del, S.bmDelete(bmRef(it)));
+  del.addEventListener('click', async () => {
+    // 앱은 꾹 눌러 나오는 메뉴로 지우지만 웹은 단추라 잘못 누르기 쉬워서 묻는다
+    if (!confirm(S.bmDeleteConfirm(bmRef(it)))) return;
+    try {
+      await deleteBookmark(it.book, it.chapter, it.verse);
+    } catch (e) {
+      console.warn(e);
+      bmNote(S.bookmarkFailed, true);
+      return;
+    }
+    drawBookmarks();
+  });
+  li.append(btn, del);
+  return li;
+}
+
+$('bmClose').addEventListener('click', () => $bmBox.close());
+$bmBox.addEventListener('click', (e) => { if (e.target === $bmBox) $bmBox.close(); });
+
+// ---- 나의형광펜목록 ----
+// 앱 UnderlineList. 모든 역본의 형광펜을 한 목록으로. 정렬은 창을 열 때마다 최근목록순(앱도 화면을 새로 열면 최근순)
+const $hlBox = $('hlBox'), $hlList = $('hlList'), $hlOrder = $('hlOrder');
+let hlItems = [];
+$('menuHighlights').textContent = S.myHighlights;
+$('hlTitle').textContent = S.myHighlights;
+label($('hlClose'), S.close);
+$('hlSend').textContent = S.hlSend;
+$('hlDeleteAll').textContent = S.deleteAll;
+$('hlEmpty').textContent = S.hlEmpty;
+
+function hlNote(text, error = false) {
+  const note = $('hlNote');
+  note.textContent = text;
+  note.classList.toggle('error', error);
+  note.hidden = !text;
+}
+
+const verName = (code) => versionList.find((v) => v.code === code)?.name || code;
+const hlRef = (it) => `${S.verseRef(NAMES[it.book], it.chapter, it.verse)} · ${verName(it.ver)}`;
+
+async function openHighlights() {
+  hlNote('');
+  // option()은 아래쪽 const라 처음 열 때 채운다(맨 위에서 부르면 아직 없다)
+  if (!$hlOrder.options.length) $hlOrder.append(option('recent', S.orderRecent), option('book', S.orderBook));
+  $hlOrder.value = 'recent';
+  $hlList.replaceChildren();
+  $hlBox.showModal();
+  drawHighlights();
+}
+
+async function drawHighlights() {
+  const order = $hlOrder.value;
+  let rows = [];
+  try {
+    rows = await allHighlights();
+  } catch (e) {
+    console.warn('highlights unavailable', e);
+    hlNote(S.hlLoadFailed, true);
+  }
+  if ($hlOrder.value !== order) return; // 그 사이 정렬을 바꿨다
+  hlItems = highlightList(rows, order);
+  $('hlCount').textContent = hlItems.length;
+  $('hlEmpty').hidden = hlItems.length > 0;
+  $('hlSend').disabled = !hlItems.length; // 앱도 없으면 보내기 메뉴를 숨긴다
+  $('hlDeleteAll').disabled = !hlItems.length;
+  $hlList.replaceChildren(...hlItems.map(hlItem));
+}
+
+/** 한 줄: 참조 · 역본, 아래 칠한 본문(앱 RefListAdapter). 오른쪽 🗑 */
+function hlItem(it) {
+  const li = document.createElement('li');
+  const btn = document.createElement('button');
+  btn.type = 'button';
+  btn.className = 'go';
+  const ref = document.createElement('span');
+  ref.className = 'sref';
+  ref.textContent = hlRef(it);
+  const body = document.createElement('span');
+  body.className = 'htext';
+  body.textContent = it.text; // 글자로만(HTML로 해석하지 않음)
+  btn.append(ref, body);
+  btn.addEventListener('click', () => goHighlight(it));
+  const del = document.createElement('button');
+  del.type = 'button';
+  del.className = 'icon del';
+  del.textContent = '🗑';
+  label(del, S.hlDelete(S.verseRef(NAMES[it.book], it.chapter, it.verse)));
+  del.addEventListener('click', async () => {
+    // 앱은 꾹 눌러 삭제(확인 없음)지만 웹은 단추라 잘못 누르기 쉬워서 묻는다
+    if (!confirm(S.hlDeleteConfirm(hlRef(it)))) return;
+    try {
+      await deleteHighlight(it.ver, it.book, it.chapter, it.verse);
+    } catch (e) {
+      console.warn(e);
+      hlNote(S.highlightFailed, true);
+      return;
+    }
+    drawHighlights();
+    loadHighlights(); // 지금 장에 있던 것이면 본문에서도 지운다
+  });
+  li.append(btn, del);
+  return li;
+}
+
+/**
+ * 그 절로 간다. 그 역본을 지금 보고 있으면 그대로, 아니면 앱처럼 그 역본 하나로 바꾼다
+ * (앱은 늘 그 역본 하나로 바꾸지만, 대조 보기 중에 보던 역본이면 대조를 풀 까닭이 없어서)
+ */
+function goHighlight(it) {
+  if (!showVersionOf(it.ver)) {
+    hlNote(S.noSuchVersion(verName(it.ver)), true);
+    return;
+  }
+  $hlBox.close();
+  jumpTo({ book: it.book, chapter: it.chapter }, it.verse);
+}
+
+/** 그 역본을 보고 있지 않으면 그 역본 하나로 바꾼다. 역본 목록에 없으면 false(역본이 비었으면 그대로 true) */
+function showVersionOf(ver) {
+  if (!ver || prefs.versions.some((v) => v.code === ver)) return true;
+  const v = versionList.find((x) => x.code === ver);
+  if (!v) return false;
+  useVersions([v]);
+  return true;
+}
+
+/** 목록 보내기. 앱은 공유 또는 텍스트 파일로 저장. 웹은 공유가 있으면 공유, 없으면 클립보드(결과는 note로) */
+async function sendListText(text, note, copiedMsg) {
+  if (typeof navigator.share === 'function') {
+    try {
+      await navigator.share({ text });
+      return;
+    } catch (e) {
+      if (e.name === 'AbortError') return; // 공유 창을 그냥 닫았다
+      console.warn(e);
+    }
+  }
+  try {
+    await copyText(text);
+    note(copiedMsg);
+  } catch (e) {
+    console.warn(e);
+    note(S.copyFailed, true);
+  }
+}
+
+$hlOrder.addEventListener('change', drawHighlights);
+$('hlSend').addEventListener('click', () => {
+  if (hlItems.length) sendListText(highlightsText(hlItems, hlRef), hlNote, S.hlCopiedAll);
+});
+$('hlDeleteAll').addEventListener('click', async () => {
+  if (!hlItems.length || !confirm(S.hlDeleteAllConfirm)) return;
+  try {
+    await clearHighlights();
+  } catch (e) {
+    console.warn(e);
+    hlNote(S.highlightFailed, true);
+    return;
+  }
+  await drawHighlights();
+  hlNote(S.hlDeletedAll);
+  loadHighlights();
+});
+$('hlClose').addEventListener('click', () => $hlBox.close());
+$hlBox.addEventListener('click', (e) => { if (e.target === $hlBox) $hlBox.close(); });
+
+// ---- 나의메모목록 ----
+// 앱 MemoList. 지금 메모책의 메모를 한 목록으로. 정렬은 창을 열 때마다 책장절순(앱 기본), 검색은 입력하는 대로 거른다
+// (앱 MemoFilter: 띄어 쓴 단어가 모두 참조·역본·메모 어딘가에 있으면). 메모는 3줄까지만 보이고 누르면 그 절로
+const $mlBox = $('mlBox'), $mlList = $('mlList'), $mlOrder = $('mlOrder'), $mlSearch = $('mlSearch');
+const ML_PAGE = 300; // 한 번에 그리는 수. 모든 절에 메모를 쓰면 3만 개가 넘어서(앱 MemoList 주석)
+let mlAll = []; // 지금 메모책의 모든 메모(정렬됨). 보내기·전체삭제는 검색과 상관없이 이것(앱과 같다)
+let mlShown = []; // 검색으로 걸러진 것
+let mlWords = [];
+let mlDrawn = 0;
+let mlBook = DEFAULT_MEMO_BOOK; // 목록에 보이는 메모책(지우기·전체삭제는 여기에)
+$('menuMemoList').textContent = S.myMemos;
+label($('mlClose'), S.close);
+$mlSearch.placeholder = S.mlSearchHint;
+label($mlSearch, S.mlSearchHint);
+label($('mlSearchClear'), S.mlSearchClear);
+$('mlSend').textContent = S.mlSend;
+$('mlDeleteAll').textContent = S.deleteAll;
+
+function mlNote(text, error = false) {
+  const note = $('mlNote');
+  note.textContent = text;
+  note.classList.toggle('error', error);
+  note.hidden = !text;
+}
+
+const mlPlace = (it) => S.verseRef(NAMES[it.book], it.chapter, it.verse);
+const mlRef = (it) => (it.ver ? `${mlPlace(it)} · ${verName(it.ver)}` : mlPlace(it));
+
+function openMemoList() {
+  // 입력판에 쓰던 메모가 있으면 먼저 정리한다(목록에서 지운 메모를 입력판이 되살리지 않게)
+  if (memoAt) {
+    closeMemoOrAsk(openMemoList);
+    return;
+  }
+  mlNote('');
+  if (!$mlOrder.options.length) $mlOrder.append(option('book', S.orderBook), option('recent', S.orderRecent));
+  $mlOrder.value = 'book';
+  $mlSearch.value = ''; // 앱도 화면을 새로 열면 검색어가 없다
+  $('mlSearchClear').hidden = true;
+  $mlList.replaceChildren();
+  $('mlEmpty').hidden = true;
+  $('mlCount').textContent = '';
+  showMlTitle();
+  $mlBox.showModal();
+  drawMemoList();
+}
+
+/**
+ * 메모책이 둘 이상이면 제목 자리에 지금 메모책 이름을 보이고 눌러서 바꾼다. 하나뿐이면 예전 제목 그대로
+ * (입력판 제목과 같은 규칙. 앱 MemoList.updateHeader)
+ */
+function showMlTitle() {
+  const many = memoBooks.length > 1;
+  const t = $('mlTitle');
+  t.textContent = many ? `${memoBookTitle(memoBook)} ▾` : S.myMemoList;
+  t.disabled = !many;
+  t.title = many ? S.memoBookPick : '';
+}
+
+async function drawMemoList() {
+  const order = $mlOrder.value;
+  await (memoBooksReady || refreshMemoBooks());
+  const book = memoBook;
+  let rows = [];
+  try {
+    rows = await allMemos();
+  } catch (e) {
+    console.warn('memos unavailable', e);
+    mlNote(S.memoLoadFailed, true);
+  }
+  if ($mlOrder.value !== order || memoBook !== book) return; // 그 사이 정렬이나 메모책을 바꿨다
+  mlBook = book;
+  showMlTitle();
+  mlAll = memoList(rows, order, book);
+  $('mlSend').disabled = !mlAll.length; // 앱도 없으면 보내기 메뉴를 숨긴다
+  $('mlDeleteAll').disabled = !mlAll.length;
+  filterMemoList();
+}
+
+/** 검색어로 걸러 처음부터 다시 그린다. 개수는 검색 중이면 '찾은 수 / 전체'(앱 updateHeader) */
+function filterMemoList() {
+  mlWords = memoWords($mlSearch.value);
+  mlShown = mlWords.length ? mlAll.filter((it) => memoMatches(`${mlRef(it)}\n${it.text}`, mlWords)) : mlAll;
+  $('mlCount').textContent = mlWords.length ? `${mlShown.length} / ${mlAll.length}` : mlAll.length;
+  $('mlEmpty').textContent = mlAll.length ? S.mlSearchNone : S.mlEmpty;
+  $('mlEmpty').hidden = mlShown.length > 0;
+  $mlList.replaceChildren();
+  $mlList.scrollTop = 0;
+  mlDrawn = 0;
+  showMoreMemos();
+}
+
+function showMoreMemos() {
+  $mlList.querySelector(':scope > .more')?.remove();
+  const more = mlShown.slice(mlDrawn, mlDrawn + ML_PAGE);
+  $mlList.append(...more.map(mlItem));
+  mlDrawn += more.length;
+  const left = mlShown.length - mlDrawn;
+  if (left > 0) {
+    const li = document.createElement('li');
+    li.className = 'more';
+    const btn = document.createElement('button');
+    btn.type = 'button';
+    btn.textContent = S.more(left);
+    btn.addEventListener('click', showMoreMemos);
+    li.append(btn);
+    $mlList.append(li);
+  }
+}
+
+/** 찾은 단어를 <mark>로 칠한 글(글자로만 넣는다. HTML로 해석하지 않음) */
+function markedText(el, text, words) {
+  if (!words.length) {
+    el.textContent = text;
+    return;
+  }
+  for (const part of highlightParts(text, words)) {
+    if (part.hit) {
+      const mark = document.createElement('mark');
+      mark.textContent = part.text;
+      el.append(mark);
+    } else {
+      el.append(part.text);
+    }
+  }
+}
+
+/** 한 줄: 참조 · 역본, 아래 메모(3줄까지, 앱 MEMO_MAX_LINES). 오른쪽 🗑 */
+function mlItem(it) {
+  const li = document.createElement('li');
+  const btn = document.createElement('button');
+  btn.type = 'button';
+  btn.className = 'go';
+  const ref = document.createElement('span');
+  ref.className = 'sref';
+  markedText(ref, mlRef(it), mlWords);
+  const body = document.createElement('span');
+  body.className = 'mtext';
+  markedText(body, it.text, mlWords);
+  btn.append(ref, body);
+  btn.addEventListener('click', () => {
+    // 앱처럼 메모를 쓴 역본으로 간다. 그 역본이 없어졌으면 지금 보던 역본에서 그 절로(메모는 절에 붙은 것이라)
+    showVersionOf(it.ver);
+    $mlBox.close();
+    jumpTo({ book: it.book, chapter: it.chapter }, it.verse);
+  });
+  const del = document.createElement('button');
+  del.type = 'button';
+  del.className = 'icon del';
+  del.textContent = '🗑';
+  label(del, S.mlDelete(mlPlace(it)));
+  del.addEventListener('click', async () => {
+    // 앱은 꾹 눌러 지우는 메뉴가 있지만 동작하지 않는다. 웹은 형광펜 목록처럼 단추로, 잘못 누르기 쉬워서 묻는다
+    if (!confirm(S.mlDeleteConfirm(mlPlace(it)))) return;
+    try {
+      await deleteMemo(it.book, it.chapter, it.verse, mlBook);
+    } catch (e) {
+      console.warn(e);
+      mlNote(S.memoFailed, true);
+      return;
+    }
+    // 다시 읽지 않고 빼기만 한다(그려 둔 자리와 스크롤을 그대로 두려고)
+    mlAll = mlAll.filter((x) => x !== it);
+    mlShown = mlShown.filter((x) => x !== it);
+    mlDrawn--;
+    li.remove();
+    $('mlCount').textContent = mlWords.length ? `${mlShown.length} / ${mlAll.length}` : mlAll.length;
+    $('mlEmpty').textContent = mlAll.length ? S.mlSearchNone : S.mlEmpty;
+    $('mlEmpty').hidden = mlShown.length > 0;
+    $('mlSend').disabled = !mlAll.length;
+    $('mlDeleteAll').disabled = !mlAll.length;
+    loadMemos(); // 지금 장에 있던 것이면 본문에서도 지운다
+  });
+  li.append(btn, del);
+  return li;
+}
+
+$mlOrder.addEventListener('change', drawMemoList);
+$mlSearch.addEventListener('input', () => {
+  $('mlSearchClear').hidden = !$mlSearch.value;
+  filterMemoList();
+});
+// 키보드의 검색(Enter): 이미 걸러져 있으니 키보드만 내린다(앱과 같다)
+$mlSearch.addEventListener('keydown', (e) => {
+  if (e.key === 'Enter') {
+    e.preventDefault();
+    $mlSearch.blur();
+  }
+});
+$('mlSearchClear').addEventListener('click', () => {
+  $mlSearch.value = '';
+  $('mlSearchClear').hidden = true;
+  filterMemoList();
+  $mlSearch.focus();
+});
+// 검색 중이면 Esc(뒤로)는 먼저 검색어를 지운다(앱 onBackPressed)
+$mlBox.addEventListener('cancel', (e) => {
+  if (!$mlSearch.value) return;
+  e.preventDefault();
+  $mlSearch.value = '';
+  $('mlSearchClear').hidden = true;
+  filterMemoList();
+});
+$('mlSend').addEventListener('click', () => {
+  if (mlAll.length) sendListText(memosText(mlAll, mlPlace), mlNote, S.mlCopiedAll);
+});
+$('mlDeleteAll').addEventListener('click', async () => {
+  if (!mlAll.length || !confirm(S.mlDeleteAllConfirm)) return;
+  try {
+    await clearMemos(mlBook); // 지금 메모책만(앱 deleteAllMemo(memoBook))
+  } catch (e) {
+    console.warn(e);
+    mlNote(S.memoFailed, true);
+    return;
+  }
+  await drawMemoList();
+  mlNote(S.mlDeletedAll);
+  loadMemos();
+});
+$('mlClose').addEventListener('click', () => $mlBox.close());
+$mlBox.addEventListener('click', (e) => { if (e.target === $mlBox) $mlBox.close(); });
+
+// 목록 제목을 눌러 메모책 바꾸기(앱 MemoList: MemoBookList.pick(this, this::fillList))
+$('mlTitle').addEventListener('click', () => pickMemoBook(() => {
+  drawMemoList();
+  loadMemos();
+}));
+
+// ---- 메모책 ----
+// 앱 MemoBookList(7.6.0). 고르기(입력판·나의메모목록 제목)와 관리(추가, 이름 고치기, 순서, 삭제).
+// 앱은 설정 > 메모 설정 > 메모책에서 관리하는데, 웹은 본문화면설정 아래 "메모" 묶음과 고르기 창의 [메모책 관리]에서.
+const $mbPick = $('mbPick'), $mbBox = $('mbBox'), $mbList = $('mbList'), $mbEdit = $('mbEdit'), $mbName = $('mbName');
+let mbPicked = null; // 고르기 창에서 다른 메모책을 골랐을 때 할 일
+let mbEditing = null; // 고치는 메모책 { row(새로 만들면 null), count }
+$('mbPickTitle').textContent = S.memoBooks;
+$('mbPickManage').textContent = S.memoBookManage;
+$('mbPickCancel').textContent = S.cancel;
+$('mbTitle').textContent = S.memoBooks;
+label($('mbClose'), S.close);
+$('mbEditCancel').textContent = S.cancel;
+$('mbEditSave').textContent = S.save;
+$('mbEditDel').textContent = S.del;
+label($mbName, S.memoBookName);
+$('groupMemo').textContent = S.groupMemo;
+$('setMemoBooksLabel').textContent = S.memoBooks;
+$('setMemoBooksHint').textContent = S.memoBooksHint;
+
+function mbNote(text, error = false) {
+  const note = $('mbNote');
+  note.textContent = text;
+  note.classList.toggle('error', error);
+  note.hidden = !text;
+}
+
+/** 메모책 고르기(앱 MemoBookList.pick). 다른 것을 고르면 지금 메모책을 바꾸고 onPicked. 같은 것이면 닫기만 */
+function pickMemoBook(onPicked) {
+  mbPicked = onPicked;
+  $('mbPickList').replaceChildren(...memoBooks.map((b) => {
+    const l = document.createElement('label');
+    l.className = 'check';
+    const r = document.createElement('input');
+    r.type = 'radio';
+    r.name = 'mbPick';
+    r.checked = b.uid === memoBook;
+    // change는 이미 고른 것을 다시 누르면 오지 않아서 click으로(그때도 닫히게)
+    r.addEventListener('click', () => {
+      const f = mbPicked;
+      mbPicked = null;
+      $mbPick.close();
+      if (b.uid === memoBook) return;
+      setMemoBook(b.uid);
+      f?.();
+    });
+    l.append(r, memoBookTitle(b.uid));
+    return l;
+  }));
+  $mbPick.showModal();
+  $mbPick.querySelector('input:checked')?.focus();
+}
+$('mbPickCancel').addEventListener('click', () => $mbPick.close());
+$mbPick.addEventListener('close', () => { mbPicked = null; });
+$mbPick.addEventListener('click', (e) => { if (e.target === $mbPick) $mbPick.close(); });
+$('mbPickManage').addEventListener('click', () => {
+  $mbPick.close();
+  openMemoBooks();
+});
+
+/** 메모책 관리 창. 입력판에 쓰던 메모가 있으면 먼저 정리한다(그 메모책을 지우거나 이름이 바뀌어도 꼬이지 않게) */
+function openMemoBooks() {
+  if (memoAt) {
+    closeMemoOrAsk(openMemoBooks);
+    return;
+  }
+  mbNote('');
+  $mbList.replaceChildren();
+  $mbBox.showModal();
+  drawMemoBooks();
+}
+
+async function drawMemoBooks() {
+  await refreshMemoBooks();
+  let counts = new Map();
+  try {
+    counts = memoCounts(await allMemos());
+  } catch (e) {
+    console.warn('memos unavailable', e);
+    mbNote(S.memoLoadFailed, true);
+  }
+  const add = document.createElement('li');
+  const addBtn = document.createElement('button');
+  addBtn.type = 'button';
+  addBtn.className = 'go add';
+  addBtn.textContent = S.memoBookAdd;
+  addBtn.addEventListener('click', () => openMemoBookEdit(null, 0));
+  add.append(addBtn);
+  $mbList.replaceChildren(...memoBooks.map((b, i) => mbItem(b, i, counts.get(b.uid) || 0)), add);
+}
+
+/** 한 줄: 이름과 메모 수(누르면 고치기), ↑ ↓, 🗑(기본 메모책은 지울 수 없어 자리만 둔다) */
+function mbItem(b, i, count) {
+  const name = memoBookTitle(b.uid);
+  const li = document.createElement('li');
+  const go = document.createElement('button');
+  go.type = 'button';
+  go.className = 'go';
+  const n = document.createElement('span');
+  n.className = 'mname';
+  n.textContent = name;
+  const sum = document.createElement('span');
+  sum.className = 'msum';
+  sum.textContent = memoBookSummary(b, count);
+  go.append(n, sum);
+  go.addEventListener('click', () => openMemoBookEdit(b, count));
+  const icon = (text, aria, enabled, fn) => {
+    const btn = document.createElement('button');
+    btn.type = 'button';
+    btn.className = 'icon';
+    btn.textContent = text;
+    label(btn, aria);
+    btn.disabled = !enabled;
+    btn.addEventListener('click', fn);
+    return btn;
+  };
+  li.append(go,
+    icon('↑', S.memoBookMoveUp(name), i > 0, () => moveMemoBook(i, -1)),
+    icon('↓', S.memoBookMoveDown(name), i < memoBooks.length - 1, () => moveMemoBook(i, 1)),
+    icon('🗑', S.memoBookDelete(name), b.uid !== DEFAULT_MEMO_BOOK, () => confirmDeleteMemoBook(b, count)));
+  return li;
+}
+
+/** 이름 아래 설명: 메모 수와 켜 둔 입력 방식(앱 summaryOf. 건너뛰기·다음 장은 연속 입력이 켜졌을 때만) */
+function memoBookSummary(b, count) {
+  const o = memoBookOptions(b);
+  const parts = [S.memoBookCount(count)];
+  if (o.continuous) {
+    parts.push(S.memoOptions[0]);
+    if (o.skipFilled) parts.push(S.memoOptions[1]);
+    if (o.nextChapter) parts.push(S.memoOptions[2]);
+  }
+  if (o.enterSaves) parts.push(S.memoOptions[3]);
+  return parts.join(' · ');
+}
+
+/** 메모책이 바뀐 뒤: 관리 창, 본문의 메모, 열려 있는 나의메모목록을 다시 */
+async function afterMemoBooksChanged() {
+  await drawMemoBooks();
+  loadMemos();
+  if ($mlBox.open) drawMemoList();
+}
+
+async function moveMemoBook(i, dir) {
+  const uids = movedUids(memoBooks, i, dir);
+  if (!uids) return;
+  try {
+    await setMemoBookOrder(uids);
+  } catch (e) {
+    console.warn(e);
+    mbNote(S.memoBookFailed, true);
+    return;
+  }
+  await afterMemoBooksChanged();
+  // 옮긴 줄의 같은 단추에 초점을 두어 거듭 누를 수 있게(맨 끝에 닿아 꺼졌으면 반대쪽)
+  const row = $mbList.children[i + dir];
+  const btns = row?.querySelectorAll('.icon');
+  if (btns) (btns[dir < 0 ? 0 : 1].disabled ? btns[dir < 0 ? 1 : 0] : btns[dir < 0 ? 0 : 1]).focus();
+}
+
+/** 메모책을 지우면 그 메모도 모두 지운 표시가 된다(앱 deleteMemoBook). 그래서 한 번 더 묻는다 */
+async function confirmDeleteMemoBook(b, count) {
+  const name = memoBookTitle(b.uid);
+  if (!confirm(count > 0 ? S.memoBookDeleteConfirm(name, count) : S.memoBookDeleteConfirmEmpty(name))) return false;
+  try {
+    await deleteMemoBook(b.uid);
+  } catch (e) {
+    console.warn(e);
+    mbNote(S.memoBookFailed, true);
+    return false;
+  }
+  await afterMemoBooksChanged(); // 지운 것이 지금 메모책이었으면 refreshMemoBooks가 기본으로 되돌린다
+  return true;
+}
+
+/** 추가(row가 null)와 고치기를 같이 하는 창(앱 showEditDialog: 이름과 입력 방식) */
+function openMemoBookEdit(row, count) {
+  mbEditing = { row, count };
+  const isDefault = row?.uid === DEFAULT_MEMO_BOOK;
+  $('mbEditTitle').textContent = row ? memoBookTitle(row.uid) : S.memoBookNew;
+  $mbName.value = row?.name || '';
+  // 기본 메모책은 비워 두면 번역된 기본 이름이 보인다(언어를 바꿔도 따라감). 그래서 힌트로 보여 준다(앱과 같다)
+  $mbName.placeholder = isDefault ? S.memoBookDefault : S.memoBookName;
+  $('mbEditDel').hidden = !row || isDefault;
+  const opts = memoBookOptions(row);
+  mbOptInputs.forEach((input, i) => { input.checked = opts[MEMO_OPTIONS[i][0]]; });
+  showMbOpts();
+  updateMbSave();
+  $mbEdit.showModal();
+  $mbName.focus();
+}
+
+// 입력 방식 체크 4개(앱 showEditDialog). 이름 뒤에 그 옵션의 아이콘, 체크하면 굵게(입력판 제목 줄과 같은 모양)
+const mbOptInputs = MEMO_OPTIONS.map((_, i) => {
+  const l = document.createElement('label');
+  l.className = 'check';
+  const input = document.createElement('input');
+  input.type = 'checkbox';
+  const icon = document.createElement('span');
+  icon.className = 'opt-slot';
+  l.append(input, S.memoOptions[i], icon);
+  $('mbOpts').append(l);
+  input.addEventListener('change', showMbOpts);
+  return input;
+});
+
+/** 아이콘 굵기와, 연속 입력이 꺼졌을 때 건너뛰기·다음 장을 끄기(체크 값은 남겨 다시 켤 때 그대로. 앱과 같다) */
+function showMbOpts() {
+  const continuous = mbOptInputs[0].checked;
+  mbOptInputs.forEach((input, i) => {
+    if (i === 1 || i === 2) input.disabled = !continuous;
+    input.parentElement.querySelector('.opt-slot').replaceChildren(memoOptionIcon(i, input.checked));
+  });
+}
+
+/** 고치기 창의 체크 → { continuous, skipFilled, nextChapter, enterSaves } */
+const mbOptValues = () => Object.fromEntries(MEMO_OPTIONS.map(([k], i) => [k, mbOptInputs[i].checked]));
+
+/** 만든 메모책은 이름이 있어야 저장된다: 이름 없는 메모책 여럿은 목록에서 구별할 수 없다(앱과 같다) */
+function updateMbSave() {
+  const isDefault = mbEditing?.row?.uid === DEFAULT_MEMO_BOOK;
+  $('mbEditSave').disabled = !isDefault && !$mbName.value.trim();
+}
+
+$mbName.addEventListener('input', updateMbSave);
+// 엔터로도 저장(폼 제출). 저장 단추가 꺼져 있으면 브라우저가 제출하지 않는다
+$('mbEditForm').addEventListener('submit', async (e) => {
+  e.preventDefault();
+  const ed = mbEditing;
+  if (!ed || $('mbEditSave').disabled) return;
+  const name = $mbName.value.trim();
+  const opts = mbOptValues();
+  $mbEdit.close();
+  try {
+    if (ed.row) await updateMemoBook(ed.row.uid, name, opts);
+    else await addMemoBook(name, opts);
+  } catch (err) {
+    console.warn(err);
+    mbNote(S.memoBookFailed, true);
+    return;
+  }
+  await afterMemoBooksChanged();
+});
+$('mbEditCancel').addEventListener('click', () => $mbEdit.close());
+$('mbEditDel').addEventListener('click', async () => {
+  const ed = mbEditing;
+  if (!ed?.row) return;
+  $mbEdit.close();
+  await confirmDeleteMemoBook(ed.row, ed.count);
+});
+$mbEdit.addEventListener('close', () => { mbEditing = null; });
+$('mbClose').addEventListener('click', () => $mbBox.close());
+$mbBox.addEventListener('click', (e) => { if (e.target === $mbBox) $mbBox.close(); });
+$('setMemoBooks').addEventListener('click', openMemoBooks);
 
 // ---- 성경읽기통계 ----
 // 앱 ReadCheckTable: 역본 하나를 골라 전체·구약·신약과 66권의 읽은 장 수·퍼센트·막대. 앱처럼 받아 둔 역본에서 고르고,
@@ -969,9 +2279,270 @@ $('colorReset').addEventListener('click', () => {
 $('settingsClose').addEventListener('click', () => $('settingsBox').close());
 $('settingsBox').addEventListener('click', (e) => { if (e.target === $('settingsBox')) $('settingsBox').close(); });
 
+// ---- 데이터 백업·복구 ----
+// 앱의 설정 > 데이터 백업 / 데이터 복구. 웹에는 설정 화면이 따로 없어 ☰ 메뉴에서 한 창으로 연다.
+// 파일은 앱과 같은 SQLite(DB 12, appBackup.js)라 앱에서 바로 복구할 수 있다. sql.js는 이 창에서만 불러온다
+const $backupBox = $('backupBox'), $backupNote = $('backupNote');
+$('menuBackup').textContent = S.backupMenu;
+$('backupTitle').textContent = S.backupMenu;
+label($('backupClose'), S.close);
+$('backupDone').textContent = S.close;
+$('backupSaveTitle').textContent = S.backupSaveTitle;
+$('backupSaveHint').textContent = S.backupSaveHint;
+$('backupRun').textContent = S.backupRun;
+$('backupNoticeTitle').textContent = S.backupNoticeTitle;
+$('backupNotice1').textContent = S.backupNotice1;
+$('backupNotice2').textContent = S.backupNotice2;
+$('backupNotice3').textContent = S.backupNotice3;
+
+// 마지막 백업 시각과 [나중에]로 미룬 때. 화면 설정처럼 localStorage에 둔다(사이트 데이터를 지우면 기록과 함께 사라지므로
+// 따로 둘 까닭이 없다). { at: 마지막 백업 ms, snooze: 이때까지 묻지 않음 ms }
+const BACKUP_KEY = 'lifove.backup';
+function backupState() {
+  try {
+    return JSON.parse(localStorage.getItem(BACKUP_KEY)) || {};
+  } catch {
+    return {};
+  }
+}
+function saveBackupState(patch) {
+  try {
+    localStorage.setItem(BACKUP_KEY, JSON.stringify({ ...backupState(), ...patch }));
+  } catch {
+    // 저장하지 못해도 백업 자체는 됐다. 알림이 조금 일찍 다시 뜰 뿐
+  }
+}
+
+function showBackupLast() {
+  const at = backupState().at;
+  $('backupLast').textContent = at
+    ? S.backupLast(new Date(at).toLocaleString(lang, { dateStyle: 'medium', timeStyle: 'short' }))
+    : S.backupNever;
+}
+
+function openBackupBox() {
+  backupNote('');
+  showBackupLast();
+  $backupBox.showModal();
+  loadSqlJs().catch(() => {}); // 미리 불러 둔다(누를 때 기다리지 않게). 실패는 누를 때 알린다
+}
+
+function backupNote(text, error = false) {
+  $backupNote.textContent = text;
+  $backupNote.hidden = !text;
+  $backupNote.classList.toggle('error', error);
+}
+
+/** 파일을 내려받게 한다. 브라우저는 사용자가 누른 동작 안에서만 저장할 수 있다 */
+function saveFile(bytes, name) {
+  const url = URL.createObjectURL(new Blob([bytes], { type: 'application/octet-stream' }));
+  const a = document.createElement('a');
+  a.href = url;
+  a.download = name;
+  document.body.append(a);
+  a.click();
+  a.remove();
+  setTimeout(() => URL.revokeObjectURL(url), 60_000); // 바로 풀면 일부 브라우저가 받기 전에 끊는다
+}
+
+$('backupRun').addEventListener('click', async () => {
+  const btn = $('backupRun');
+  btn.disabled = true;
+  backupNote(S.backupInProgress);
+  try {
+    const [SQL, data] = await Promise.all([loadSqlJs(), allUserData()]);
+    const name = backupName();
+    saveFile(buildBackup(SQL, data).bytes, name);
+    backupNote(S.backupSaved(name));
+    saveBackupState({ at: Date.now() });
+    showBackupLast();
+    if (updateBarKind === 'backup') hideUpdateBar();
+  } catch (e) {
+    console.error(e);
+    backupNote(S.backupFailed, true);
+  } finally {
+    btn.disabled = false;
+  }
+});
+$('backupClose').addEventListener('click', () => $backupBox.close());
+$('backupDone').addEventListener('click', () => $backupBox.close());
+$backupBox.addEventListener('click', (e) => { if (e.target === $backupBox) $backupBox.close(); });
+
+// 데이터 복구(앱 Settings의 복구: 파일 고르기 → 합치기(추천)/바꾸기 → 요약 → 메모 고르기).
+// 계산은 appBackup.js(openBackup·readBackup·planMerge·planReplace), 쓰기는 한 거래(putUserRows·replaceUserRows)라
+// 중간에 실패하면 지금 데이터는 그대로다
+const $restoreAsk = $('restoreAsk'), $restoreResult = $('restoreResult'), $conflictBox = $('conflictBox');
+$('restoreTitle').textContent = S.restoreTitle;
+$('restoreHint').textContent = S.restoreHint;
+$('restoreRun').textContent = S.restoreRun;
+$('restoreAskTitle').textContent = S.restoreTitle;
+$('restoreCancel').textContent = S.cancel;
+$('restoreGo').textContent = S.restoreRun;
+$('restoreResultOk').textContent = S.ok;
+for (const [id, [name, text]] of [['restoreMerge', S.restoreMerge], ['restoreReplace', S.restoreReplace]]) {
+  const b = document.createElement('b');
+  b.textContent = name; // 이름은 굵게, 설명은 그 아래(앱 restoreModeLabel)
+  $(id).replaceChildren(b, text);
+}
+$('conflictLocalHead').textContent = S.conflictLocal;
+$('conflictBackupHead').textContent = S.conflictBackup;
+$('conflictPickLocal').textContent = S.conflictLocal;
+$('conflictPickBackup').textContent = S.conflictBackup;
+$('conflictPickBoth').textContent = S.conflictBoth;
+
+let restoreFile = null; // 고른 파일(방식을 고르는 동안)
+
+$('restoreRun').addEventListener('click', () => {
+  $('restoreFile').value = ''; // 같은 파일을 또 골라도 change가 오게
+  $('restoreFile').click();
+});
+
+$('restoreFile').addEventListener('change', () => {
+  restoreFile = $('restoreFile').files[0] || null;
+  if (!restoreFile) return;
+  $('restoreAskFile').textContent = restoreFile.name;
+  $restoreAsk.querySelector('input[value="merge"]').checked = true; // 늘 추천(합치기)부터
+  $restoreAsk.showModal();
+});
+
+$('restoreCancel').addEventListener('click', () => $restoreAsk.close());
+$('restoreGo').addEventListener('click', () => {
+  const merge = $restoreAsk.querySelector('input[name="restoreMode"]:checked')?.value !== 'replace';
+  $restoreAsk.close();
+  runRestore(restoreFile, merge);
+});
+
+/** 백업을 합치거나 바꾸고, 결과를 보인 뒤 메모 고르기로(앱 runRestore) */
+async function runRestore(file, merge) {
+  if (!file) return;
+  for (const id of ['backupRun', 'restoreRun']) $(id).disabled = true;
+  backupNote(S.restoreInProgress);
+  let message, conflicts = [];
+  try {
+    const [SQL, bytes] = await Promise.all([loadSqlJs(), file.arrayBuffer().then((b) => new Uint8Array(b))]);
+    const { db } = openBackup(SQL, bytes);
+    let tables;
+    try {
+      tables = readBackup(db);
+    } finally {
+      db.close();
+    }
+    const local = await allUserData();
+    if (merge) {
+      const plan = planMerge(local, tables);
+      await putUserRows(plan.puts);
+      message = mergeSummary(plan);
+      conflicts = plan.conflicts;
+    } else {
+      await replaceUserRows(planReplace(local, tables, defaultMemoBookRow()).rows);
+      message = S.restoreDone;
+    }
+  } catch (e) {
+    if (!e?.kind) console.error(e); // BackupError(백업 아님·새 버전·깨짐)는 알리기만
+    // 지금 데이터는 그대로(쓰기는 한 거래, 파일 검사는 쓰기 전)
+    message = e?.kind === 'newer' ? S.restoreNewer : e?.kind === 'notBackup' ? S.restoreNotBackup : S.restoreFailed;
+  } finally {
+    restoreFile = null;
+    for (const id of ['backupRun', 'restoreRun']) $(id).disabled = false;
+    backupNote('');
+  }
+  await reloadUserData();
+  // 요약을 읽은 뒤 확인을 누르면 메모 고르기로(앱처럼)
+  $('restoreResultText').textContent = message;
+  $restoreResult.onclose = () => startConflicts(conflicts);
+  $restoreResult.showModal();
+}
+
+/** 합친 결과 요약(앱 mergeSummary). 가져온 수는 백업 쪽으로 넣거나 바꾼 행(지운 표시 포함) */
+function mergeSummary({ counts: c, conflicts }) {
+  let s = c.underlines + c.memos + c.readChecks + c.bookmarks === 0
+    ? S.mergeNothing : S.mergeDone(c.underlines, c.memos, c.readChecks, c.bookmarks);
+  if (conflicts.length) s += '\n\n' + S.mergeConflicts(conflicts.length);
+  return s;
+}
+
+/** 복구한 뒤 화면의 형광펜·메모·읽음·메모책을 다시 읽는다 */
+async function reloadUserData() {
+  await refreshMemoBooks();
+  loadHighlights();
+  loadMemos();
+  updateReadCheck();
+}
+
+$('restoreResultOk').addEventListener('click', () => $restoreResult.close());
+
+// 메모 고르기(앱 MemoConflictDialogs). 고르지 않고 닫으면(Esc) 남은 것은 이 기기 메모 그대로다:
+// 합치기는 충돌 메모를 쓰지 않았으므로 안전하다. 결과 알림은 백업 창 아래 줄에(모달 창이 #toast를 가려서)
+let conflictList = [], conflictAt = 0;
+
+function startConflicts(list) {
+  conflictList = list;
+  conflictAt = 0;
+  if (list.length) showConflict();
+}
+
+function showConflict() {
+  const c = conflictList[conflictAt];
+  const n = conflictList.length;
+  $('conflictTitle').textContent = S.conflictTitle(conflictAt + 1, n);
+  const ref = S.verseRef(NAMES[c.book_id] ?? c.book_id + 1, c.chapter_no, c.verse_no);
+  // 메모책이 둘 이상이면 어느 메모책인지도(같은 절이 메모책마다 따로 충돌할 수 있어서. 앱과 같다)
+  $('conflictRef').textContent = memoBooks.length > 1 ? `${ref} · ${memoBookTitle(c.memo_book)}` : ref;
+  $('conflictLocal').textContent = c.localMemo ?? '';
+  $('conflictBackup').textContent = c.backupMemo ?? '';
+  const rest = n - conflictAt - 1;
+  $('conflictRestRow').hidden = rest < 1;
+  $('conflictRest').checked = false;
+  $('conflictRestText').textContent = S.conflictApplyRest(rest);
+  $conflictBox.querySelector('.conflict-body').scrollTop = 0;
+  if (!$conflictBox.open) $conflictBox.showModal();
+}
+
+/** 고른 것을 쓰고 다음으로. '남은 것에도'면 남은 것 모두(앱 choose) */
+async function pickConflict(pick) {
+  const end = $('conflictRest').checked ? conflictList.length : conflictAt + 1;
+  try {
+    for (let k = conflictAt; k < end; k++) {
+      const c = conflictList[k];
+      const text = resolveMemo(c.localMemo, c.backupMemo, pick);
+      if (text == null || text === c.localMemo) continue; // 지금 것 그대로: 쓸 것 없음(앱 applyMemoChoice)
+      await saveMemo(c.book_id, c.chapter_no, c.verse_no, text, c.ver, c.memo_book);
+    }
+  } catch (e) {
+    console.error(e);
+    conflictList = [];
+    $conflictBox.close();
+    backupNote(S.restoreFailed, true);
+    loadMemos();
+    return;
+  }
+  conflictAt = end;
+  if (conflictAt < conflictList.length) {
+    showConflict();
+    return;
+  }
+  conflictList = [];
+  $conflictBox.close();
+  backupNote(S.conflictDone);
+  loadMemos();
+}
+
+$('conflictPickLocal').addEventListener('click', () => pickConflict(PICK_LOCAL));
+$('conflictPickBackup').addEventListener('click', () => pickConflict(PICK_OTHER));
+$('conflictPickBoth').addEventListener('click', () => pickConflict(PICK_BOTH));
+// Esc로 닫으면 멈춤(앱 setOnCancelListener). 바깥 누르기로는 닫지 않는다(앱 setCanceledOnTouchOutside(false))
+$conflictBox.addEventListener('cancel', () => {
+  if (!conflictList.length) return;
+  conflictList = [];
+  backupNote(S.conflictStopped);
+});
+
 // ---- 메뉴 ----
 // 앱의 옵션 메뉴처럼 오른쪽 위 ☰. 받기·넣기는 여기서만 한다(본문 화면의 역본 고르기는 받은 것만)
 function openMenu() {
+  // 메모 보이기/숨기기는 장에 메모가 있을 때만(앱 onPrepareOptionsMenu)
+  $('menuMemoToggle').hidden = !memos.size;
+  $('menuMemoToggle').textContent = memoShown() ? S.memoHide : S.memoShow;
   $menu.showModal();
   $menu.querySelector('button')?.focus();
 }
@@ -987,10 +2558,16 @@ function fromMenu(open) {
 $('menuBtn').addEventListener('click', openMenu);
 $('menuDownload').addEventListener('click', fromMenu(openDownload));
 $('menuImport').addEventListener('click', fromMenu(openImport));
+$('menuBackup').addEventListener('click', fromMenu(openBackupBox));
 $('menuSettings').addEventListener('click', fromMenu(openSettings));
 $('menuOneVersion').addEventListener('click', fromMenu(() => openVerPicker('one')));
 $('menuVersions').addEventListener('click', fromMenu(() => openVerPicker('multi')));
 $('menuStats').addEventListener('click', fromMenu(openStats));
+$('menuHighlights').addEventListener('click', fromMenu(openHighlights));
+$('menuMemoList').addEventListener('click', fromMenu(openMemoList));
+$('menuMemoToggle').addEventListener('click', fromMenu(toggleMemos));
+$('menuAddBookmark').addEventListener('click', fromMenu(saveBookmark));
+$('menuBookmarks').addEventListener('click', fromMenu(openBookmarks));
 $('menuSearch').addEventListener('click', fromMenu(openSearch));
 $('menuHelp').addEventListener('click', fromMenu(openHelp));
 // 메뉴 밖(배경)을 누르면 닫는다
@@ -1150,16 +2727,21 @@ function updateDraft() {
 function applyVersions() {
   const chosen = draft.map((c) => versionList.find((v) => v.code === c)).filter(Boolean);
   if (!chosen.length) return;
-  prefs.versions = chosen;
   prefs.oneColumn = $oneColumn.checked;
+  useVersions(chosen);
+  $verPicker.close();
+  render();
+}
+
+/** 고른 역본을 바꾼다(그리기는 부르는 쪽이). 역본대조보기·다른성경보기·나의형광펜목록에서 */
+function useVersions(chosen) {
+  prefs.versions = chosen;
   savePrefs();
   // 고르지 않은 역본은 메모리에서 내린다(파일 하나가 2~15MB)
   for (const url of [...opened.keys()]) {
     if (!chosen.some((v) => v.url === url)) opened.delete(url);
   }
-  $verPicker.close();
   $verses.replaceChildren();
-  render();
 }
 
 $verOk.addEventListener('click', applyVersions);
@@ -1631,7 +3213,15 @@ function saveHistory(h) {
 /** 본문이 보이는 세로 범위(책·장 바를 뺀 곳). 바는 위나 아래에 붙어 있다 */
 function viewArea() {
   const r = document.querySelector('.bar').getBoundingClientRect();
-  return prefs.barTop ? { top: r.bottom, bottom: innerHeight } : { top: 0, bottom: r.top };
+  const area = prefs.barTop ? { top: r.bottom, bottom: innerHeight } : { top: 0, bottom: r.top };
+  // 떠 있는 메모 입력판·동작 바가 가리는 곳도 뺀다
+  for (const el of [$('memoPanel'), $('selBar')]) {
+    if (el.hidden) continue;
+    const b = el.getBoundingClientRect();
+    if (b.top > area.top + 1) area.bottom = Math.min(area.bottom, b.top);
+    else area.top = Math.max(area.top, b.bottom); // 바가 위쪽이면 동작 바는 바 아래에 붙는다
+  }
+  return area;
 }
 
 /** 절을 보이는 곳 맨 위에 맞춘다 */
@@ -1651,9 +3241,9 @@ function here() {
 }
 
 /** 책·장 고르기, 검색 결과처럼 다른 곳으로 갈 때. 최근목록에 새 칸을 만든다 */
-function jumpTo(p, verse) {
+function jumpTo(p, verse, top = false) {
   saveHistory(jumpHistory(hist, here(), { ...p, verse: verse || 1 }));
-  if (verse) pendingVerse = { book: p.book, chapter: p.chapter, verse, flash: true };
+  if (verse) pendingVerse = { book: p.book, chapter: p.chapter, verse, flash: true, top };
   go(p);
 }
 
@@ -1810,7 +3400,8 @@ document.addEventListener('keydown', (e) => {
     return;
   }
   // 입력 칸·선택 상자에서는 화살표가 그 안에서 움직인다
-  if (e.target instanceof HTMLInputElement || e.target instanceof HTMLSelectElement) return;
+  if (e.target instanceof HTMLInputElement || e.target instanceof HTMLSelectElement
+    || e.target instanceof HTMLTextAreaElement) return;
   if (e.key === 'ArrowLeft') goChapter('prev');
   else if (e.key === 'ArrowRight') goChapter('next');
 });
@@ -1827,11 +3418,57 @@ async function start() {
 }
 
 // ---- 설치·업데이트 ----
-const sw = registerServiceWorker(() => {
-  $('updateText').textContent = S.updateReady;
-  $('updateBtn').textContent = S.updateApply;
+// 위쪽 알림 바에 지금 보이는 것: 'update'(새 버전) | 'blocked'(다른 탭이 DB를 잡고 있음) | 'backup'(오래 백업 안 함).
+// 백업 알림은 가장 낮다: 다른 알림을 덮지 않고, 다른 알림이 오면 비킨다(새로 고침·탭 닫기가 먼저라서)
+let updateBarKind = null;
+
+function showUpdateBar(kind, text) {
+  updateBarKind = kind;
+  $('updateText').textContent = kind === 'blocked' ? S.dbBlocked : kind === 'backup' ? text : S.updateReady;
+  $('updateBtn').textContent = kind === 'backup' ? S.reminderBackup : S.updateApply;
+  $('updateBtn').hidden = kind === 'blocked'; // 막힘은 다른 탭을 닫으면 저절로 풀린다. 누를 것이 없다
+  $('updateLater').textContent = S.reminderLater;
+  $('updateLater').hidden = kind !== 'backup';
   $('updateBar').hidden = false;
+}
+
+function hideUpdateBar() {
+  updateBarKind = null;
+  $('updateBar').hidden = true;
+}
+
+const sw = registerServiceWorker(() => showUpdateBar('update'));
+$('updateBtn').addEventListener('click', () => {
+  if (updateBarKind === 'backup') openBackupBox();
+  else sw.applyUpdate();
 });
-$('updateBtn').addEventListener('click', () => sw.applyUpdate());
+$('updateLater').addEventListener('click', () => {
+  saveBackupState({ snooze: Date.now() + SNOOZE_DAYS * DAY });
+  hideUpdateBar();
+});
+
+/** 오래 백업하지 않았으면 위쪽에 알린다(backupReminder). 앱을 열 때 한 번, 화면을 그린 뒤 조금 있다가 */
+async function checkBackupReminder() {
+  if (updateBarKind) return;
+  try {
+    const due = backupReminder(await allUserData(), { lastBackup: backupState().at, snoozeUntil: backupState().snooze });
+    if (due && !updateBarKind) showUpdateBar('backup', due.never ? S.reminderNever : S.reminderDays(due.days));
+  } catch (e) {
+    console.warn('backup reminder', e); // DB가 막힌 경우 등. 그 알림이 따로 뜬다
+  }
+}
+
+// 개인 데이터 DB를 열다 생긴 일(userStore.onDbNotice). 새 버전 알림이 떠 있으면 그것을 덮지 않는다(새로 고치면 다 풀리므로)
+onDbNotice((kind) => {
+  if (kind === 'newer') showUpdateBar('update');
+  else if (kind === 'blocked' && updateBarKind !== 'update') showUpdateBar('blocked');
+  else if (kind === 'opened' && updateBarKind === 'blocked') {
+    hideUpdateBar();
+    loadHighlights(); // 기다리던 사이 그린 장은 메모·형광펜 없이 그려졌을 수 있다
+    loadMemos();
+    updateReadCheck();
+  }
+});
 
 start();
+setTimeout(checkBackupReminder, 3000);

@@ -2,7 +2,7 @@
 <html lang="ko">
 <head>
   <meta charset="utf-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <meta name="viewport" content="width=device-width, initial-scale=1, interactive-widget=resizes-content">
   <title>Lifove Bible</title>
   <!-- 설치(홈 화면에 추가)용. 위쪽 막대 색(--bar)과 맞춘다 -->
   <meta name="theme-color" content="#f6f6f6" media="(prefers-color-scheme: light)">
@@ -54,10 +54,42 @@
   <!-- 고른 절 동작(앱의 절 꾹 누르기 메뉴: 선택한 절 복사·전송, 선택 해제). 절을 하나라도 고르면 책·장 바 옆에 보인다 -->
   <div id="selBar" hidden>
     <span id="selCount"></span>
+    <button id="selHl"></button>
+    <button id="selHlOff"></button>
+    <button id="selMemo"></button>
     <button id="selCopy"></button>
     <button id="selShare"></button>
     <button id="selClear" class="icon">✕</button>
   </div>
+
+  <!-- 메모 입력판. 앱의 MemoPanel(본문 아래에 붙어 그 절을 보며 쓴다. 저장·닫기·삭제)에 해당.
+       창(dialog)으로 하지 않은 까닭: 본문을 가리지 않고 앞뒤 절을 스크롤해 볼 수 있게(앱이 대화상자를 버린 까닭과 같다) -->
+  <section id="memoPanel" hidden>
+    <div class="memo-head">
+      <!-- 메모책이 둘 이상이면 "참조 · 메모책 ▾"로 보이고 눌러서 바꾼다(앱 MemoPanel.bind). 하나뿐이면 꺼 두어 글자처럼 -->
+      <button id="memoTitle" type="button" class="book-pick" disabled></button>
+      <!-- 입력 방식 아이콘: 저장하면 다음 절로, 엔터를 누르면 저장. 굵으면 켜짐, 눌러서 바로 바꾼다(앱 PANEL_OPTIONS).
+           건너뛰기·장 끝에서 다음 장은 세부 설정이라 메모책 고치기 창에서만(앱과 같다) -->
+      <button id="memoOpt0" type="button" class="memo-opt icon" aria-pressed="false"></button>
+      <button id="memoOpt3" type="button" class="memo-opt icon" aria-pressed="false"></button>
+    </div>
+    <textarea id="memoText" rows="3"></textarea>
+    <div class="memo-btns">
+      <button id="memoDel"></button>
+      <span class="spacer"></span>
+      <button id="memoClose"></button>
+      <button id="memoSave" class="primary"></button>
+    </div>
+  </section>
+  <!-- 바뀐 메모를 저장할지 묻기(앱 MemoPanel.closeOrAsk: 저장 / 저장 안 함 / 취소) -->
+  <dialog id="memoAsk" class="ask">
+    <p id="memoAskText"></p>
+    <div class="ask-btns">
+      <button id="memoAskCancel"></button>
+      <button id="memoAskDiscard"></button>
+      <button id="memoAskSave" class="primary"></button>
+    </div>
+  </dialog>
 
   <!-- 책 → 장 고르기. 앱의 DialogBookSelectionTable, DialogChapterSelectionTable에 해당 -->
   <dialog id="picker">
@@ -94,14 +126,117 @@
   <!-- 메뉴. 앱의 옵션 메뉴에 해당. 위쪽 ☰ 아래에 붙여 보인다 -->
   <dialog id="menu" class="menu">
     <!-- 순서는 앱 메뉴를 따른다(검색, 다른성경보기, 역본대조보기 … 설정의 성경다운로드) -->
+    <button id="menuAddBookmark"></button>
     <button id="menuSearch"></button>
     <button id="menuOneVersion"></button>
     <button id="menuVersions"></button>
+    <button id="menuBookmarks"></button>
+    <button id="menuHighlights"></button>
+    <button id="menuMemoList"></button>
+    <button id="menuMemoToggle" hidden></button>
     <button id="menuStats"></button>
     <button id="menuDownload"></button>
     <button id="menuImport"></button>
+    <button id="menuBackup"></button>
     <button id="menuSettings"></button>
     <button id="menuHelp"></button>
+  </dialog>
+
+  <!-- 책갈피. 앱의 HistoryList(책갈피: 최근 추가순, 누르면 그 절로, 꾹 눌러 삭제)에 해당 -->
+  <dialog id="bmBox">
+    <div class="picker-head">
+      <h2><span id="bmTitle"></span> <span id="bmCount" class="count"></span></h2>
+      <button id="bmClose" class="icon">✕</button>
+    </div>
+    <p id="bmEmpty" class="empty" hidden></p>
+    <ul id="bmList" class="scroll hl-list bm-list"></ul>
+    <div class="picker-foot">
+      <p id="bmNote" class="foot-status" role="status" hidden></p>
+    </div>
+  </dialog>
+
+  <!-- 나의형광펜목록. 앱의 UnderlineList(정렬 바꾸기, 누르면 그 절로, 형광펜 보내기, 전체삭제)에 해당 -->
+  <dialog id="hlBox">
+    <div class="picker-head">
+      <h2><span id="hlTitle"></span> <span id="hlCount" class="count"></span></h2>
+      <button id="hlClose" class="icon">✕</button>
+    </div>
+    <div class="stats-head">
+      <select id="hlOrder"></select>
+    </div>
+    <p id="hlEmpty" class="empty" hidden></p>
+    <ul id="hlList" class="scroll hl-list"></ul>
+    <div class="picker-foot">
+      <!-- 창이 알림(#toast)을 가리므로 결과는 여기에 -->
+      <p id="hlNote" class="foot-status" role="status" hidden></p>
+      <button id="hlDeleteAll"></button>
+      <span class="spacer"></span>
+      <button id="hlSend"></button>
+    </div>
+  </dialog>
+
+  <!-- 나의메모목록. 앱의 MemoList(검색, 정렬 바꾸기, 누르면 그 절로, 메모보내기, 전체삭제)에 해당 -->
+  <dialog id="mlBox">
+    <div class="picker-head">
+      <!-- 메모책이 둘 이상이면 제목 자리에 지금 메모책 이름(▾), 눌러서 바꾼다(앱 MemoList.updateHeader) -->
+      <h2><button id="mlTitle" type="button" class="book-pick" disabled></button> <span id="mlCount" class="count"></span></h2>
+      <button id="mlClose" class="icon">✕</button>
+    </div>
+    <div class="stats-head">
+      <!-- type=search는 브라우저가 Esc로 지우는 등 제멋대로라 text로 두고 지우기 단추를 직접 둔다 -->
+      <span class="ml-search">
+        <input id="mlSearch" type="text" enterkeyhint="search" autocomplete="off">
+        <button id="mlSearchClear" class="icon" hidden>✕</button>
+      </span>
+      <select id="mlOrder"></select>
+    </div>
+    <p id="mlEmpty" class="empty" hidden></p>
+    <ul id="mlList" class="scroll hl-list ml-list"></ul>
+    <div class="picker-foot">
+      <p id="mlNote" class="foot-status" role="status" hidden></p>
+      <button id="mlDeleteAll"></button>
+      <span class="spacer"></span>
+      <button id="mlSend"></button>
+    </div>
+  </dialog>
+
+  <!-- 메모책 고르기. 앱 MemoBookList.pick(하나 고르기 + [메모책 관리]) -->
+  <dialog id="mbPick" class="ask">
+    <h2 id="mbPickTitle" class="ask-title"></h2>
+    <div id="mbPickList" class="mb-pick"></div>
+    <div class="ask-btns">
+      <button id="mbPickManage"></button>
+      <span class="spacer"></span>
+      <button id="mbPickCancel"></button>
+    </div>
+  </dialog>
+
+  <!-- 메모책 관리. 앱 MemoBookList(설정 > 메모 설정 > 메모책): 누르면 고치기, 맨 아래 "+ 메모책 추가".
+       앱은 꾹 눌러 위로·아래로·삭제인데, 웹은 줄마다 단추로(형광펜 목록의 🗑처럼) -->
+  <dialog id="mbBox">
+    <div class="picker-head">
+      <h2 id="mbTitle"></h2>
+      <button id="mbClose" class="icon">✕</button>
+    </div>
+    <ul id="mbList" class="scroll hl-list mb-list"></ul>
+    <div class="picker-foot">
+      <p id="mbNote" class="foot-status" role="status" hidden></p>
+    </div>
+  </dialog>
+
+  <!-- 메모책 추가·고치기. 앱 MemoBookList.showEditDialog(이름과 입력 방식 4가지) -->
+  <dialog id="mbEdit" class="ask">
+    <form id="mbEditForm" method="dialog">
+      <h2 id="mbEditTitle" class="ask-title"></h2>
+      <input id="mbName" type="text" autocomplete="off" enterkeyhint="done" maxlength="100">
+      <div id="mbOpts" class="mb-opts"></div>
+      <div class="ask-btns">
+        <button id="mbEditDel" type="button"></button>
+        <span class="spacer"></span>
+        <button id="mbEditCancel" type="button"></button>
+        <button id="mbEditSave" type="submit" class="primary"></button>
+      </div>
+    </form>
   </dialog>
 
   <!-- 성경읽기통계. 앱의 ReadCheckTable(역본 고르기 + 전체 %, 전체·구약·신약과 66권의 읽은 장·막대)에 해당 -->
@@ -168,6 +303,10 @@
       <label class="setting stack"><span id="navUnitLabel"></span><select id="setNavUnit"></select></label>
       <label class="setting"><input type="checkbox" id="setSwipe">
         <span><span id="setSwipeLabel"></span><small id="setSwipeHint"></small></span></label>
+      <!-- 앱은 설정 > 메모 설정 > 메모책. 웹은 설정 화면이 이것 하나라 여기 묶음으로 -->
+      <h3 id="groupMemo"></h3>
+      <button id="setMemoBooks" type="button" class="setting nav">
+        <span><span id="setMemoBooksLabel"></span><small id="setMemoBooksHint"></small></span></button>
     </div>
   </dialog>
 
@@ -213,6 +352,83 @@
     </div>
   </dialog>
 
+  <!-- 데이터 백업·복구. 앱의 설정 > 데이터 백업 / 데이터 복구에 해당. 파일은 앱과 같은 SQLite(DB 12)라 서로 주고받는다 -->
+  <dialog id="backupBox">
+    <div class="picker-head">
+      <h2 id="backupTitle"></h2>
+      <button id="backupClose" class="icon">✕</button>
+    </div>
+    <div id="backupBody" class="scroll">
+      <h3 id="backupSaveTitle"></h3>
+      <p id="backupSaveHint" class="hint"></p>
+      <p id="backupLast" class="hint backup-last"></p>
+      <div class="import">
+        <button id="backupRun"></button>
+      </div>
+      <!-- 기록 보관 안내: 웹 기록은 이 브라우저에만 있어 사라질 수 있다. 백업은 사용자가 관리한다(사용자와 정함).
+           백업 단추 아래에 둔다: 위에 두면 폰에서 단추가 화면 밖으로 밀려, 알림 바의 [백업]으로 들어온 사람이 찾기 어렵다 -->
+      <div class="backup-notice">
+        <h3 id="backupNoticeTitle"></h3>
+        <p id="backupNotice1"></p>
+        <p id="backupNotice2"></p>
+        <p id="backupNotice3"></p>
+      </div>
+      <h3 id="restoreTitle"></h3>
+      <p id="restoreHint" class="hint"></p>
+      <div class="import">
+        <button id="restoreRun"></button>
+        <!-- accept를 두지 않는다: 앱 7.4.6 이하 백업은 확장자 없는 'lifovebible'이라 .db로 거르면 고를 수 없다 -->
+        <input type="file" id="restoreFile" hidden>
+      </div>
+    </div>
+    <div class="picker-foot">
+      <!-- 창이 알림(#toast)을 가리므로 결과는 여기에 -->
+      <p id="backupNote" class="foot-status" role="status" hidden></p>
+      <span class="spacer"></span>
+      <button id="backupDone"></button>
+    </div>
+  </dialog>
+
+  <!-- 복구 방식 고르기(앱 Settings의 복구 창: 합치기(추천) / 바꾸기 + [복구 실행]) -->
+  <dialog id="restoreAsk" class="ask">
+    <h2 id="restoreAskTitle" class="ask-title"></h2>
+    <p id="restoreAskFile" class="hint"></p>
+    <div class="restore-modes">
+      <label class="restore-mode"><input type="radio" name="restoreMode" value="merge" checked><span id="restoreMerge"></span></label>
+      <label class="restore-mode"><input type="radio" name="restoreMode" value="replace"><span id="restoreReplace"></span></label>
+    </div>
+    <div class="ask-btns">
+      <button id="restoreCancel"></button>
+      <button id="restoreGo" class="primary"></button>
+    </div>
+  </dialog>
+
+  <!-- 복구 결과(앱: 요약을 읽고 [확인]을 누르면 메모 고르기로) -->
+  <dialog id="restoreResult" class="ask">
+    <p id="restoreResultText"></p>
+    <div class="ask-btns">
+      <button id="restoreResultOk" class="primary"></button>
+    </div>
+  </dialog>
+
+  <!-- 메모 고르기(앱 MemoConflictDialogs: [이 폰] [백업] [둘 다], 남은 것에도 같게). 글 부분만 스크롤 -->
+  <dialog id="conflictBox" class="ask">
+    <h2 id="conflictTitle" class="ask-title"></h2>
+    <div class="conflict-body">
+      <p id="conflictRef" class="conflict-ref"></p>
+      <h3 id="conflictLocalHead"></h3>
+      <p id="conflictLocal" class="conflict-text"></p>
+      <h3 id="conflictBackupHead"></h3>
+      <p id="conflictBackup" class="conflict-text"></p>
+    </div>
+    <label id="conflictRestRow" class="check"><input type="checkbox" id="conflictRest"><span id="conflictRestText"></span></label>
+    <div class="conflict-btns">
+      <button id="conflictPickLocal"></button>
+      <button id="conflictPickBackup"></button>
+      <button id="conflictPickBoth"></button>
+    </div>
+  </dialog>
+
   <!-- 검색. 앱의 SearchView에 해당(검색어 A·B, 범위). 창을 닫아도 지난 결과는 남는다 -->
   <dialog id="searchBox">
     <div class="picker-head">
@@ -243,6 +459,7 @@
   <!-- 새 버전을 받아 두었을 때 아래에 보인다(js/pwa.js) -->
   <div id="updateBar" role="status" hidden>
     <span id="updateText"></span>
+    <button id="updateLater" hidden></button>
     <button id="updateBtn"></button>
   </div>
 

@@ -9,11 +9,16 @@
 //   (바꾸지 않으면 브라우저가 새 버전을 알아채지 못한다. tests/sw.test.js가 잊은 것을 잡는다)
 // - 모듈 서비스 워커는 파이어폭스 지원이 늦어서 보통 스크립트로 둔다
 
-const VERSION = '267f126a7f72';
+const VERSION = 'e7a1671b1507';
 const CACHE = 'lifove-app-' + VERSION;
 const CACHE_PREFIX = 'lifove-app-'; // 이 이름으로 시작하는 옛 캐시만 지운다(lfa-v1은 남긴다)
+// vendor/ 아래 라이브러리(sql.js wasm 650KB)는 버전마다 다시 받지 않게 따로 둔다.
+// 폴더 이름에 판 번호가 있어(vendor/sqljs-1.14.2/) 같은 경로면 내용이 같다. 앱 파일 전체(약 420KB)보다 커서
+// 앱 캐시에 넣으면 업데이트마다 두 배 넘게 받게 된다
+const VENDOR_CACHE = 'lifove-vendor';
+const isVendor = (f) => f.startsWith('vendor/');
 
-// 이 서비스 워커 위치 기준 경로. 고르는 규칙: index.html, manifest, css/·js/·icons/ 아래 모든 파일
+// 이 서비스 워커 위치 기준 경로. 고르는 규칙: index.html, manifest, css/·help/·icons/·js/ 아래 파일, vendor/ 아래 모든 파일
 const APP_FILES = [
   'css/app.css',
   'help/en.html',
@@ -27,19 +32,27 @@ const APP_FILES = [
   'icons/touch.svg',
   'index.html',
   'js/app.js',
+  'js/appBackup.js',
+  'js/backupReminder.js',
   'js/biblelist.js',
+  'js/bookmark.js',
   'js/books.js',
   'js/chapterLines.js',
   'js/compare.js',
+  'js/highlight.js',
   'js/lfa.js',
   'js/lfaStore.js',
   'js/localBible.js',
   'js/localStore.js',
+  'js/memo.js',
+  'js/memoBook.js',
+  'js/mergeRules.js',
   'js/navBar.js',
   'js/platform.js',
   'js/pwa.js',
   'js/readCheck.js',
   'js/search.js',
+  'js/sqlite.js',
   'js/strings.js',
   'js/swipe.js',
   'js/userStore.js',
@@ -47,6 +60,9 @@ const APP_FILES = [
   'js/viewColors.js',
   'js/zip.js',
   'manifest.webmanifest',
+  'vendor/sqljs-1.14.2/LICENSE',
+  'vendor/sqljs-1.14.2/sql-wasm.js',
+  'vendor/sqljs-1.14.2/sql-wasm.wasm',
 ];
 
 // 개발 중(localhost)에는 서버에서 먼저 받는다. 캐시 먼저면 파일을 고쳐도 새로 고침에 안 보여서 헷갈린다.
@@ -58,7 +74,12 @@ self.addEventListener('install', (event) => {
     const cache = await caches.open(CACHE);
     // cache: 'reload'로 브라우저 HTTP 캐시를 건너뛴다. GitHub Pages는 파일을 10분쯤 캐시하게 해서,
     // 그냥 받으면 새 sw.js와 옛 app.js가 한 캐시에 섞일 수 있다
-    await cache.addAll(APP_FILES.map((f) => new Request(f, { cache: 'reload' })));
+    await cache.addAll(APP_FILES.filter((f) => !isVendor(f)).map((f) => new Request(f, { cache: 'reload' })));
+    // vendor는 이미 받아 둔 것은 건너뛴다
+    const vendor = await caches.open(VENDOR_CACHE);
+    const missing = [];
+    for (const f of APP_FILES.filter(isVendor)) if (!(await vendor.match(f))) missing.push(f);
+    await vendor.addAll(missing.map((f) => new Request(f, { cache: 'reload' })));
   })());
 });
 
@@ -66,6 +87,12 @@ self.addEventListener('activate', (event) => {
   event.waitUntil((async () => {
     for (const name of await caches.keys()) {
       if (name.startsWith(CACHE_PREFIX) && name !== CACHE) await caches.delete(name);
+    }
+    // 판을 바꿔 목록에서 빠진 vendor 파일 지우기
+    const vendor = await caches.open(VENDOR_CACHE);
+    for (const req of await vendor.keys()) {
+      const f = new URL(req.url).pathname.slice(new URL(self.registration.scope).pathname.length);
+      if (!APP_FILES.includes(f)) await vendor.delete(req);
     }
     // 처음 설치할 때 지금 열린 화면도 바로 맡아서, 새로 고침 없이도 오프라인이 되게 한다
     await self.clients.claim();
@@ -90,8 +117,8 @@ self.addEventListener('fetch', (event) => {
 });
 
 async function serve(key, req) {
-  const cache = await caches.open(CACHE);
-  if (DEV) {
+  const cache = await caches.open(isVendor(key) ? VENDOR_CACHE : CACHE);
+  if (DEV && !isVendor(key)) {
     try {
       const res = await fetch(req);
       if (res.ok) await cache.put(key, res.clone());
