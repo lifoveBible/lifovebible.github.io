@@ -1,12 +1,12 @@
 <!doctype html>
-<html lang="ko" data-lang="ko">
+<html lang="ko">
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
 <title>Lifove Bible</title>
 <meta name="description" content="광고 없는 무료 성경 앱 Lifove Bible. 안드로이드는 Google Play에서, 아이폰·아이패드·맥·PC는 브라우저에서 바로 열고 설치하세요. 70여 개 역본과 주석, 인터넷 없이 읽기.">
-<meta property="og:title" content="Lifove Bible — 성경을, 쓰는 모든 기기에서">
-<meta property="og:description" content="광고 없는 무료 성경 앱. 안드로이드 앱과 아이폰·맥·PC에서 설치하는 웹 앱.">
+<meta property="og:title" content="Lifove Bible">
+<meta property="og:description" content="Free, ad-free Bible app for Android, iPhone, iPad, Mac and PC. 광고 없는 무료 성경 앱.">
 <meta property="og:image" content="https://lifovebible.github.io/web/icons/icon-512.png">
 <meta property="og:url" content="https://lifovebible.github.io/">
 <meta name="theme-color" content="#fff8f0" media="(prefers-color-scheme: light)">
@@ -52,15 +52,16 @@ html { scroll-behavior: smooth; -webkit-text-size-adjust: 100%; }
 body {
   margin: 0; background: var(--bg); color: var(--ink);
   font: 16px/1.65 -apple-system, BlinkMacSystemFont, "Segoe UI", "Apple SD Gothic Neo", "Malgun Gothic", "Noto Sans KR", Roboto, sans-serif;
-  word-break: keep-all; overflow-wrap: break-word;
+  overflow-wrap: break-word;
 }
+/* keep-all is for Korean only; Japanese and Chinese break between characters */
+:lang(ko) { word-break: keep-all; }
+html:lang(ja) body { font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", "Hiragino Sans", "Hiragino Kaku Gothic ProN", "Yu Gothic UI", Meiryo, "Noto Sans JP", Roboto, sans-serif; line-break: strict; }
+html:lang(zh-Hant) body { font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", "PingFang TC", "Microsoft JhengHei", "Noto Sans TC", Roboto, sans-serif; }
+html:lang(zh-Hans) body { font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", "PingFang SC", "Microsoft YaHei", "Noto Sans SC", Roboto, sans-serif; }
 a { color: inherit; }
 img { display: block; }
 .wrap { max-width: 1080px; margin: 0 auto; padding: 0 20px; }
-
-/* language switch: content exists in both languages, CSS shows one */
-html[data-lang="ko"] [lang="en"]:not(html) { display: none !important; }
-html[data-lang="en"] [lang="ko"]:not(html) { display: none !important; }
 
 /* header */
 header.top {
@@ -70,19 +71,20 @@ header.top {
   border-bottom: 1px solid var(--line);
 }
 header.top .wrap { display: flex; align-items: center; gap: 16px; height: 60px; }
-.brand { display: flex; align-items: center; gap: 10px; font-weight: 700; text-decoration: none; font-size: 17px; }
+.brand { display: flex; align-items: center; gap: 10px; font-weight: 700; text-decoration: none; font-size: 17px; white-space: nowrap; }
 .brand img { width: 32px; height: 32px; }
 nav.links { display: flex; gap: 20px; margin-left: auto; font-size: 15px; }
-nav.links a { text-decoration: none; color: var(--ink-2); }
+nav.links a { text-decoration: none; color: var(--ink-2); white-space: nowrap; }
 nav.links a:hover { color: var(--ink); }
-.lang {
-  display: flex; border: 1px solid var(--line); border-radius: 999px; overflow: hidden; flex-shrink: 0;
+.lang { position: relative; flex-shrink: 0; display: flex; align-items: center; }
+.lang svg { position: absolute; left: 10px; width: 16px; height: 16px; color: var(--ink-2); pointer-events: none; }
+.lang select {
+  appearance: none; -webkit-appearance: none; font: inherit; font-size: 14px; color: var(--ink);
+  background: var(--bg-2); border: 1px solid var(--line); border-radius: 999px; padding: 5px 28px 5px 32px; cursor: pointer;
+  background-image: linear-gradient(45deg, transparent 50%, var(--ink-2) 50%), linear-gradient(135deg, var(--ink-2) 50%, transparent 50%);
+  background-position: right 14px center, right 9px center; background-size: 5px 5px; background-repeat: no-repeat;
 }
-.lang button {
-  border: 0; background: none; color: var(--ink-2); font: inherit; font-size: 13px; padding: 4px 10px; cursor: pointer;
-}
-.lang button[aria-pressed="true"] { background: var(--ink); color: var(--bg); }
-@media (max-width: 760px) { nav.links { display: none; } .lang { margin-left: auto; } }
+@media (max-width: 860px) { nav.links { display: none; } .lang { margin-left: auto; } }
 
 /* buttons */
 .btn {
@@ -121,8 +123,8 @@ h1 em { font-style: normal; color: var(--red); }
   background: var(--bg-2); border: 8px solid #1f1a17; border-radius: 30px; overflow: hidden; box-shadow: var(--shadow);
 }
 .mock { font-size: 11px; line-height: 1.5; height: 100%; display: flex; flex-direction: column; }
-.mock .bar { display: flex; align-items: center; gap: 6px; padding: 6px 10px; border-bottom: 1px solid var(--line); font-weight: 600; background: var(--bg-3); }
-.mock .bar .ver { margin-left: auto; font-weight: 500; color: var(--orange); }
+.mock .bar { display: flex; align-items: center; gap: 6px; padding: 6px 10px; border-bottom: 1px solid var(--line); font-weight: 600; background: var(--bg-3); white-space: nowrap; }
+.mock .bar .ver { margin-left: auto; font-weight: 500; color: var(--orange); overflow: hidden; text-overflow: ellipsis; }
 .mock .body { padding: 8px 10px; overflow: hidden; flex: 1; }
 .mock .v { display: grid; grid-template-columns: 16px 1fr; gap: 4px; margin-bottom: 6px; }
 .mock .n { color: var(--ink-2); font-size: .9em; }
@@ -144,6 +146,7 @@ h2 { font-size: clamp(26px, 3.6vw, 36px); line-height: 1.25; margin: 0 0 12px; l
 }
 section.alt .card { background: var(--bg); }
 .card h3 { margin: 0; font-size: 22px; }
+.card h3 small { font-weight: 500; color: var(--orange); font-size: 14px; }
 .card .tag { font-size: 14px; color: var(--ink-2); margin: 4px 0 16px; }
 .card ul { margin: 0 0 20px; padding: 0; list-style: none; }
 .card li { padding: 6px 0 6px 28px; position: relative; }
@@ -159,6 +162,8 @@ section.alt .card { background: var(--bg); }
   display: flex; gap: 14px; align-items: flex-start; font-size: 15px;
 }
 .shared svg { width: 22px; height: 22px; flex-shrink: 0; color: var(--orange); margin-top: 2px; }
+.shared p { margin: 0; }
+.shared p + p { margin-top: 8px; }
 
 /* compare table */
 .table-wrap { overflow-x: auto; border: 1px solid var(--line); border-radius: var(--radius); background: var(--bg-2); }
@@ -188,6 +193,7 @@ section.alt .step-card { background: var(--bg); }
 .step-card ol { margin: 0; padding-left: 20px; }
 .step-card li { margin: 4px 0; }
 .step-card .note { font-size: 14px; color: var(--ink-2); margin: 10px 0 0; }
+.step-card > p.plain { margin: 0 0 12px; }
 kbd { font: inherit; font-size: .9em; background: var(--bg-3); border: 1px solid var(--line); border-radius: 6px; padding: 0 6px; white-space: nowrap; }
 .tip { margin-top: 20px; padding: 16px 20px; border-left: 4px solid var(--orange); background: var(--cream); border-radius: 0 12px 12px 0; font-size: 15px; }
 .why { display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: 16px; margin: 0 0 32px; padding: 0; list-style: none; }
@@ -209,6 +215,8 @@ h3.small { font-size: 16px; margin: 0 0 10px; color: var(--ink-2); font-weight: 
 /* roadmap */
 .road { list-style: none; padding: 0; margin: 0; display: grid; gap: 16px; }
 .road li { display: grid; grid-template-columns: 140px 1fr; gap: 20px; padding: 20px 24px; background: var(--bg-2); border: 1px solid var(--line); border-radius: var(--radius); }
+section.alt .road li { background: var(--bg); }
+.road li.done { border-color: var(--orange); }
 .road .when { font-weight: 700; color: var(--orange); }
 .road .when small { display: block; font-weight: 500; color: var(--ink-2); font-size: 13px; }
 .road h4 { margin: 0 0 6px; font-size: 17px; }
@@ -239,20 +247,33 @@ footer .flinks { display: flex; flex-wrap: wrap; gap: 8px 20px; margin-left: aut
 </style>
 </head>
 <body>
+<!--
+  Languages: the Korean text below is the default. Every element with data-i18n gets its
+  innerHTML from the dictionary T at the bottom (en, ja, zh = Traditional, zh-CN = Simplified, es, pt).
+  When you change a text, change it in all seven languages. The same seven as the web app (web/js/strings.js).
+-->
 
 <header class="top">
   <div class="wrap">
     <a class="brand" href="#"><img src="web/icons/icon.svg" alt="" width="32" height="32">Lifove Bible</a>
     <nav class="links">
-      <a href="#apps"><span lang="ko">앱 소개</span><span lang="en">Apps</span></a>
-      <a href="#install"><span lang="ko">설치하기</span><span lang="en">Install</span></a>
-      <a href="#bibles"><span lang="ko">역본</span><span lang="en">Bibles</span></a>
-      <a href="#roadmap"><span lang="ko">소식</span><span lang="en">What's next</span></a>
+      <a href="#apps" data-i18n="nav.apps">앱 소개</a>
+      <a href="#install" data-i18n="nav.install">설치하기</a>
+      <a href="#bibles" data-i18n="nav.bibles">역본</a>
+      <a href="#roadmap" data-i18n="nav.news">소식</a>
     </nav>
-    <div class="lang" role="group" aria-label="Language">
-      <button type="button" data-set-lang="ko" aria-pressed="true">한국어</button>
-      <button type="button" data-set-lang="en" aria-pressed="false">EN</button>
-    </div>
+    <label class="lang">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><circle cx="12" cy="12" r="9"/><path d="M3 12h18M12 3a14 14 0 0 1 0 18M12 3a14 14 0 0 0 0 18"/></svg>
+      <select id="langSelect" aria-label="Language">
+        <option value="ko">한국어</option>
+        <option value="en">English</option>
+        <option value="ja">日本語</option>
+        <option value="zh">繁體中文</option>
+        <option value="zh-CN">简体中文</option>
+        <option value="es">Español</option>
+        <option value="pt">Português</option>
+      </select>
+    </label>
   </div>
 </header>
 
@@ -261,19 +282,17 @@ footer .flinks { display: flex; flex-wrap: wrap; gap: 8px 20px; margin-left: aut
 <section class="hero">
   <div class="wrap">
     <div>
-      <span class="eyebrow"><span lang="ko">이제 아이폰 · 맥 · PC에서도</span><span lang="en">Now on iPhone, Mac and PC too</span></span>
-      <h1 lang="ko">성경을, 쓰는<br><em>모든 기기</em>에서.</h1>
-      <h1 lang="en">The Bible, on <em>every device</em> you use.</h1>
-      <p class="lead" lang="ko">Lifove Bible은 광고 없는 무료 성경 앱입니다. 안드로이드는 Google Play에서 받고, 아이폰·아이패드·맥·PC·크롬북은 브라우저로 열어 홈 화면이나 바탕화면에 설치하세요. 받아 둔 역본은 인터넷 없이도 읽을 수 있습니다.</p>
-      <p class="lead" lang="en">Lifove Bible is a free Bible reader with no ads. Get the Android app on Google Play, or open the web app in any browser on iPhone, iPad, Mac, PC or Chromebook and install it to your home screen or desktop. Downloaded Bibles work offline.</p>
+      <span class="eyebrow" data-i18n="hero.eyebrow">이제 아이폰 · 맥 · PC에서도</span>
+      <h1 data-i18n="hero.title">성경을, 쓰는<br><em>모든 기기</em>에서.</h1>
+      <p class="lead" data-i18n="hero.lead">Lifove Bible은 광고 없는 무료 성경 앱입니다. 안드로이드는 Google Play에서 받고, 아이폰·아이패드·맥·PC·크롬북은 브라우저로 열어 홈 화면이나 바탕화면에 설치하세요. 받아 둔 역본은 인터넷 없이도 읽을 수 있습니다.</p>
       <div class="cta">
         <a class="btn primary" href="web/">
           <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><circle cx="12" cy="12" r="9"/><path d="M3 12h18M12 3a14 14 0 0 1 0 18M12 3a14 14 0 0 0 0 18"/></svg>
-          <span lang="ko">웹 앱 바로 열기</span><span lang="en">Open the web app</span>
+          <span data-i18n="cta.openWeb">웹 앱 바로 열기</span>
         </a>
         <a class="btn ghost" href="https://play.google.com/store/apps/details?id=net.lifove.android.lifovebible" rel="noopener">
           <svg viewBox="0 0 24 24" fill="currentColor" aria-hidden="true"><path d="M4 2.8v18.4c0 .4.4.6.7.4l15.6-9.2c.3-.2.3-.6 0-.8L4.7 2.4c-.3-.2-.7 0-.7.4z"/></svg>
-          <span lang="ko">Google Play에서 받기</span><span lang="en">Get it on Google Play</span>
+          <span data-i18n="cta.play">Google Play에서 받기</span>
         </a>
       </div>
       <ul class="devices" aria-label="Supported devices">
@@ -284,32 +303,26 @@ footer .flinks { display: flex; flex-wrap: wrap; gap: 8px 20px; margin-left: aut
     <div class="stage" aria-hidden="true">
       <div class="laptop">
         <div class="screen">
-          <div class="mock wide">
-            <div class="bar">‹ <span lang="ko">요한복음 1</span><span lang="en">John 1</span> › <span class="ver">개역한글 + KJV</span></div>
+          <div class="mock wide" data-i18n="mock.laptop">
+            <div class="bar">‹ 요한복음 1 › <span class="ver">개역한글 + KJV</span></div>
             <div class="body">
               <div class="v"><span class="n">1</span><div class="cols"><div><span class="vn">개역한글</span>태초에 말씀이 계시니라 이 말씀이 하나님과 함께 계셨으니 이 말씀은 곧 하나님이시니라</div><div><span class="vn">KJV</span>In the beginning was the Word, and the Word was with God, and the Word was God.</div></div></div>
               <div class="v"><span class="n">2</span><div class="cols"><div><span class="vn">개역한글</span>그가 태초에 하나님과 함께 계셨고</div><div><span class="vn">KJV</span>The same was in the beginning with God.</div></div></div>
-              <div class="v"><span class="n">3</span><div class="cols"><div><span class="vn">개역한글</span>만물이 그로 말미암아 지은 바 되었으니 지은 것이 하나도 그가 없이는 된 것이 없느니라</div><div><span class="vn">KJV</span>All things were made by him; and without him was not any thing made that was made.</div></div></div>
+              <div class="v"><span class="n">3</span><div class="cols"><div><span class="vn">개역한글</span>만물이 그로 말미암아 지은바 되었으니 지은 것이 하나도 그가 없이는 된 것이 없느니라</div><div><span class="vn">KJV</span>All things were made by him; and without him was not any thing made that was made.</div></div></div>
             </div>
           </div>
         </div>
         <div class="base"></div>
       </div>
       <div class="phone">
-        <div class="mock">
-          <div class="bar">‹ <span lang="ko">창세기 1</span><span lang="en">Genesis 1</span> › <span class="ver" lang="ko">개역한글</span><span class="ver" lang="en">KJV</span></div>
-          <div class="body" lang="ko">
+        <div class="mock" data-i18n="mock.phone">
+          <div class="bar">‹ 창세기 1 › <span class="ver">개역한글</span></div>
+          <div class="body">
             <div class="v"><span class="n">1</span><span>태초에 하나님이 천지를 창조하시니라</span></div>
             <div class="v"><span class="n">2</span><span>땅이 혼돈하고 공허하며 흑암이 깊음 위에 있고 하나님의 신은 수면에 운행하시니라</span></div>
             <div class="v"><span class="n">3</span><span>하나님이 가라사대 빛이 있으라 하시매 빛이 있었고</span></div>
             <div class="v"><span class="n">4</span><span>그 빛이 하나님의 보시기에 좋았더라 하나님이 빛과 어두움을 나누사</span></div>
-            <div class="v"><span class="n">5</span><span>하나님이 빛을 낮이라 칭하시고 어두움을 밤이라 칭하시니라</span></div>
-          </div>
-          <div class="body" lang="en">
-            <div class="v"><span class="n">1</span><span>In the beginning God created the heaven and the earth.</span></div>
-            <div class="v"><span class="n">2</span><span>And the earth was without form, and void; and darkness was upon the face of the deep.</span></div>
-            <div class="v"><span class="n">3</span><span>And God said, Let there be light: and there was light.</span></div>
-            <div class="v"><span class="n">4</span><span>And God saw the light, that it was good.</span></div>
+            <div class="v"><span class="n">5</span><span>빛을 낮이라 칭하시고 어두움을 밤이라 칭하시니라</span></div>
           </div>
         </div>
       </div>
@@ -320,18 +333,15 @@ footer .flinks { display: flex; flex-wrap: wrap; gap: 8px 20px; margin-left: aut
 <!-- Two apps -->
 <section id="apps" class="alt">
   <div class="wrap">
-    <h2 lang="ko">하나의 성경, 두 가지 앱</h2>
-    <h2 lang="en">One Bible, two apps</h2>
-    <p class="sub" lang="ko">쓰는 기기에 맞는 앱을 고르세요. 둘 다 무료이고 광고가 없으며, 같은 성경 데이터를 씁니다.</p>
-    <p class="sub" lang="en">Pick the one that fits your device. Both are free, ad-free, and read the same Bible data.</p>
+    <h2 data-i18n="apps.title">하나의 성경, 두 가지 앱</h2>
+    <p class="sub" data-i18n="apps.sub">쓰는 기기에 맞는 앱을 고르세요. 둘 다 무료이고 광고가 없으며, 같은 성경 데이터와 같은 백업 파일을 씁니다.</p>
 
     <div class="apps">
       <article class="card">
         <div class="icon"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><rect x="6" y="2" width="12" height="20" rx="2.5"/><path d="M11 18h2"/></svg></div>
-        <h3 lang="ko">안드로이드 앱</h3><h3 lang="en">Android app</h3>
-        <p class="tag" lang="ko">기능이 가장 많은 원래 앱 · Android 5.0 이상</p>
-        <p class="tag" lang="en">The original, full-featured app · Android 5.0+</p>
-        <ul lang="ko">
+        <h3 data-i18n="android.name">안드로이드 앱</h3>
+        <p class="tag" data-i18n="android.tag">기능이 가장 많은 원래 앱 · Android 5.0 이상</p>
+        <ul data-i18n="android.list">
           <li>메모와 메모책: 필사·번역·설교 노트를 책처럼 따로 기록</li>
           <li>형광펜, 책갈피, 최근목록, 성경읽기통계</li>
           <li>음성 낭독(TTS)과 mp3 오디오 재생, 자동 스크롤</li>
@@ -339,49 +349,33 @@ footer .flinks { display: flex; flex-wrap: wrap; gap: 8px 20px; margin-left: aut
           <li>데이터 백업과 합쳐서 복구, 예전 데이터 폴더 가져오기</li>
           <li>전자책(e-ink) 기기 지원, 볼륨키로 넘기기</li>
         </ul>
-        <ul lang="en">
-          <li>Notes and notebooks: keep copying, translation or sermon notes in separate books</li>
-          <li>Highlights, bookmarks, recent history, reading statistics</li>
-          <li>Text-to-speech, mp3 audio playback, auto scroll</li>
-          <li>Verse-of-the-day home screen widget</li>
-          <li>Backup and merge-restore, import from old data folders</li>
-          <li>Works on e-ink readers, page with volume keys</li>
-        </ul>
-        <a class="btn ghost" href="https://play.google.com/store/apps/details?id=net.lifove.android.lifovebible" rel="noopener"><span lang="ko">Google Play에서 받기</span><span lang="en">Get it on Google Play</span> →</a>
+        <a class="btn ghost" href="https://play.google.com/store/apps/details?id=net.lifove.android.lifovebible" rel="noopener"><span data-i18n="cta.play">Google Play에서 받기</span> →</a>
       </article>
 
       <article class="card">
         <div class="icon"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><rect x="3" y="4" width="18" height="12" rx="2"/><path d="M8 20h8M12 16v4"/></svg></div>
-        <h3 lang="ko">웹 앱 <small style="font-weight:500;color:var(--orange);font-size:14px">NEW</small></h3>
-        <h3 lang="en">Web app <small style="font-weight:500;color:var(--orange);font-size:14px">NEW</small></h3>
-        <p class="tag" lang="ko">브라우저가 있는 모든 기기 · 설치하면 앱처럼</p>
-        <p class="tag" lang="en">Any device with a browser · install it like an app</p>
-        <ul lang="ko">
-          <li>아이폰·아이패드·맥·윈도우 PC·크롬북에서 바로 열기</li>
-          <li>홈 화면·바탕화면에 설치, 인터넷 없이 읽기</li>
+        <h3><span data-i18n="web.name">웹 앱</span> <small>NEW</small></h3>
+        <p class="tag" data-i18n="web.tag">브라우저가 있는 모든 기기 · 설치하면 앱처럼</p>
+        <ul data-i18n="web.list">
+          <li>아이폰·아이패드·맥·윈도우 PC·크롬북에서 바로 열고, 설치하면 인터넷 없이 읽기</li>
+          <li>메모와 메모책: 저장하면 다음 절로 넘어가는 필사 입력</li>
+          <li>형광펜, 책갈피, 읽음 표시와 성경읽기통계</li>
+          <li>안드로이드 앱과 같은 백업 파일로 백업하고 합쳐서 복구</li>
           <li>역본대조: 여러 역본을 화면 너비에 맞춰 여러 단으로</li>
           <li>검색: 검색어 두 개, 전체·구약·신약·주제별·책 범위</li>
           <li>가지고 있는 성경 파일(.lfa, .bdf)을 끌어다 넣기</li>
-          <li>글자색·배경색, 바와 이동 버튼 위치, 밀어서 장 넘기기</li>
-          <li>장마다 읽음 표시, 역본별 성경읽기통계</li>
+          <li>화면과 도움말 7개 언어, 글자·배경색, 밀어서 장 넘기기</li>
         </ul>
-        <ul lang="en">
-          <li>Opens instantly on iPhone, iPad, Mac, Windows PC, Chromebook</li>
-          <li>Install to home screen or desktop, read offline</li>
-          <li>Parallel view: several versions in responsive columns</li>
-          <li>Search with two terms, by whole Bible, OT, NT, topic or book</li>
-          <li>Drag and drop your own Bible files (.lfa, .bdf)</li>
-          <li>Text and background colors, bar and button placement, swipe to turn chapters</li>
-          <li>Mark chapters as read, reading statistics for each version</li>
-        </ul>
-        <a class="btn primary" href="web/"><span lang="ko">웹 앱 열기</span><span lang="en">Open the web app</span> →</a>
+        <a class="btn primary" href="web/"><span data-i18n="cta.openWebShort">웹 앱 열기</span> →</a>
       </article>
     </div>
 
     <div class="shared">
       <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M4 19.5A2.5 2.5 0 0 1 6.5 17H20V3H6.5A2.5 2.5 0 0 0 4 5.5z"/><path d="M4 19.5V21h16"/></svg>
-      <p style="margin:0" lang="ko">두 앱은 같은 서버에서 같은 성경 파일을 받습니다. 안드로이드 앱에서 내보낸 성경 폴더(<code>다운로드/LifoveBible/bible</code>)를 웹 앱에 그대로 넣어 쓸 수도 있습니다.</p>
-      <p style="margin:0" lang="en">Both apps download the same Bible files from the same server. You can also drop the Bible folder exported by the Android app (<code>Download/LifoveBible/bible</code>) straight into the web app.</p>
+      <div>
+        <p data-i18n="shared.backup"><b>폰에서 쓰던 기록을 PC에서 이어서.</b> 두 앱은 백업 파일이 같습니다. 안드로이드 앱의 백업을 웹 앱의 데이터 백업·복구에서 열면 메모·형광펜·책갈피·읽음 기록이 지금 기록과 합쳐집니다. 웹 앱의 백업은 안드로이드 앱 7.6.0부터 설정 &gt; 데이터 복구로 열 수 있습니다.</p>
+        <p data-i18n="shared.files">두 앱은 같은 서버에서 같은 성경 파일을 받습니다. 안드로이드 앱에서 내보낸 성경 폴더(<code>다운로드/LifoveBible/bible</code>)를 웹 앱에 그대로 넣어 쓸 수도 있습니다.</p>
+      </div>
     </div>
   </div>
 </section>
@@ -389,173 +383,138 @@ footer .flinks { display: flex; flex-wrap: wrap; gap: 8px 20px; margin-left: aut
 <!-- Feature table -->
 <section id="compare">
   <div class="wrap">
-    <h2 lang="ko">무엇이 되나요?</h2>
-    <h2 lang="en">What each app can do</h2>
-    <p class="sub" lang="ko">웹 앱은 읽기부터 시작해 기능을 차례로 넣고 있습니다.</p>
-    <p class="sub" lang="en">The web app started with reading and is adding features step by step.</p>
+    <h2 data-i18n="cmp.title">무엇이 되나요?</h2>
+    <p class="sub" data-i18n="cmp.sub">웹 앱도 이제 메모·형광펜·백업까지 됩니다. 소리로 듣기와 위젯은 안드로이드 앱에만 있습니다.</p>
     <div class="table-wrap">
       <table>
         <thead>
-          <tr><th><span lang="ko">기능</span><span lang="en">Feature</span></th><th class="c"><span lang="ko">안드로이드 앱</span><span lang="en">Android</span></th><th class="c"><span lang="ko">웹 앱</span><span lang="en">Web</span></th></tr>
+          <tr><th data-i18n="cmp.feature">기능</th><th class="c" data-i18n="cmp.android">안드로이드 앱</th><th class="c" data-i18n="cmp.web">웹 앱</th></tr>
         </thead>
         <tbody>
-          <tr><td><span lang="ko">역본 받기 · 인터넷 없이 읽기</span><span lang="en">Download versions · read offline</span></td><td class="c yes">✓</td><td class="c yes">✓</td></tr>
-          <tr><td><span lang="ko">역본대조 · 주석 함께 보기</span><span lang="en">Parallel versions · commentaries</span></td><td class="c yes">✓</td><td class="c yes">✓</td></tr>
-          <tr><td><span lang="ko">검색</span><span lang="en">Search</span></td><td class="c yes">✓</td><td class="c yes">✓</td></tr>
-          <tr><td><span lang="ko">성경 파일(.lfa, .bdf) 넣기</span><span lang="en">Add Bible files (.lfa, .bdf)</span></td><td class="c yes">✓</td><td class="c yes">✓</td></tr>
-          <tr><td><span lang="ko">글자·배경색, 밀어서 장 넘기기</span><span lang="en">Colors, swipe to turn chapters</span></td><td class="c yes">✓</td><td class="c yes">✓</td></tr>
-          <tr><td><span lang="ko">메모 · 메모책</span><span lang="en">Notes · notebooks</span></td><td class="c yes">✓</td><td class="c soon"><span lang="ko">준비 중</span><span lang="en">Coming</span></td></tr>
-          <tr><td><span lang="ko">형광펜 · 책갈피</span><span lang="en">Highlights · bookmarks</span></td><td class="c yes">✓</td><td class="c soon"><span lang="ko">준비 중</span><span lang="en">Coming</span></td></tr>
-          <tr><td><span lang="ko">읽음 기록 · 성경읽기통계</span><span lang="en">Reading history · statistics</span></td><td class="c yes">✓</td><td class="c yes">✓</td></tr>
-          <tr><td><span lang="ko">백업 · 복구(앱 백업 파일 주고받기)</span><span lang="en">Backup · restore (exchange app backups)</span></td><td class="c yes">✓</td><td class="c soon"><span lang="ko">준비 중</span><span lang="en">Coming</span></td></tr>
-          <tr><td><span lang="ko">음성 낭독 · mp3 재생 · 자동 스크롤</span><span lang="en">Text-to-speech · mp3 · auto scroll</span></td><td class="c yes">✓</td><td class="c no">—</td></tr>
-          <tr><td><span lang="ko">홈 화면 위젯</span><span lang="en">Home screen widget</span></td><td class="c yes">✓</td><td class="c no">—</td></tr>
+          <tr><td data-i18n="row.download">역본 받기 · 인터넷 없이 읽기</td><td class="c yes">✓</td><td class="c yes">✓</td></tr>
+          <tr><td data-i18n="row.parallel">역본대조 · 주석 함께 보기</td><td class="c yes">✓</td><td class="c yes">✓</td></tr>
+          <tr><td data-i18n="row.search">검색</td><td class="c yes">✓</td><td class="c yes">✓</td></tr>
+          <tr><td data-i18n="row.files">성경 파일(.lfa, .bdf) 넣기</td><td class="c yes">✓</td><td class="c yes">✓</td></tr>
+          <tr><td data-i18n="row.view">글자·배경색, 밀어서 장 넘기기</td><td class="c yes">✓</td><td class="c yes">✓</td></tr>
+          <tr><td data-i18n="row.memo">메모 · 메모책 · 나의메모목록</td><td class="c yes">✓</td><td class="c yes">✓</td></tr>
+          <tr><td data-i18n="row.highlight">형광펜 · 나의형광펜목록 · 책갈피</td><td class="c yes">✓</td><td class="c yes">✓</td></tr>
+          <tr><td data-i18n="row.read">읽음 표시 · 성경읽기통계</td><td class="c yes">✓</td><td class="c yes">✓</td></tr>
+          <tr><td data-i18n="row.copy">절 복사 · 공유</td><td class="c yes">✓</td><td class="c yes">✓</td></tr>
+          <tr><td data-i18n="row.backup">백업 · 합쳐서 복구(서로 백업 파일 주고받기)</td><td class="c yes">✓</td><td class="c yes">✓</td></tr>
+          <tr><td data-i18n="row.lang">화면 언어 7개</td><td class="c yes">✓</td><td class="c yes">✓</td></tr>
+          <tr><td data-i18n="row.style">형광펜 색·모양 고르기</td><td class="c yes">✓</td><td class="c soon" data-i18n="cmp.soon">준비 중</td></tr>
+          <tr><td data-i18n="row.audio">음성 낭독 · mp3 재생 · 자동 스크롤</td><td class="c yes">✓</td><td class="c no">—</td></tr>
+          <tr><td data-i18n="row.widget">홈 화면 위젯</td><td class="c yes">✓</td><td class="c no">—</td></tr>
         </tbody>
       </table>
     </div>
-    <p class="legend" lang="ko">안드로이드 폰에서는 지금은 Google Play 앱을 권합니다. 웹 앱도 안드로이드에서 잘 동작합니다.</p>
-    <p class="legend" lang="en">On Android phones we currently recommend the Google Play app, though the web app works there too.</p>
+    <p class="legend" data-i18n="cmp.legend">안드로이드 폰에서는 지금은 Google Play 앱을 권합니다. 웹 앱도 안드로이드에서 잘 동작합니다.</p>
   </div>
 </section>
 
 <!-- Install -->
 <section id="install" class="alt">
   <div class="wrap">
-    <h2 lang="ko">웹 앱 설치하기</h2>
-    <h2 lang="en">Install the web app</h2>
-    <p class="sub" lang="ko">앱 스토어를 거치지 않고, 몇 번만 누르면 됩니다. 크기도 아주 작습니다.</p>
-    <p class="sub" lang="en">No app store needed. It takes a few taps and very little space.</p>
+    <h2 data-i18n="inst.title">웹 앱 설치하기</h2>
+    <p class="sub" data-i18n="inst.sub">앱 스토어를 거치지 않고, 몇 번만 누르면 됩니다. 크기도 아주 작습니다.</p>
 
     <ul class="why">
-      <li><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><rect x="4" y="4" width="16" height="16" rx="4"/><path d="M9 12h6M12 9v6"/></svg><div><b lang="ko">아이콘으로 열기</b><b lang="en">Opens from an icon</b><span lang="ko">주소창 없이 넓은 화면으로</span><span lang="en">Full screen, no address bar</span></div></li>
-      <li><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M2 8.8a15 15 0 0 1 20 0M5 12.5a10 10 0 0 1 14 0M8.5 16a5 5 0 0 1 7 0"/><path d="M3 3l18 18"/></svg><div><b lang="ko">인터넷 없이</b><b lang="en">Works offline</b><span lang="ko">받아 둔 역본은 비행기에서도</span><span lang="en">Downloaded Bibles, even on a plane</span></div></li>
-      <li><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M21 12a9 9 0 1 1-3-6.7L21 8"/><path d="M21 3v5h-5"/></svg><div><b lang="ko">저절로 업데이트</b><b lang="en">Updates itself</b><span lang="ko">새 버전이 나오면 알려 줍니다</span><span lang="en">You'll be told when a new version is ready</span></div></li>
+      <li><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><rect x="4" y="4" width="16" height="16" rx="4"/><path d="M9 12h6M12 9v6"/></svg><div data-i18n="why.icon"><b>아이콘으로 열기</b><span>주소창 없이 넓은 화면으로</span></div></li>
+      <li><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M2 8.8a15 15 0 0 1 20 0M5 12.5a10 10 0 0 1 14 0M8.5 16a5 5 0 0 1 7 0"/><path d="M3 3l18 18"/></svg><div data-i18n="why.offline"><b>인터넷 없이</b><span>받아 둔 역본은 비행기에서도</span></div></li>
+      <li><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M21 12a9 9 0 1 1-3-6.7L21 8"/><path d="M21 3v5h-5"/></svg><div data-i18n="why.update"><b>저절로 업데이트</b><span>새 버전이 나오면 알려 줍니다</span></div></li>
     </ul>
 
     <div class="tabs" role="tablist">
-      <button type="button" role="tab" data-tab="ios" aria-selected="true"><span lang="ko">아이폰 · 아이패드</span><span lang="en">iPhone · iPad</span></button>
-      <button type="button" role="tab" data-tab="desktop" aria-selected="false"><span lang="ko">PC · 맥 · 크롬북</span><span lang="en">PC · Mac · Chromebook</span></button>
-      <button type="button" role="tab" data-tab="android" aria-selected="false"><span lang="ko">안드로이드</span><span lang="en">Android</span></button>
+      <button type="button" role="tab" data-tab="ios" aria-selected="true" data-i18n="tab.ios">아이폰 · 아이패드</button>
+      <button type="button" role="tab" data-tab="desktop" aria-selected="false" data-i18n="tab.desktop">PC · 맥 · 크롬북</button>
+      <button type="button" role="tab" data-tab="android" aria-selected="false" data-i18n="tab.android">안드로이드</button>
     </div>
 
     <div class="panel on" id="tab-ios" role="tabpanel">
       <div class="step-card">
-        <h4 lang="ko">사파리</h4><h4 lang="en">Safari</h4>
-        <ol lang="ko">
+        <h4 data-i18n="ios.safari.h">사파리</h4>
+        <ol data-i18n="ios.safari.steps">
           <li>사파리에서 <a href="web/">lifovebible.github.io/web</a>을 엽니다.</li>
           <li>공유 버튼 <kbd>□↑</kbd>을 누릅니다. 아이폰은 화면 아래, 아이패드는 주소창 오른쪽에 있습니다.</li>
           <li>목록을 올려 <b>홈 화면에 추가</b>를 누르고, 오른쪽 위 <b>추가</b>를 누릅니다.</li>
         </ol>
-        <ol lang="en">
-          <li>Open <a href="web/">lifovebible.github.io/web</a> in Safari.</li>
-          <li>Tap the Share button <kbd>□↑</kbd> — at the bottom on iPhone, next to the address bar on iPad.</li>
-          <li>Scroll down, tap <b>Add to Home Screen</b>, then <b>Add</b>.</li>
-        </ol>
-        <p class="note" lang="ko">iOS · iPadOS 16.4 이상</p>
-        <p class="note" lang="en">Requires iOS / iPadOS 16.4 or later.</p>
+        <p class="note" data-i18n="ios.safari.note">iOS · iPadOS 16.4 이상</p>
       </div>
       <div class="step-card">
-        <h4 lang="ko">크롬 · 엣지 · 파이어폭스</h4><h4 lang="en">Chrome · Edge · Firefox</h4>
-        <ol lang="ko">
+        <h4 data-i18n="ios.other.h">크롬 · 엣지 · 파이어폭스</h4>
+        <ol data-i18n="ios.other.steps">
           <li>주소창 오른쪽의 공유 버튼 <kbd>□↑</kbd>을 누릅니다. 엣지·파이어폭스는 메뉴 <kbd>⋯</kbd> 안에 있을 수 있습니다.</li>
           <li><b>홈 화면에 추가</b> → <b>추가</b>를 누릅니다.</li>
-        </ol>
-        <ol lang="en">
-          <li>Tap the Share button <kbd>□↑</kbd> next to the address bar. In Edge or Firefox it may be inside the <kbd>⋯</kbd> menu.</li>
-          <li>Tap <b>Add to Home Screen</b> → <b>Add</b>.</li>
         </ol>
       </div>
     </div>
 
     <div class="panel" id="tab-desktop" role="tabpanel">
       <div class="step-card">
-        <h4 lang="ko">크롬 (윈도우 · 맥 · 리눅스 · 크롬북)</h4><h4 lang="en">Chrome (Windows · Mac · Linux · Chromebook)</h4>
-        <ol lang="ko">
+        <h4 data-i18n="dt.chrome.h">크롬 (윈도우 · 맥 · 리눅스 · 크롬북)</h4>
+        <ol data-i18n="dt.chrome.steps">
           <li><a href="web/">웹 앱</a>을 엽니다.</li>
           <li>주소창 오른쪽 끝의 설치 아이콘(모니터에 화살표)을 누르고 <b>설치</b>를 누릅니다.</li>
         </ol>
-        <ol lang="en">
-          <li>Open the <a href="web/">web app</a>.</li>
-          <li>Click the install icon at the right end of the address bar, then <b>Install</b>.</li>
-        </ol>
-        <p class="note" lang="ko">아이콘이 없으면 메뉴 <kbd>⋮</kbd> → 전송, 저장, 공유 → 페이지를 앱으로 설치</p>
-        <p class="note" lang="en">No icon? Menu <kbd>⋮</kbd> → Cast, save and share → Install page as app.</p>
+        <p class="note" data-i18n="dt.chrome.note">아이콘이 없으면 메뉴 <kbd>⋮</kbd> → 전송, 저장, 공유 → 페이지를 앱으로 설치</p>
       </div>
       <div class="step-card">
-        <h4 lang="ko">엣지 · 웨일</h4><h4 lang="en">Edge · Whale</h4>
-        <ol lang="ko">
+        <h4 data-i18n="dt.edge.h">엣지 · 웨일</h4>
+        <ol data-i18n="dt.edge.steps">
           <li>주소창 오른쪽의 앱 설치 아이콘을 누릅니다.</li>
           <li><b>설치</b>를 누릅니다.</li>
         </ol>
-        <ol lang="en">
-          <li>Click the app install icon in the address bar.</li>
-          <li>Click <b>Install</b>.</li>
-        </ol>
-        <p class="note" lang="ko">엣지는 메뉴 <kbd>⋯</kbd> → 앱 → 이 사이트를 앱으로 설치로도 됩니다.</p>
-        <p class="note" lang="en">In Edge you can also use menu <kbd>⋯</kbd> → Apps → Install this site as an app.</p>
+        <p class="note" data-i18n="dt.edge.note">엣지는 메뉴 <kbd>⋯</kbd> → 앱 → 이 사이트를 앱으로 설치로도 됩니다.</p>
       </div>
       <div class="step-card">
-        <h4 lang="ko">맥 사파리</h4><h4 lang="en">Safari on Mac</h4>
-        <ol lang="ko">
+        <h4 data-i18n="dt.safari.h">맥 사파리</h4>
+        <ol data-i18n="dt.safari.steps">
           <li>사파리에서 <a href="web/">웹 앱</a>을 엽니다.</li>
           <li>메뉴 막대 <b>파일</b> → <b>Dock에 추가</b>를 누릅니다.</li>
         </ol>
-        <ol lang="en">
-          <li>Open the <a href="web/">web app</a> in Safari.</li>
-          <li>Choose <b>File</b> → <b>Add to Dock</b>.</li>
-        </ol>
-        <p class="note" lang="ko">macOS 14(소노마) 이상. 파이어폭스는 설치 기능이 없으니 북마크해 두거나 크롬·엣지를 쓰세요.</p>
-        <p class="note" lang="en">macOS 14 Sonoma or later. Firefox can't install web apps; bookmark it or use Chrome or Edge.</p>
+        <p class="note" data-i18n="dt.safari.note">macOS 14(소노마) 이상. 파이어폭스는 설치 기능이 없으니 북마크해 두거나 크롬·엣지를 쓰세요.</p>
       </div>
     </div>
 
     <div class="panel" id="tab-android" role="tabpanel">
       <div class="step-card">
-        <h4 lang="ko">Google Play 앱 (추천)</h4><h4 lang="en">Google Play app (recommended)</h4>
-        <p style="margin:0 0 12px" lang="ko">메모, 형광펜, 음성 낭독, 위젯까지 모든 기능을 쓸 수 있습니다.</p>
-        <p style="margin:0 0 12px" lang="en">Gets you every feature: notes, highlights, text-to-speech, widgets.</p>
-        <a class="btn ghost" href="https://play.google.com/store/apps/details?id=net.lifove.android.lifovebible" rel="noopener"><span lang="ko">Google Play에서 받기</span><span lang="en">Get it on Google Play</span> →</a>
+        <h4 data-i18n="and.play.h">Google Play 앱 (추천)</h4>
+        <p class="plain" data-i18n="and.play.p">음성 낭독, mp3 재생, 자동 스크롤, 위젯까지 모든 기능을 쓸 수 있습니다.</p>
+        <a class="btn ghost" href="https://play.google.com/store/apps/details?id=net.lifove.android.lifovebible" rel="noopener"><span data-i18n="cta.play">Google Play에서 받기</span> →</a>
       </div>
       <div class="step-card">
-        <h4 lang="ko">웹 앱으로 설치</h4><h4 lang="en">Install the web app</h4>
-        <ol lang="ko">
+        <h4 data-i18n="and.web.h">웹 앱으로 설치</h4>
+        <ol data-i18n="and.web.steps">
           <li>크롬에서 <a href="web/">웹 앱</a>을 열고 아래쪽 설치 안내를 누릅니다.</li>
           <li>안 뜨면 메뉴 <kbd>⋮</kbd> → <b>앱 설치</b> 또는 <b>홈 화면에 추가</b>.</li>
         </ol>
-        <ol lang="en">
-          <li>Open the <a href="web/">web app</a> in Chrome and tap the install banner.</li>
-          <li>No banner? Menu <kbd>⋮</kbd> → <b>Install app</b> or <b>Add to Home screen</b>.</li>
-        </ol>
-        <p class="note" lang="ko">삼성 인터넷은 주소창의 설치 아이콘 ↓ 또는 메뉴 ≡ → 현재 페이지 추가 → 홈 화면.</p>
-        <p class="note" lang="en">Samsung Internet: the ↓ install icon in the address bar, or menu ≡ → Add page to → Home screen.</p>
+        <p class="note" data-i18n="and.web.note">삼성 인터넷은 주소창의 설치 아이콘 ↓ 또는 메뉴 ≡ → 현재 페이지 추가 → 홈 화면.</p>
       </div>
     </div>
 
-    <div class="tip" lang="ko"><b>아이폰 사용자께.</b> 아이폰에서는 브라우저와 홈 화면 앱이 저장 공간을 따로 씁니다. 설치한 뒤에는 홈 화면 아이콘으로 열고 역본을 다시 받으세요. 브라우저로만 쓰면 한동안 열지 않았을 때 받은 역본이 지워질 수 있으니 설치해서 쓰시기를 권합니다.</div>
-    <div class="tip" lang="en"><b>For iPhone users.</b> On iPhone, Safari and installed home screen apps keep separate storage. After installing, open the app from its icon and download your Bibles again. If you only use the browser, iOS may clear downloaded Bibles after a while, so installing is recommended.</div>
+    <div class="tip" data-i18n="inst.tip"><b>아이폰 사용자께.</b> 아이폰에서는 브라우저와 홈 화면 앱이 저장 공간을 따로 씁니다. 설치한 뒤에는 홈 화면 아이콘으로 열고 역본을 다시 받으세요. 브라우저로만 쓰면 한동안 열지 않았을 때 받은 역본이 지워질 수 있으니 설치해서 쓰시기를 권합니다.</div>
+    <div class="tip" data-i18n="inst.backupTip"><b>기록은 꼭 백업해 두세요.</b> 웹 앱의 메모·형광펜·책갈피는 그 기기의 브라우저 안에만 저장됩니다. 브라우저 데이터를 지우거나 앱을 지우면 함께 사라지니, 메뉴 ☰ → 데이터 백업·복구에서 가끔 백업 파일을 받아 두세요. 오래 백업하지 않으면 웹 앱이 알려 드립니다.</div>
   </div>
 </section>
 
 <!-- Bibles -->
 <section id="bibles">
   <div class="wrap">
-    <h2 lang="ko">세계 여러 언어의 성경과 주석</h2>
-    <h2 lang="en">Bibles and commentaries in many languages</h2>
-    <p class="sub" lang="ko">저작권 허가를 받았거나 공개된 역본만 제공합니다. 필요한 역본만 골라 받으세요.</p>
-    <p class="sub" lang="en">Only public-domain or licensed texts are offered. Download just the ones you need.</p>
+    <h2 data-i18n="bib.title">세계 여러 언어의 성경과 주석</h2>
+    <p class="sub" data-i18n="bib.sub">저작권 허가를 받았거나 공개된 역본만 제공합니다. 필요한 역본만 골라 받으세요.</p>
     <div class="stats">
-      <div class="stat"><b>70+</b><span lang="ko">역본과 주석</span><span lang="en">versions and commentaries</span></div>
-      <div class="stat"><b>40+</b><span lang="ko">언어</span><span lang="en">languages</span></div>
-      <div class="stat"><b>7</b><span lang="ko">앱 화면 언어</span><span lang="en">app interface languages</span></div>
+      <div class="stat"><b>70+</b><span data-i18n="bib.versions">역본과 주석</span></div>
+      <div class="stat"><b>40+</b><span data-i18n="bib.languages">언어</span></div>
+      <div class="stat"><b>7</b><span data-i18n="bib.uiLangs">앱 화면 언어</span></div>
     </div>
-    <h3 class="small" lang="ko">역본 예시</h3><h3 class="small" lang="en">Some of the versions</h3>
+    <h3 class="small" data-i18n="bib.examples">역본 예시</h3>
     <ul class="chips">
       <li>개역한글</li><li>흠정역</li><li>가톨릭성경</li><li>KJV</li><li>ESV</li><li>ASV</li><li>YLT</li><li>Darby</li>
       <li>和合本</li><li>新译本</li><li>口語訳</li><li>新改訳</li><li>Luther</li><li>Elberfelder</li><li>Louis Segond</li>
-      <li>Reina-Valera 1909</li><li>Synodal</li><li>Vulgate</li><li>Septuagint</li><li>BHS · WLC</li><li>Stephanus NT</li>
-      <li>Tagalog</li><li>Vietnamese</li><li>Thai</li><li>Hindi</li><li>Amharic</li><li>Luganda</li><li lang="ko">그 밖에 여러 언어</li><li lang="en">and many more</li>
+      <li>Reina-Valera 1909</li><li>Almeida</li><li>Synodal</li><li>Vulgate</li><li>Septuagint</li><li>BHS · WLC</li><li>Stephanus NT</li>
+      <li>Tagalog</li><li>Vietnamese</li><li>Thai</li><li>Hindi</li><li>Amharic</li><li>Luganda</li><li data-i18n="bib.more">그 밖에 여러 언어</li>
     </ul>
-    <h3 class="small" lang="ko">주석 · 관주 (역본대조로 함께 읽기)</h3><h3 class="small" lang="en">Commentaries and cross-references (read side by side)</h3>
+    <h3 class="small" data-i18n="bib.comm">주석 · 관주 (역본대조로 함께 읽기)</h3>
     <ul class="chips comm">
       <li>Calvin's Commentaries</li><li>Clarke's Commentary</li><li>Barnes' Notes (NT)</li><li>Treasury of Scripture Knowledge</li>
       <li>Geneva Bible Notes (1599)</li><li>Catena Aurea (Aquinas)</li><li>Robertson's Word Pictures (NT)</li>
@@ -566,33 +525,28 @@ footer .flinks { display: flex; flex-wrap: wrap; gap: 8px 20px; margin-left: aut
 <!-- Roadmap -->
 <section id="roadmap" class="alt">
   <div class="wrap">
-    <h2 lang="ko">다가오는 것들</h2>
-    <h2 lang="en">What's next</h2>
-    <p class="sub" lang="ko">사용자분들의 건의를 하나씩 살피며 계속 고쳐 가고 있습니다.</p>
-    <p class="sub" lang="en">We keep improving, one user suggestion at a time.</p>
+    <h2 data-i18n="road.title">새 소식과 다가오는 것들</h2>
+    <p class="sub" data-i18n="road.sub">사용자분들의 건의를 하나씩 살피며 계속 고쳐 가고 있습니다.</p>
     <ol class="road">
-      <li>
-        <div class="when">7.6.0<small lang="ko">안드로이드 · 12월 초 예정</small><small lang="en">Android · early December</small></div>
-        <div>
-          <h4 lang="ko">메모책과 합쳐서 복구</h4><h4 lang="en">Notebooks and merge-restore</h4>
-          <p lang="ko">필사·번역·설교 노트용 메모책, 엔터로 저장하고 다음 절로 넘어가는 필사 모드, 백업을 지금 데이터와 합쳐 복구, 절을 길게 눌러 본문 오류 신고.</p>
-          <p lang="en">Notebooks for copying, translation and sermon notes, a transcription mode that saves and moves to the next verse on Enter, restore a backup by merging it with current data, and report a text error by long-pressing a verse.</p>
+      <li class="done">
+        <div class="when" data-i18n="road.web.when">웹 앱<small>11월 · 새로 들어감</small></div>
+        <div data-i18n="road.web.body">
+          <h4>메모 · 형광펜 · 책갈피 · 백업, 그리고 7개 언어</h4>
+          <p>안드로이드 앱의 개인 기록을 웹 앱에도 넣었습니다. 메모책과 필사 입력, 나의형광펜목록·나의메모목록, 절 복사·공유, 읽음 표시와 성경읽기통계, 안드로이드 앱과 백업 파일 주고받기. 화면과 도움말은 한국어·영어·일본어·중국어(번체·간체)·스페인어·포르투갈어로 나옵니다.</p>
         </div>
       </li>
       <li>
-        <div class="when"><span lang="ko">웹 앱</span><span lang="en">Web app</span><small lang="ko">다음 단계</small><small lang="en">Next</small></div>
-        <div>
-          <h4 lang="ko">메모 · 형광펜 · 책갈피</h4><h4 lang="en">Notes, highlights, bookmarks</h4>
-          <p lang="ko">읽음 기록과 성경읽기통계에 이어 안드로이드 앱의 나머지 개인 기록도 웹 앱에 넣고, 안드로이드 앱의 백업 파일을 웹 앱과 주고받을 수 있게 합니다. 이어서 화면 언어를 늘립니다.</p>
-          <p lang="en">After reading history and statistics, bringing the rest of your personal records to the web app, and letting you move backup files between the Android app and the web app. More interface languages to follow.</p>
+        <div class="when" data-i18n="road.android.when">7.6.0<small>안드로이드 · 12월 초 예정</small></div>
+        <div data-i18n="road.android.body">
+          <h4>메모책과 합쳐서 복구</h4>
+          <p>필사·번역·설교 노트용 메모책, 엔터로 저장하고 다음 절로 넘어가는 필사 모드, 백업을 지금 데이터와 합쳐 복구, 웹 앱 백업 열기, 절을 길게 눌러 본문 오류 신고.</p>
         </div>
       </li>
       <li>
-        <div class="when"><span lang="ko">그다음</span><span lang="en">Later</span><small lang="ko">계획</small><small lang="en">Planned</small></div>
-        <div>
-          <h4 lang="ko">내 구글 드라이브로 동기화</h4><h4 lang="en">Sync through your own Google Drive</h4>
-          <p lang="ko">따로 서버를 두지 않고, 사용자 본인의 구글 드라이브로 여러 폰의 메모·형광펜·읽음 기록을 맞추는 기능을 준비하고 있습니다.</p>
-          <p lang="en">No separate server: keep notes, highlights and reading history in step across your phones using your own Google Drive.</p>
+        <div class="when" data-i18n="road.sync.when">그다음<small>계획</small></div>
+        <div data-i18n="road.sync.body">
+          <h4>내 구글 드라이브로 동기화</h4>
+          <p>따로 서버를 두지 않고, 사용자 본인의 구글 드라이브로 여러 폰과 웹 앱의 메모·형광펜·읽음 기록을 맞추는 기능을 준비하고 있습니다.</p>
         </div>
       </li>
     </ol>
@@ -604,41 +558,572 @@ footer .flinks { display: flex; flex-wrap: wrap; gap: 8px 20px; margin-left: aut
 <footer>
   <div class="wrap">
     <a class="brand" href="#"><img src="web/icons/icon.svg" alt="" width="24" height="24">Lifove Bible</a>
-    <span lang="ko">광고 없는 무료 성경 앱</span><span lang="en">A free Bible app with no ads</span>
+    <span data-i18n="foot.tagline">광고 없는 무료 성경 앱</span>
     <div class="flinks">
-      <a href="web/"><span lang="ko">웹 앱</span><span lang="en">Web app</span></a>
+      <a href="web/" data-i18n="web.name">웹 앱</a>
       <a href="https://play.google.com/store/apps/details?id=net.lifove.android.lifovebible" rel="noopener">Google Play</a>
-      <a href="https://github.com/lifoveBible/lifovebible/issues" rel="noopener"><span lang="ko">건의 · 문제 보고</span><span lang="en">Feedback</span></a>
+      <a href="https://github.com/lifoveBible/lifovebible/issues" rel="noopener" data-i18n="foot.feedback">건의 · 문제 보고</a>
       <a href="mailto:bible@lifove.net">bible@lifove.net</a>
-      <a href="privacy.html"><span lang="ko">개인정보 보호 정책</span><span lang="en">Privacy policy</span></a>
+      <a href="privacy.html" data-i18n="foot.privacy">개인정보 보호 정책</a>
     </div>
   </div>
 </footer>
 
 <script>
 (function () {
-  var root = document.documentElement;
-
-  // Language: saved choice, else browser language (Korean → ko, otherwise en)
-  function setLang(l) {
-    root.setAttribute('data-lang', l);
-    root.setAttribute('lang', l);
-    document.querySelectorAll('[data-set-lang]').forEach(function (b) {
-      b.setAttribute('aria-pressed', String(b.getAttribute('data-set-lang') === l));
-    });
-    document.title = 'Lifove Bible';
+  // Bible text for the hero mockups (taken from the data/*.lfa files, shortened to fit)
+  var KJV_JN = [
+    'In the beginning was the Word, and the Word was with God, and the Word was God.',
+    'The same was in the beginning with God.',
+    'All things were made by him; and without him was not any thing made that was made.'
+  ];
+  function laptop(book, name, jn, other, otherJn) {
+    var rows = jn.map(function (t, i) {
+      return '<div class="v"><span class="n">' + (i + 1) + '</span><div class="cols"><div><span class="vn">' + name + '</span>' + t +
+        '</div><div><span class="vn">' + other + '</span>' + otherJn[i] + '</div></div></div>';
+    }).join('');
+    return '<div class="bar">‹ ' + book + ' › <span class="ver">' + name + ' + ' + other + '</span></div><div class="body">' + rows + '</div>';
   }
+  function phone(book, name, gn) {
+    var rows = gn.map(function (t, i) { return '<div class="v"><span class="n">' + (i + 1) + '</span><span>' + t + '</span></div>'; }).join('');
+    return '<div class="bar">‹ ' + book + ' › <span class="ver">' + name + '</span></div><div class="body">' + rows + '</div>';
+  }
+
+  var T = {
+    en: {
+      'meta.desc': 'Lifove Bible is a free Bible app with no ads. Get it on Google Play for Android, or open and install the web app in the browser on iPhone, iPad, Mac and PC. 70+ versions and commentaries, works offline.',
+      'nav.apps': 'Apps', 'nav.install': 'Install', 'nav.bibles': 'Bibles', 'nav.news': 'News',
+      'hero.eyebrow': 'Now on iPhone, Mac and PC too',
+      'hero.title': 'The Bible, on <em>every device</em> you use.',
+      'hero.lead': 'Lifove Bible is a free Bible reader with no ads. Get the Android app on Google Play, or open the web app in any browser on iPhone, iPad, Mac, PC or Chromebook and install it to your home screen or desktop. Downloaded Bibles work offline.',
+      'cta.openWeb': 'Open the web app', 'cta.openWebShort': 'Open the web app', 'cta.play': 'Get it on Google Play',
+      'mock.laptop': laptop('John 1', 'KJV', KJV_JN, '개역한글', ['태초에 말씀이 계시니라 이 말씀이 하나님과 함께 계셨으니 이 말씀은 곧 하나님이시니라', '그가 태초에 하나님과 함께 계셨고', '만물이 그로 말미암아 지은바 되었으니 지은 것이 하나도 그가 없이는 된 것이 없느니라']),
+      'mock.phone': phone('Genesis 1', 'KJV', ['In the beginning God created the heaven and the earth.', 'And the earth was without form, and void; and darkness was upon the face of the deep.', 'And God said, Let there be light: and there was light.', 'And God saw the light, that it was good: and God divided the light from the darkness.', 'And God called the light Day, and the darkness he called Night.']),
+      'apps.title': 'One Bible, two apps',
+      'apps.sub': 'Pick the one that fits your device. Both are free and ad-free, and they share the same Bible data and the same backup files.',
+      'android.name': 'Android app',
+      'android.tag': 'The original, full-featured app · Android 5.0+',
+      'android.list': '<li>Memos and memo books: keep copying, translation or sermon notes like separate books</li><li>Highlights, bookmarks, recent history, reading statistics</li><li>Text-to-speech, mp3 audio playback, auto scroll</li><li>Verse-of-the-day home screen widget</li><li>Backup and merge-restore, import from old data folders</li><li>Works on e-ink readers, page with volume keys</li>',
+      'web.name': 'Web app',
+      'web.tag': 'Any device with a browser · install it like an app',
+      'web.list': '<li>Opens instantly on iPhone, iPad, Mac, Windows PC and Chromebook; install it to read offline</li><li>Memos and memo books, with a copying mode that moves to the next verse when you save</li><li>Highlights, bookmarks, read marks and reading statistics</li><li>Back up and merge-restore with the same backup files as the Android app</li><li>Parallel view: several versions in responsive columns</li><li>Search with two terms, by whole Bible, OT, NT, topic or book</li><li>Drag and drop your own Bible files (.lfa, .bdf)</li><li>Screens and help in 7 languages, text and background colors, swipe to turn chapters</li>',
+      'shared.backup': '<b>Pick up on your PC where you left off on your phone.</b> Both apps use the same backup file. Open an Android backup in the web app\'s Backup and restore, and its memos, highlights, bookmarks and read marks are merged with what you have. Web app backups can be opened in the Android app from 7.6.0, under Settings &gt; Restore data.',
+      'shared.files': 'Both apps download the same Bible files from the same server. You can also drop the Bible folder exported by the Android app (<code>Download/LifoveBible/bible</code>) straight into the web app.',
+      'cmp.title': 'What each app can do',
+      'cmp.sub': 'The web app now has memos, highlights and backups too. Listening and widgets are in the Android app only.',
+      'cmp.feature': 'Feature', 'cmp.android': 'Android', 'cmp.web': 'Web', 'cmp.soon': 'Coming',
+      'row.download': 'Download versions · read offline',
+      'row.parallel': 'Parallel versions · commentaries',
+      'row.search': 'Search',
+      'row.files': 'Add Bible files (.lfa, .bdf)',
+      'row.view': 'Colors, swipe to turn chapters',
+      'row.memo': 'Memos · memo books · memo list',
+      'row.highlight': 'Highlights · highlight list · bookmarks',
+      'row.read': 'Read marks · reading statistics',
+      'row.copy': 'Copy · share verses',
+      'row.backup': 'Backup · merge-restore (backups work in both apps)',
+      'row.lang': '7 interface languages',
+      'row.style': 'Choose highlight colors and styles',
+      'row.audio': 'Text-to-speech · mp3 · auto scroll',
+      'row.widget': 'Home screen widget',
+      'cmp.legend': 'On Android phones we currently recommend the Google Play app, though the web app works there too.',
+      'inst.title': 'Install the web app',
+      'inst.sub': 'No app store needed. It takes a few taps and very little space.',
+      'why.icon': '<b>Opens from an icon</b><span>Full screen, no address bar</span>',
+      'why.offline': '<b>Works offline</b><span>Downloaded Bibles, even on a plane</span>',
+      'why.update': '<b>Updates itself</b><span>You\'ll be told when a new version is ready</span>',
+      'tab.ios': 'iPhone · iPad', 'tab.desktop': 'PC · Mac · Chromebook', 'tab.android': 'Android',
+      'ios.safari.h': 'Safari',
+      'ios.safari.steps': '<li>Open <a href="web/">lifovebible.github.io/web</a> in Safari.</li><li>Tap the Share button <kbd>□↑</kbd> — at the bottom on iPhone, next to the address bar on iPad.</li><li>Scroll down, tap <b>Add to Home Screen</b>, then <b>Add</b>.</li>',
+      'ios.safari.note': 'Requires iOS / iPadOS 16.4 or later.',
+      'ios.other.h': 'Chrome · Edge · Firefox',
+      'ios.other.steps': '<li>Tap the Share button <kbd>□↑</kbd> next to the address bar. In Edge or Firefox it may be inside the <kbd>⋯</kbd> menu.</li><li>Tap <b>Add to Home Screen</b> → <b>Add</b>.</li>',
+      'dt.chrome.h': 'Chrome (Windows · Mac · Linux · Chromebook)',
+      'dt.chrome.steps': '<li>Open the <a href="web/">web app</a>.</li><li>Click the install icon at the right end of the address bar, then <b>Install</b>.</li>',
+      'dt.chrome.note': 'No icon? Menu <kbd>⋮</kbd> → Cast, save and share → Install page as app.',
+      'dt.edge.h': 'Edge · Whale',
+      'dt.edge.steps': '<li>Click the app install icon in the address bar.</li><li>Click <b>Install</b>.</li>',
+      'dt.edge.note': 'In Edge you can also use menu <kbd>⋯</kbd> → Apps → Install this site as an app.',
+      'dt.safari.h': 'Safari on Mac',
+      'dt.safari.steps': '<li>Open the <a href="web/">web app</a> in Safari.</li><li>Choose <b>File</b> → <b>Add to Dock</b>.</li>',
+      'dt.safari.note': 'macOS 14 Sonoma or later. Firefox can\'t install web apps; bookmark it or use Chrome or Edge.',
+      'and.play.h': 'Google Play app (recommended)',
+      'and.play.p': 'Gets you every feature, including text-to-speech, mp3 playback, auto scroll and widgets.',
+      'and.web.h': 'Install the web app',
+      'and.web.steps': '<li>Open the <a href="web/">web app</a> in Chrome and tap the install banner.</li><li>No banner? Menu <kbd>⋮</kbd> → <b>Install app</b> or <b>Add to Home screen</b>.</li>',
+      'and.web.note': 'Samsung Internet: the ↓ install icon in the address bar, or menu ≡ → Add page to → Home screen.',
+      'inst.tip': '<b>For iPhone users.</b> On iPhone, Safari and installed home screen apps keep separate storage. After installing, open the app from its icon and download your Bibles again. If you only use the browser, iOS may clear downloaded Bibles after a while, so installing is recommended.',
+      'inst.backupTip': '<b>Please back up your records.</b> The web app keeps memos, highlights and bookmarks only in that device\'s browser. Clearing browser data or removing the app deletes them too, so save a backup file now and then from menu ☰ → Backup and restore. The web app reminds you if you haven\'t backed up for a while.',
+      'bib.title': 'Bibles and commentaries in many languages',
+      'bib.sub': 'Only public-domain or licensed texts are offered. Download just the ones you need.',
+      'bib.versions': 'versions and commentaries', 'bib.languages': 'languages', 'bib.uiLangs': 'app interface languages',
+      'bib.examples': 'Some of the versions', 'bib.more': 'and many more',
+      'bib.comm': 'Commentaries and cross-references (read side by side)',
+      'road.title': 'News and what\'s next',
+      'road.sub': 'We keep improving, one user suggestion at a time.',
+      'road.web.when': 'Web app<small>November · new</small>',
+      'road.web.body': '<h4>Memos, highlights, bookmarks, backups, and 7 languages</h4><p>Your personal records from the Android app now come to the web app too: memo books and copying mode, My Highlight and memo lists, copying and sharing verses, read marks and reading statistics, and backups that move between the Android app and the web app. Screens and help are in Korean, English, Japanese, Chinese (Traditional and Simplified), Spanish and Portuguese.</p>',
+      'road.android.when': '7.6.0<small>Android · early December</small>',
+      'road.android.body': '<h4>Memo books and merge-restore</h4><p>Memo books for copying, translation and sermon notes, a copying mode that saves and moves to the next verse on Enter, restoring a backup by merging it with current data, opening web app backups, and reporting a text error by long-pressing a verse.</p>',
+      'road.sync.when': 'Later<small>Planned</small>',
+      'road.sync.body': '<h4>Sync through your own Google Drive</h4><p>No separate server: we are preparing a way to keep memos, highlights and read marks in step across your phones and the web app, using your own Google Drive.</p>',
+      'foot.tagline': 'A free Bible app with no ads', 'foot.feedback': 'Feedback', 'foot.privacy': 'Privacy policy'
+    },
+
+    ja: {
+      'meta.desc': '広告のない無料の聖書アプリ Lifove Bible。Android は Google Play から、iPhone・iPad・Mac・PC はブラウザで開いてインストールできます。70以上の訳と注解、オフラインで読めます。',
+      'nav.apps': 'アプリ', 'nav.install': 'インストール', 'nav.bibles': '聖書の訳', 'nav.news': 'お知らせ',
+      'hero.eyebrow': 'iPhone・Mac・PC でも使えるようになりました',
+      'hero.title': '聖書を、<br><em>すべての端末</em>で。',
+      'hero.lead': 'Lifove Bible は広告のない無料の聖書アプリです。Android は Google Play から入手し、iPhone・iPad・Mac・PC・Chromebook ではブラウザで開いてホーム画面やデスクトップにインストールしてください。ダウンロードした訳はインターネットなしで読めます。',
+      'cta.openWeb': 'ウェブ版を開く', 'cta.openWebShort': 'ウェブ版を開く', 'cta.play': 'Google Play で入手',
+      'mock.laptop': laptop('ヨハネ 1', '口語訳', ['初めに言があった。言は神と共にあった。言は神であった。', 'この言は初めに神と共にあった。', 'すべてのものは、これによってできた。'], 'KJV', KJV_JN),
+      'mock.phone': phone('創世記 1', '口語訳', ['はじめに神は天と地とを創造された。', '地は形なく、むなしく、やみが淵のおもてにあり、神の霊が水のおもてをおおっていた。', '神は「光あれ」と言われた。すると光があった。', '神はその光を見て、良しとされた。神はその光とやみとを分けられた。', '神は光を昼と名づけ、やみを夜と名づけられた。']),
+      'apps.title': 'ひとつの聖書、ふたつのアプリ',
+      'apps.sub': 'お使いの端末に合うアプリを選んでください。どちらも無料で広告がなく、同じ聖書データと同じバックアップファイルを使います。',
+      'android.name': 'Android アプリ',
+      'android.tag': '機能がいちばん多い元のアプリ · Android 5.0 以上',
+      'android.list': '<li>メモとメモ帳: 筆写・翻訳・説教ノートを本のように分けて記録</li><li>線(マイライン)、しおり、履歴、通読の統計</li><li>音声読み上げ(TTS)と mp3 再生、自動スクロール</li><li>ホーム画面の今日の聖句ウィジェット</li><li>データのバックアップと統合して復元、以前のデータフォルダの取り込み</li><li>電子ペーパー端末に対応、音量キーでページ送り</li>',
+      'web.name': 'ウェブ版',
+      'web.tag': 'ブラウザのあるすべての端末 · インストールすればアプリのように',
+      'web.list': '<li>iPhone・iPad・Mac・Windows PC・Chromebook ですぐに開け、インストールすればオフラインで読める</li><li>メモとメモ帳: 保存すると次の節へ進む筆写入力</li><li>線(マイライン)、しおり、既読の印と通読の統計</li><li>Android アプリと同じバックアップファイルでバックアップ・統合して復元</li><li>訳の対照: 複数の訳を画面幅に合わせて複数の段で</li><li>検索: 検索語を2つまで、全体・旧約・新約・テーマ別・書の範囲</li><li>手持ちの聖書ファイル(.lfa、.bdf)をドラッグして追加</li><li>画面とヘルプは7言語、文字色・背景色、スワイプで章を送る</li>',
+      'shared.backup': '<b>スマホで書いた記録を PC で続けて。</b>2つのアプリはバックアップファイルが同じです。Android アプリのバックアップをウェブ版の「バックアップと復元」で開くと、メモ・線・しおり・既読の記録が今の記録と統合されます。ウェブ版のバックアップは Android アプリ 7.6.0 以降の 設定 &gt; データの復元 で開けます。',
+      'shared.files': '2つのアプリは同じサーバーから同じ聖書ファイルをダウンロードします。Android アプリで書き出した聖書フォルダ(<code>Download/LifoveBible/bible</code>)をそのままウェブ版に入れて使うこともできます。',
+      'cmp.title': '何ができますか?',
+      'cmp.sub': 'ウェブ版でもメモ・線・バックアップが使えるようになりました。音声で聞く機能とウィジェットは Android アプリだけです。',
+      'cmp.feature': '機能', 'cmp.android': 'Android', 'cmp.web': 'ウェブ版', 'cmp.soon': '準備中',
+      'row.download': '訳のダウンロード · オフラインで読む',
+      'row.parallel': '訳の対照 · 注解を並べて読む',
+      'row.search': '検索',
+      'row.files': '聖書ファイル(.lfa、.bdf)の追加',
+      'row.view': '文字色・背景色、スワイプで章を送る',
+      'row.memo': 'メモ · メモ帳 · メモ一覧',
+      'row.highlight': '線 · マイライン · しおり',
+      'row.read': '既読の印 · 通読の統計',
+      'row.copy': '節のコピー · 共有',
+      'row.backup': 'バックアップ · 統合して復元(互いにバックアップを使える)',
+      'row.lang': '画面の言語 7つ',
+      'row.style': '線の色・形を選ぶ',
+      'row.audio': '音声読み上げ · mp3 再生 · 自動スクロール',
+      'row.widget': 'ホーム画面ウィジェット',
+      'cmp.legend': 'Android スマホでは今のところ Google Play のアプリをおすすめします。ウェブ版も Android でよく動きます。',
+      'inst.title': 'ウェブ版をインストールする',
+      'inst.sub': 'アプリストアを通さず、数回タップするだけです。サイズもとても小さいです。',
+      'why.icon': '<b>アイコンから開く</b><span>アドレスバーなしの広い画面で</span>',
+      'why.offline': '<b>インターネットなしで</b><span>ダウンロードした訳は機内でも</span>',
+      'why.update': '<b>自動でアップデート</b><span>新しいバージョンが出るとお知らせします</span>',
+      'tab.ios': 'iPhone · iPad', 'tab.desktop': 'PC · Mac · Chromebook', 'tab.android': 'Android',
+      'ios.safari.h': 'Safari',
+      'ios.safari.steps': '<li>Safari で <a href="web/">lifovebible.github.io/web</a> を開きます。</li><li>共有ボタン <kbd>□↑</kbd> をタップします。iPhone は画面下、iPad はアドレスバーの右にあります。</li><li>一覧を上にスクロールして <b>ホーム画面に追加</b> をタップし、右上の <b>追加</b> をタップします。</li>',
+      'ios.safari.note': 'iOS · iPadOS 16.4 以上',
+      'ios.other.h': 'Chrome · Edge · Firefox',
+      'ios.other.steps': '<li>アドレスバーの右の共有ボタン <kbd>□↑</kbd> をタップします。Edge・Firefox ではメニュー <kbd>⋯</kbd> の中にあることがあります。</li><li><b>ホーム画面に追加</b> → <b>追加</b> をタップします。</li>',
+      'dt.chrome.h': 'Chrome (Windows · Mac · Linux · Chromebook)',
+      'dt.chrome.steps': '<li><a href="web/">ウェブ版</a>を開きます。</li><li>アドレスバー右端のインストールアイコン(モニターに矢印)をクリックし、<b>インストール</b> をクリックします。</li>',
+      'dt.chrome.note': 'アイコンがない場合: メニュー <kbd>⋮</kbd> → キャスト、保存、共有 → ページをアプリとしてインストール',
+      'dt.edge.h': 'Edge · Whale',
+      'dt.edge.steps': '<li>アドレスバーの右のアプリのインストールアイコンをクリックします。</li><li><b>インストール</b> をクリックします。</li>',
+      'dt.edge.note': 'Edge ではメニュー <kbd>⋯</kbd> → アプリ → このサイトをアプリとしてインストール でもできます。',
+      'dt.safari.h': 'Mac の Safari',
+      'dt.safari.steps': '<li>Safari で<a href="web/">ウェブ版</a>を開きます。</li><li>メニューバーの <b>ファイル</b> → <b>Dock に追加</b> を選びます。</li>',
+      'dt.safari.note': 'macOS 14(Sonoma)以上。Firefox にはインストール機能がないので、ブックマークするか Chrome・Edge をお使いください。',
+      'and.play.h': 'Google Play のアプリ(おすすめ)',
+      'and.play.p': '音声読み上げ、mp3 再生、自動スクロール、ウィジェットまで、すべての機能が使えます。',
+      'and.web.h': 'ウェブ版としてインストール',
+      'and.web.steps': '<li>Chrome で<a href="web/">ウェブ版</a>を開き、下に出るインストールの案内をタップします。</li><li>出ない場合はメニュー <kbd>⋮</kbd> → <b>アプリをインストール</b> または <b>ホーム画面に追加</b>。</li>',
+      'and.web.note': 'Samsung Internet ではアドレスバーのインストールアイコン ↓、またはメニュー ≡ → ページを追加 → ホーム画面。',
+      'inst.tip': '<b>iPhone をお使いの方へ。</b>iPhone ではブラウザとホーム画面のアプリが別々の保存領域を使います。インストールしたあとはホーム画面のアイコンから開き、訳をもう一度ダウンロードしてください。ブラウザだけで使うと、しばらく開かなかったときにダウンロードした訳が消えることがあるので、インストールしてお使いになることをおすすめします。',
+      'inst.backupTip': '<b>記録は必ずバックアップしてください。</b>ウェブ版のメモ・線・しおりはその端末のブラウザの中にだけ保存されます。ブラウザのデータを消したりアプリを削除したりすると一緒に消えるので、メニュー ☰ → バックアップと復元 でときどきバックアップファイルを保存してください。長くバックアップしていないとウェブ版がお知らせします。',
+      'bib.title': '世界のさまざまな言語の聖書と注解',
+      'bib.sub': '著作権の許可を得た訳と公開されている訳だけを提供しています。必要な訳だけ選んでダウンロードしてください。',
+      'bib.versions': '訳と注解', 'bib.languages': '言語', 'bib.uiLangs': 'アプリの画面言語',
+      'bib.examples': '訳の例', 'bib.more': 'ほか多数の言語',
+      'bib.comm': '注解 · 引照(訳の対照で並べて読む)',
+      'road.title': 'お知らせとこれから',
+      'road.sub': 'ユーザーの皆さまのご要望をひとつずつ確かめながら、改善を続けています。',
+      'road.web.when': 'ウェブ版<small>11月 · 新しく追加</small>',
+      'road.web.body': '<h4>メモ・線・しおり・バックアップ、そして7言語</h4><p>Android アプリの個人の記録をウェブ版にも入れました。メモ帳と筆写入力、マイライン・メモ一覧、節のコピー・共有、既読の印と通読の統計、Android アプリとのバックアップファイルのやり取り。画面とヘルプは韓国語・英語・日本語・中国語(繁体字・簡体字)・スペイン語・ポルトガル語で表示されます。</p>',
+      'road.android.when': '7.6.0<small>Android · 12月初めの予定</small>',
+      'road.android.body': '<h4>メモ帳と統合して復元</h4><p>筆写・翻訳・説教ノート用のメモ帳、Enter で保存して次の節へ進む筆写モード、バックアップを今のデータと統合して復元、ウェブ版のバックアップを開く、節を長押しして本文の誤りを報告。</p>',
+      'road.sync.when': 'その次<small>計画</small>',
+      'road.sync.body': '<h4>自分の Google ドライブで同期</h4><p>専用のサーバーを置かずに、ご自身の Google ドライブで複数のスマホとウェブ版のメモ・線・既読の記録をそろえる機能を準備しています。</p>',
+      'foot.tagline': '広告のない無料の聖書アプリ', 'foot.feedback': 'ご要望 · 不具合の報告', 'foot.privacy': 'プライバシーポリシー'
+    },
+
+    zh: {
+      'meta.desc': '沒有廣告的免費聖經 App Lifove Bible。Android 請從 Google Play 下載，iPhone、iPad、Mac、電腦可在瀏覽器中直接開啟並安裝。70 多個譯本與註釋，無需網路也能閱讀。',
+      'nav.apps': 'App 介紹', 'nav.install': '安裝', 'nav.bibles': '譯本', 'nav.news': '消息',
+      'hero.eyebrow': '現在 iPhone、Mac、電腦也能用',
+      'hero.title': '聖經，在你使用的<br><em>每一台裝置</em>上。',
+      'hero.lead': 'Lifove Bible 是沒有廣告的免費聖經 App。Android 請從 Google Play 下載；iPhone、iPad、Mac、電腦、Chromebook 用瀏覽器開啟，再安裝到主畫面或桌面。下載好的譯本不需網路也能閱讀。',
+      'cta.openWeb': '立即開啟網頁版', 'cta.openWebShort': '開啟網頁版', 'cta.play': '在 Google Play 下載',
+      'mock.laptop': laptop('約翰福音 1', '和合本', ['太初有道，道與神同在，道就是神。', '這道太初與神同在。', '萬物是藉著他造的；凡被造的，沒有一樣不是藉著他造的。'], 'KJV', KJV_JN),
+      'mock.phone': phone('創世記 1', '和合本', ['起初，神創造天地。', '地是空虛混沌，淵面黑暗；神的靈運行在水面上。', '神說：「要有光」，就有了光。', '神看光是好的，就把光暗分開了。', '神稱光為「晝」，稱暗為「夜」。']),
+      'apps.title': '一本聖經，兩種 App',
+      'apps.sub': '選擇適合你裝置的 App。兩者都免費、沒有廣告，使用相同的聖經資料和相同的備份檔。',
+      'android.name': 'Android App',
+      'android.tag': '功能最多的原始 App · Android 5.0 以上',
+      'android.list': '<li>備忘與備忘冊：把抄經、翻譯、講道筆記像書一樣分開記錄</li><li>精選、書籤、最近紀錄、閱讀統計</li><li>語音朗讀(TTS)與 mp3 播放、自動捲動</li><li>主畫面每日經文小工具</li><li>資料備份與合併恢復、匯入舊資料夾</li><li>支援電子紙裝置、用音量鍵翻頁</li>',
+      'web.name': '網頁版',
+      'web.tag': '任何有瀏覽器的裝置 · 安裝後就像 App',
+      'web.list': '<li>在 iPhone、iPad、Mac、Windows 電腦、Chromebook 上直接開啟，安裝後不需網路也能閱讀</li><li>備忘與備忘冊：儲存後自動跳到下一節的抄經輸入</li><li>精選、書籤、已閱讀標記與閱讀統計</li><li>用與 Android App 相同的備份檔備份並合併恢復</li><li>譯本對照：多個譯本依畫面寬度分成多欄</li><li>搜尋：兩個搜尋詞，全部・舊約・新約・主題・書卷範圍</li><li>拖放加入自己的聖經檔案(.lfa、.bdf)</li><li>畫面與說明支援 7 種語言、文字與背景顏色、滑動換章</li>',
+      'shared.backup': '<b>在手機上的紀錄，到電腦上接著用。</b>兩種 App 的備份檔相同。在網頁版的「資料備份與恢復」中開啟 Android App 的備份，備忘、精選、書籤、閱讀紀錄就會與現有紀錄合併。網頁版的備份可從 Android App 7.6.0 起在 設定 &gt; 資料恢復 中開啟。',
+      'shared.files': '兩種 App 從同一個伺服器下載相同的聖經檔案。也可以把 Android App 匯出的聖經資料夾(<code>Download/LifoveBible/bible</code>)直接放進網頁版使用。',
+      'cmp.title': '能做什麼？',
+      'cmp.sub': '網頁版現在也有備忘、精選和備份了。聆聽功能與小工具只在 Android App 中。',
+      'cmp.feature': '功能', 'cmp.android': 'Android', 'cmp.web': '網頁版', 'cmp.soon': '準備中',
+      'row.download': '下載譯本 · 不需網路閱讀',
+      'row.parallel': '譯本對照 · 一起看註釋',
+      'row.search': '搜尋',
+      'row.files': '加入聖經檔案(.lfa、.bdf)',
+      'row.view': '文字與背景顏色、滑動換章',
+      'row.memo': '備忘 · 備忘冊 · 我的備忘',
+      'row.highlight': '精選 · 我的精選 · 書籤',
+      'row.read': '已閱讀標記 · 閱讀統計',
+      'row.copy': '複製 · 分享經節',
+      'row.backup': '備份 · 合併恢復(兩者的備份檔互通)',
+      'row.lang': '7 種介面語言',
+      'row.style': '選擇精選的顏色與樣式',
+      'row.audio': '語音朗讀 · mp3 播放 · 自動捲動',
+      'row.widget': '主畫面小工具',
+      'cmp.legend': '在 Android 手機上，目前建議使用 Google Play 的 App。網頁版在 Android 上也能順利使用。',
+      'inst.title': '安裝網頁版',
+      'inst.sub': '不需經過 App Store，點幾下就好，檔案也非常小。',
+      'why.icon': '<b>從圖示開啟</b><span>沒有網址列，畫面更寬</span>',
+      'why.offline': '<b>不需網路</b><span>下載好的譯本在飛機上也能讀</span>',
+      'why.update': '<b>自動更新</b><span>有新版本時會通知你</span>',
+      'tab.ios': 'iPhone · iPad', 'tab.desktop': '電腦 · Mac · Chromebook', 'tab.android': 'Android',
+      'ios.safari.h': 'Safari',
+      'ios.safari.steps': '<li>在 Safari 中開啟 <a href="web/">lifovebible.github.io/web</a>。</li><li>點選分享按鈕 <kbd>□↑</kbd>。iPhone 在畫面下方，iPad 在網址列右側。</li><li>往上捲動清單，點選 <b>加入主畫面</b>，再點右上角的 <b>加入</b>。</li>',
+      'ios.safari.note': 'iOS · iPadOS 16.4 以上',
+      'ios.other.h': 'Chrome · Edge · Firefox',
+      'ios.other.steps': '<li>點選網址列右側的分享按鈕 <kbd>□↑</kbd>。Edge、Firefox 可能在選單 <kbd>⋯</kbd> 裡。</li><li>點選 <b>加入主畫面</b> → <b>加入</b>。</li>',
+      'dt.chrome.h': 'Chrome(Windows · Mac · Linux · Chromebook)',
+      'dt.chrome.steps': '<li>開啟<a href="web/">網頁版</a>。</li><li>點選網址列最右側的安裝圖示(螢幕加箭頭)，再點 <b>安裝</b>。</li>',
+      'dt.chrome.note': '沒有圖示時：選單 <kbd>⋮</kbd> → 投放、儲存及分享 → 將網頁安裝為應用程式',
+      'dt.edge.h': 'Edge · Whale',
+      'dt.edge.steps': '<li>點選網址列右側的安裝 App 圖示。</li><li>點選 <b>安裝</b>。</li>',
+      'dt.edge.note': 'Edge 也可以用選單 <kbd>⋯</kbd> → 應用程式 → 將此網站安裝為應用程式。',
+      'dt.safari.h': 'Mac 的 Safari',
+      'dt.safari.steps': '<li>在 Safari 中開啟<a href="web/">網頁版</a>。</li><li>選擇選單列 <b>檔案</b> → <b>加入 Dock</b>。</li>',
+      'dt.safari.note': 'macOS 14(Sonoma)以上。Firefox 沒有安裝功能，請加入書籤或改用 Chrome、Edge。',
+      'and.play.h': 'Google Play 的 App(推薦)',
+      'and.play.p': '可以使用語音朗讀、mp3 播放、自動捲動、小工具等所有功能。',
+      'and.web.h': '安裝為網頁版',
+      'and.web.steps': '<li>在 Chrome 中開啟<a href="web/">網頁版</a>，點選下方的安裝提示。</li><li>沒有出現時：選單 <kbd>⋮</kbd> → <b>安裝應用程式</b> 或 <b>加到主畫面</b>。</li>',
+      'and.web.note': 'Samsung Internet：網址列的安裝圖示 ↓，或選單 ≡ → 新增頁面至 → 主畫面。',
+      'inst.tip': '<b>給 iPhone 使用者。</b>在 iPhone 上，瀏覽器與主畫面 App 各自使用不同的儲存空間。安裝後請從主畫面圖示開啟，並重新下載譯本。只在瀏覽器中使用時，一段時間沒開啟，下載的譯本可能會被清除，因此建議安裝後使用。',
+      'inst.backupTip': '<b>請務必備份你的紀錄。</b>網頁版的備忘、精選、書籤只存在那台裝置的瀏覽器裡。清除瀏覽器資料或移除 App 時會一併消失，請不時從選單 ☰ → 資料備份與恢復 下載備份檔。太久沒有備份時，網頁版會提醒你。',
+      'bib.title': '世界各種語言的聖經與註釋',
+      'bib.sub': '只提供取得著作權許可或已公開的譯本。只要挑選需要的譯本下載即可。',
+      'bib.versions': '譯本與註釋', 'bib.languages': '種語言', 'bib.uiLangs': '種 App 介面語言',
+      'bib.examples': '譯本範例', 'bib.more': '還有其他多種語言',
+      'bib.comm': '註釋 · 串珠(用譯本對照一起讀)',
+      'road.title': '最新消息與即將推出',
+      'road.sub': '我們一一檢視使用者的建議，持續改進中。',
+      'road.web.when': '網頁版<small>11 月 · 新功能</small>',
+      'road.web.body': '<h4>備忘、精選、書籤、備份，以及 7 種語言</h4><p>Android App 的個人紀錄也加入網頁版了：備忘冊與抄經輸入、我的精選・我的備忘清單、複製・分享經節、已閱讀標記與閱讀統計，以及與 Android App 互通的備份檔。畫面與說明支援韓文、英文、日文、中文(繁體・簡體)、西班牙文、葡萄牙文。</p>',
+      'road.android.when': '7.6.0<small>Android · 預計 12 月初</small>',
+      'road.android.body': '<h4>備忘冊與合併恢復</h4><p>用於抄經、翻譯、講道筆記的備忘冊，按 Enter 儲存並跳到下一節的抄經模式，把備份與現有資料合併恢復，開啟網頁版的備份，長按經節回報經文錯誤。</p>',
+      'road.sync.when': '之後<small>計畫</small>',
+      'road.sync.body': '<h4>用自己的 Google 雲端硬碟同步</h4><p>不另設伺服器，而是用你自己的 Google 雲端硬碟，讓多支手機與網頁版的備忘、精選、閱讀紀錄保持一致。目前正在準備中。</p>',
+      'foot.tagline': '沒有廣告的免費聖經 App', 'foot.feedback': '建議 · 問題回報', 'foot.privacy': '隱私權政策'
+    },
+
+    'zh-CN': {
+      'meta.desc': '没有广告的免费圣经 App Lifove Bible。Android 请从 Google Play 下载，iPhone、iPad、Mac、电脑可在浏览器中直接打开并安装。70 多个译本与注释，无需网络也能阅读。',
+      'nav.apps': 'App 介绍', 'nav.install': '安装', 'nav.bibles': '译本', 'nav.news': '消息',
+      'hero.eyebrow': '现在 iPhone、Mac、电脑也能用',
+      'hero.title': '圣经，在你使用的<br><em>每一台设备</em>上。',
+      'hero.lead': 'Lifove Bible 是没有广告的免费圣经 App。Android 请从 Google Play 下载；iPhone、iPad、Mac、电脑、Chromebook 用浏览器打开，再安装到主屏幕或桌面。下载好的译本不需网络也能阅读。',
+      'cta.openWeb': '立即打开网页版', 'cta.openWebShort': '打开网页版', 'cta.play': '在 Google Play 下载',
+      'mock.laptop': laptop('约翰福音 1', '和合本', ['太初有道，道与神同在，道就是神。', '这道太初与神同在。', '万物是藉着他造的；凡被造的，没有一样不是藉着他造的。'], 'KJV', KJV_JN),
+      'mock.phone': phone('创世记 1', '和合本', ['起初，神创造天地。', '地是空虚混沌，渊面黑暗；神的灵运行在水面上。', '神说：「要有光」，就有了光。', '神看光是好的，就把光暗分开了。', '神称光为「昼」，称暗为「夜」。']),
+      'apps.title': '一本圣经，两种 App',
+      'apps.sub': '选择适合你设备的 App。两者都免费、没有广告，使用相同的圣经资料和相同的备份文件。',
+      'android.name': 'Android App',
+      'android.tag': '功能最多的原始 App · Android 5.0 以上',
+      'android.list': '<li>备忘与备忘册：把抄经、翻译、讲道笔记像书一样分开记录</li><li>精选、书签、最近纪录、阅读统计</li><li>语音朗读(TTS)与 mp3 播放、自动卷动</li><li>主屏幕每日经文小组件</li><li>资料备份与合并恢复、导入旧资料夹</li><li>支持电子纸设备、用音量键翻页</li>',
+      'web.name': '网页版',
+      'web.tag': '任何有浏览器的设备 · 安装后就像 App',
+      'web.list': '<li>在 iPhone、iPad、Mac、Windows 电脑、Chromebook 上直接打开，安装后不需网络也能阅读</li><li>备忘与备忘册：储存后自动跳到下一节的抄经输入</li><li>精选、书签、已阅读标记与阅读统计</li><li>用与 Android App 相同的备份文件备份并合并恢复</li><li>译本对照：多个译本依屏幕宽度分成多栏</li><li>搜寻：两个搜寻词，全部・旧约・新约・主题・书卷范围</li><li>拖放加入自己的圣经文件(.lfa、.bdf)</li><li>界面与说明支持 7 种语言、文字与背景颜色、滑动换章</li>',
+      'shared.backup': '<b>在手机上的纪录，到电脑上接着用。</b>两种 App 的备份文件相同。在网页版的「资料备份与恢复」中打开 Android App 的备份，备忘、精选、书签、阅读纪录就会与现有纪录合并。网页版的备份可从 Android App 7.6.0 起在 设定 &gt; 资料恢复 中打开。',
+      'shared.files': '两种 App 从同一个服务器下载相同的圣经文件。也可以把 Android App 导出的圣经资料夹(<code>Download/LifoveBible/bible</code>)直接放进网页版使用。',
+      'cmp.title': '能做什么？',
+      'cmp.sub': '网页版现在也有备忘、精选和备份了。聆听功能与小组件只在 Android App 中。',
+      'cmp.feature': '功能', 'cmp.android': 'Android', 'cmp.web': '网页版', 'cmp.soon': '准备中',
+      'row.download': '下载译本 · 不需网络阅读',
+      'row.parallel': '译本对照 · 一起看注释',
+      'row.search': '搜寻',
+      'row.files': '加入圣经文件(.lfa、.bdf)',
+      'row.view': '文字与背景颜色、滑动换章',
+      'row.memo': '备忘 · 备忘册 · 我的备忘',
+      'row.highlight': '精选 · 我的精选 · 书签',
+      'row.read': '已阅读标记 · 阅读统计',
+      'row.copy': '复制 · 分享经节',
+      'row.backup': '备份 · 合并恢复(两者的备份文件互通)',
+      'row.lang': '7 种界面语言',
+      'row.style': '选择精选的颜色与样式',
+      'row.audio': '语音朗读 · mp3 播放 · 自动卷动',
+      'row.widget': '主屏幕小组件',
+      'cmp.legend': '在 Android 手机上，目前建议使用 Google Play 的 App。网页版在 Android 上也能顺利使用。',
+      'inst.title': '安装网页版',
+      'inst.sub': '不需经过应用商店，点几下就好，文件也非常小。',
+      'why.icon': '<b>从图标打开</b><span>没有地址栏，屏幕更宽</span>',
+      'why.offline': '<b>不需网络</b><span>下载好的译本在飞机上也能读</span>',
+      'why.update': '<b>自动更新</b><span>有新版本时会通知你</span>',
+      'tab.ios': 'iPhone · iPad', 'tab.desktop': '电脑 · Mac · Chromebook', 'tab.android': 'Android',
+      'ios.safari.h': 'Safari',
+      'ios.safari.steps': '<li>在 Safari 中打开 <a href="web/">lifovebible.github.io/web</a>。</li><li>点击分享按钮 <kbd>□↑</kbd>。iPhone 在屏幕下方，iPad 在地址栏右侧。</li><li>往上滚动列表，点击 <b>添加到主屏幕</b>，再点右上角的 <b>添加</b>。</li>',
+      'ios.safari.note': 'iOS · iPadOS 16.4 以上',
+      'ios.other.h': 'Chrome · Edge · Firefox',
+      'ios.other.steps': '<li>点击地址栏右侧的分享按钮 <kbd>□↑</kbd>。Edge、Firefox 可能在菜单 <kbd>⋯</kbd> 里。</li><li>点击 <b>添加到主屏幕</b> → <b>添加</b>。</li>',
+      'dt.chrome.h': 'Chrome(Windows · Mac · Linux · Chromebook)',
+      'dt.chrome.steps': '<li>打开<a href="web/">网页版</a>。</li><li>点击地址栏最右侧的安装图标(显示器加箭头)，再点 <b>安装</b>。</li>',
+      'dt.chrome.note': '没有图标时：菜单 <kbd>⋮</kbd> → 投放、保存和分享 → 将页面作为应用安装',
+      'dt.edge.h': 'Edge · Whale',
+      'dt.edge.steps': '<li>点击地址栏右侧的安装应用图标。</li><li>点击 <b>安装</b>。</li>',
+      'dt.edge.note': 'Edge 也可以用菜单 <kbd>⋯</kbd> → 应用 → 将此站点作为应用安装。',
+      'dt.safari.h': 'Mac 的 Safari',
+      'dt.safari.steps': '<li>在 Safari 中打开<a href="web/">网页版</a>。</li><li>选择菜单栏 <b>文件</b> → <b>添加到程序坞</b>。</li>',
+      'dt.safari.note': 'macOS 14(Sonoma)以上。Firefox 没有安装功能，请加入书签或改用 Chrome、Edge。',
+      'and.play.h': 'Google Play 的 App(推荐)',
+      'and.play.p': '可以使用语音朗读、mp3 播放、自动卷动、小组件等所有功能。',
+      'and.web.h': '安装为网页版',
+      'and.web.steps': '<li>在 Chrome 中打开<a href="web/">网页版</a>，点击下方的安装提示。</li><li>没有出现时：菜单 <kbd>⋮</kbd> → <b>安装应用</b> 或 <b>添加到主屏幕</b>。</li>',
+      'and.web.note': 'Samsung Internet：地址栏的安装图标 ↓，或菜单 ≡ → 添加页面至 → 主屏幕。',
+      'inst.tip': '<b>给 iPhone 用户。</b>在 iPhone 上，浏览器与主屏幕 App 各自使用不同的储存空间。安装后请从主屏幕图标打开，并重新下载译本。只在浏览器中使用时，一段时间没打开，下载的译本可能会被清除，因此建议安装后使用。',
+      'inst.backupTip': '<b>请务必备份你的纪录。</b>网页版的备忘、精选、书签只存在那台设备的浏览器里。清除浏览器资料或移除 App 时会一并消失，请不时从菜单 ☰ → 资料备份与恢复 下载备份文件。太久没有备份时，网页版会提醒你。',
+      'bib.title': '世界各种语言的圣经与注释',
+      'bib.sub': '只提供取得版权许可或已公开的译本。只要挑选需要的译本下载即可。',
+      'bib.versions': '译本与注释', 'bib.languages': '种语言', 'bib.uiLangs': '种 App 界面语言',
+      'bib.examples': '译本范例', 'bib.more': '还有其他多种语言',
+      'bib.comm': '注释 · 串珠(用译本对照一起读)',
+      'road.title': '最新消息与即将推出',
+      'road.sub': '我们一一检视用户的建议，持续改进中。',
+      'road.web.when': '网页版<small>11 月 · 新功能</small>',
+      'road.web.body': '<h4>备忘、精选、书签、备份，以及 7 种语言</h4><p>Android App 的个人纪录也加入网页版了：备忘册与抄经输入、我的精选・我的备忘列表、复制・分享经节、已阅读标记与阅读统计，以及与 Android App 互通的备份文件。界面与说明支持韩文、英文、日文、中文(繁体・简体)、西班牙文、葡萄牙文。</p>',
+      'road.android.when': '7.6.0<small>Android · 预计 12 月初</small>',
+      'road.android.body': '<h4>备忘册与合并恢复</h4><p>用于抄经、翻译、讲道笔记的备忘册，按 Enter 储存并跳到下一节的抄经模式，把备份与现有资料合并恢复，打开网页版的备份，长按经节回报经文错误。</p>',
+      'road.sync.when': '之后<small>计划</small>',
+      'road.sync.body': '<h4>用自己的 Google 云端硬盘同步</h4><p>不另设服务器，而是用你自己的 Google 云端硬盘，让多部手机与网页版的备忘、精选、阅读纪录保持一致。目前正在准备中。</p>',
+      'foot.tagline': '没有广告的免费圣经 App', 'foot.feedback': '建议 · 问题回报', 'foot.privacy': '隐私政策'
+    },
+
+    es: {
+      'meta.desc': 'Lifove Bible es una aplicación de la Biblia gratuita y sin anuncios. Descárguela en Google Play para Android, o abra e instale la versión web en el navegador de iPhone, iPad, Mac y PC. Más de 70 versiones y comentarios, sin conexión.',
+      'nav.apps': 'Aplicaciones', 'nav.install': 'Instalar', 'nav.bibles': 'Versiones', 'nav.news': 'Novedades',
+      'hero.eyebrow': 'Ahora también en iPhone, Mac y PC',
+      'hero.title': 'La Biblia, en <em>todos sus dispositivos</em>.',
+      'hero.lead': 'Lifove Bible es una aplicación de la Biblia gratuita y sin anuncios. En Android, descárguela de Google Play; en iPhone, iPad, Mac, PC o Chromebook, ábrala en el navegador e instálela en la pantalla de inicio o el escritorio. Las versiones descargadas se leen sin Internet.',
+      'cta.openWeb': 'Abrir la versión web', 'cta.openWebShort': 'Abrir la versión web', 'cta.play': 'Descargar en Google Play',
+      'mock.laptop': laptop('Juan 1', 'RV 1909', ['En el principio era el Verbo, y el Verbo era con Dios, y el Verbo era Dios.', 'Este era en el principio con Dios.', 'Todas las cosas por él fueron hechas; y sin él nada de lo que es hecho, fué hecho.'], 'KJV', KJV_JN),
+      'mock.phone': phone('Génesis 1', 'Reina-Valera 1909', ['En el principio crió Dios los cielos y la tierra.', 'Y la tierra estaba desordenada y vacía, y las tinieblas estaban sobre la haz del abismo.', 'Y dijo Dios: Sea la luz: y fué la luz.', 'Y vió Dios que la luz era buena: y apartó Dios la luz de las tinieblas.', 'Y llamó Dios á la luz Día, y á las tinieblas llamó Noche.']),
+      'apps.title': 'Una Biblia, dos aplicaciones',
+      'apps.sub': 'Elija la que mejor se adapte a su dispositivo. Ambas son gratuitas y sin anuncios, y usan los mismos datos de la Biblia y los mismos archivos de copia de seguridad.',
+      'android.name': 'Aplicación para Android',
+      'android.tag': 'La aplicación original, con más funciones · Android 5.0 o posterior',
+      'android.list': '<li>Notas y cuadernos de notas: guarde copias, traducciones o notas de sermones como libros aparte</li><li>Resaltados, marcadores, historial reciente, estadísticas de lectura</li><li>Lectura en voz alta (TTS), reproducción de mp3, desplazamiento automático</li><li>Widget con el versículo del día en la pantalla de inicio</li><li>Copia de seguridad y restauración combinada, importación de carpetas de datos anteriores</li><li>Compatible con lectores de tinta electrónica, pasar página con las teclas de volumen</li>',
+      'web.name': 'Versión web',
+      'web.tag': 'Cualquier dispositivo con navegador · instálela como una aplicación',
+      'web.list': '<li>Se abre al instante en iPhone, iPad, Mac, PC con Windows y Chromebook; instalada, se lee sin Internet</li><li>Notas y cuadernos de notas, con un modo de copia que pasa al siguiente versículo al guardar</li><li>Resaltados, marcadores, marcas de leído y estadísticas de lectura</li><li>Copia de seguridad y restauración combinada con los mismos archivos que la aplicación para Android</li><li>Vista paralela: varias versiones en columnas que se ajustan a la pantalla</li><li>Búsqueda con dos términos, en toda la Biblia, AT, NT, por tema o por libro</li><li>Arrastre y suelte sus propios archivos de la Biblia (.lfa, .bdf)</li><li>Pantallas y ayuda en 7 idiomas, colores de texto y fondo, deslizar para cambiar de capítulo</li>',
+      'shared.backup': '<b>Siga en el PC donde lo dejó en el teléfono.</b> Las dos aplicaciones usan el mismo archivo de copia de seguridad. Abra una copia de Android en Copia de seguridad y restauración de la versión web, y sus notas, resaltados, marcadores y marcas de leído se combinarán con lo que ya tiene. Las copias de la versión web se pueden abrir en la aplicación para Android desde la 7.6.0, en Ajustes &gt; Restaurar datos.',
+      'shared.files': 'Las dos aplicaciones descargan los mismos archivos de la Biblia del mismo servidor. También puede soltar en la versión web la carpeta de Biblias exportada por la aplicación para Android (<code>Download/LifoveBible/bible</code>).',
+      'cmp.title': '¿Qué puede hacer cada una?',
+      'cmp.sub': 'La versión web ya tiene también notas, resaltados y copias de seguridad. Escuchar y los widgets solo están en la aplicación para Android.',
+      'cmp.feature': 'Función', 'cmp.android': 'Android', 'cmp.web': 'Web', 'cmp.soon': 'Próximamente',
+      'row.download': 'Descargar versiones · leer sin conexión',
+      'row.parallel': 'Versiones en paralelo · comentarios',
+      'row.search': 'Búsqueda',
+      'row.files': 'Añadir archivos de la Biblia (.lfa, .bdf)',
+      'row.view': 'Colores, deslizar para cambiar de capítulo',
+      'row.memo': 'Notas · cuadernos de notas · lista de notas',
+      'row.highlight': 'Resaltados · Mis resaltados · marcadores',
+      'row.read': 'Marcas de leído · estadísticas de lectura',
+      'row.copy': 'Copiar · compartir versículos',
+      'row.backup': 'Copia de seguridad · restauración combinada (válida en ambas)',
+      'row.lang': '7 idiomas de interfaz',
+      'row.style': 'Elegir colores y estilos de resaltado',
+      'row.audio': 'Lectura en voz alta · mp3 · desplazamiento automático',
+      'row.widget': 'Widget de pantalla de inicio',
+      'cmp.legend': 'En teléfonos Android, por ahora recomendamos la aplicación de Google Play, aunque la versión web también funciona bien.',
+      'inst.title': 'Instalar la versión web',
+      'inst.sub': 'Sin tienda de aplicaciones. Bastan unos toques y ocupa muy poco espacio.',
+      'why.icon': '<b>Se abre desde un icono</b><span>Pantalla completa, sin barra de direcciones</span>',
+      'why.offline': '<b>Sin Internet</b><span>Las versiones descargadas, incluso en un avión</span>',
+      'why.update': '<b>Se actualiza sola</b><span>Le avisa cuando hay una nueva versión</span>',
+      'tab.ios': 'iPhone · iPad', 'tab.desktop': 'PC · Mac · Chromebook', 'tab.android': 'Android',
+      'ios.safari.h': 'Safari',
+      'ios.safari.steps': '<li>Abra <a href="web/">lifovebible.github.io/web</a> en Safari.</li><li>Toque el botón Compartir <kbd>□↑</kbd>: abajo en el iPhone, junto a la barra de direcciones en el iPad.</li><li>Desplácese, toque <b>Añadir a pantalla de inicio</b> y luego <b>Añadir</b>.</li>',
+      'ios.safari.note': 'Requiere iOS / iPadOS 16.4 o posterior.',
+      'ios.other.h': 'Chrome · Edge · Firefox',
+      'ios.other.steps': '<li>Toque el botón Compartir <kbd>□↑</kbd> junto a la barra de direcciones. En Edge o Firefox puede estar dentro del menú <kbd>⋯</kbd>.</li><li>Toque <b>Añadir a pantalla de inicio</b> → <b>Añadir</b>.</li>',
+      'dt.chrome.h': 'Chrome (Windows · Mac · Linux · Chromebook)',
+      'dt.chrome.steps': '<li>Abra la <a href="web/">versión web</a>.</li><li>Haga clic en el icono de instalar al final de la barra de direcciones y luego en <b>Instalar</b>.</li>',
+      'dt.chrome.note': '¿No ve el icono? Menú <kbd>⋮</kbd> → Enviar, guardar y compartir → Instalar página como aplicación.',
+      'dt.edge.h': 'Edge · Whale',
+      'dt.edge.steps': '<li>Haga clic en el icono de instalar aplicación de la barra de direcciones.</li><li>Haga clic en <b>Instalar</b>.</li>',
+      'dt.edge.note': 'En Edge también puede usar el menú <kbd>⋯</kbd> → Aplicaciones → Instalar este sitio como una aplicación.',
+      'dt.safari.h': 'Safari en Mac',
+      'dt.safari.steps': '<li>Abra la <a href="web/">versión web</a> en Safari.</li><li>Elija <b>Archivo</b> → <b>Añadir al Dock</b>.</li>',
+      'dt.safari.note': 'macOS 14 Sonoma o posterior. Firefox no puede instalar aplicaciones web; guárdela en marcadores o use Chrome o Edge.',
+      'and.play.h': 'Aplicación de Google Play (recomendada)',
+      'and.play.p': 'Tiene todas las funciones: lectura en voz alta, reproducción de mp3, desplazamiento automático y widgets.',
+      'and.web.h': 'Instalar la versión web',
+      'and.web.steps': '<li>Abra la <a href="web/">versión web</a> en Chrome y toque el aviso de instalación de abajo.</li><li>¿No aparece? Menú <kbd>⋮</kbd> → <b>Instalar aplicación</b> o <b>Añadir a pantalla de inicio</b>.</li>',
+      'and.web.note': 'Samsung Internet: el icono de instalar ↓ en la barra de direcciones, o menú ≡ → Añadir página a → Pantalla de inicio.',
+      'inst.tip': '<b>Para usuarios de iPhone.</b> En el iPhone, el navegador y las aplicaciones de la pantalla de inicio usan almacenamientos separados. Después de instalarla, ábrala desde su icono y vuelva a descargar sus versiones. Si solo la usa en el navegador, iOS puede borrar las versiones descargadas tras un tiempo sin abrirla, así que le recomendamos instalarla.',
+      'inst.backupTip': '<b>Haga copias de seguridad de sus registros.</b> La versión web guarda las notas, los resaltados y los marcadores solo en el navegador de ese dispositivo. Si borra los datos del navegador o elimina la aplicación, también se borran; guarde de vez en cuando un archivo de copia desde el menú ☰ → Copia de seguridad y restauración. La versión web le avisará si lleva tiempo sin hacer una copia.',
+      'bib.title': 'Biblias y comentarios en muchos idiomas',
+      'bib.sub': 'Solo se ofrecen textos de dominio público o con permiso. Descargue solo los que necesite.',
+      'bib.versions': 'versiones y comentarios', 'bib.languages': 'idiomas', 'bib.uiLangs': 'idiomas de la aplicación',
+      'bib.examples': 'Algunas versiones', 'bib.more': 'y muchos más',
+      'bib.comm': 'Comentarios y referencias cruzadas (para leer en paralelo)',
+      'road.title': 'Novedades y lo que viene',
+      'road.sub': 'Seguimos mejorando, una sugerencia de los usuarios a la vez.',
+      'road.web.when': 'Versión web<small>Noviembre · nuevo</small>',
+      'road.web.body': '<h4>Notas, resaltados, marcadores, copias de seguridad y 7 idiomas</h4><p>Sus registros personales de la aplicación para Android llegan también a la versión web: cuadernos de notas y modo de copia, listas de resaltados y notas, copiar y compartir versículos, marcas de leído y estadísticas de lectura, y copias de seguridad que pasan entre la aplicación para Android y la versión web. Las pantallas y la ayuda están en coreano, inglés, japonés, chino (tradicional y simplificado), español y portugués.</p>',
+      'road.android.when': '7.6.0<small>Android · principios de diciembre</small>',
+      'road.android.body': '<h4>Cuadernos de notas y restauración combinada</h4><p>Cuadernos de notas para copias, traducciones y notas de sermones, un modo de copia que guarda y pasa al siguiente versículo con Intro, restaurar una copia combinándola con los datos actuales, abrir copias de la versión web y avisar de un error en el texto manteniendo pulsado un versículo.</p>',
+      'road.sync.when': 'Después<small>Previsto</small>',
+      'road.sync.body': '<h4>Sincronización con su propio Google Drive</h4><p>Sin servidores propios: estamos preparando una forma de mantener al día las notas, los resaltados y las marcas de leído entre sus teléfonos y la versión web, usando su propio Google Drive.</p>',
+      'foot.tagline': 'Una aplicación de la Biblia gratuita y sin anuncios', 'foot.feedback': 'Sugerencias · problemas', 'foot.privacy': 'Política de privacidad'
+    },
+
+    pt: {
+      'meta.desc': 'Lifove Bible é um aplicativo da Bíblia gratuito e sem anúncios. Baixe no Google Play para Android, ou abra e instale a versão web no navegador do iPhone, iPad, Mac e PC. Mais de 70 traduções e comentários, funciona sem internet.',
+      'nav.apps': 'Aplicativos', 'nav.install': 'Instalar', 'nav.bibles': 'Traduções', 'nav.news': 'Novidades',
+      'hero.eyebrow': 'Agora também no iPhone, Mac e PC',
+      'hero.title': 'A Bíblia, em <em>todos os seus aparelhos</em>.',
+      'hero.lead': 'Lifove Bible é um aplicativo da Bíblia gratuito e sem anúncios. No Android, baixe no Google Play; no iPhone, iPad, Mac, PC ou Chromebook, abra no navegador e instale na tela de início ou na área de trabalho. As traduções baixadas funcionam sem internet.',
+      'cta.openWeb': 'Abrir a versão web', 'cta.openWebShort': 'Abrir a versão web', 'cta.play': 'Baixar no Google Play',
+      'mock.laptop': laptop('João 1', 'Almeida', ['No princípio era o Verbo, e o Verbo estava com Deus, e o Verbo era Deus.', 'Ele estava no princípio com Deus.', 'Todas as coisas foram feitas por intermédio dele, e sem ele nada do que foi feito se fez.'], 'KJV', KJV_JN),
+      'mock.phone': phone('Gênesis 1', 'Almeida', ['No princípio criou Deus os céus e a terra.', 'A terra era sem forma e vazia; e havia trevas sobre a face do abismo.', 'Disse Deus: haja luz. E houve luz.', 'Viu Deus que a luz era boa; e fez separação entre a luz e as trevas.', 'E Deus chamou à luz dia, e às trevas noite.']),
+      'apps.title': 'Uma Bíblia, dois aplicativos',
+      'apps.sub': 'Escolha o que combina com seu aparelho. Os dois são gratuitos e sem anúncios, e usam os mesmos dados da Bíblia e os mesmos arquivos de backup.',
+      'android.name': 'Aplicativo Android',
+      'android.tag': 'O aplicativo original, com mais recursos · Android 5.0 ou superior',
+      'android.list': '<li>Notas e cadernos de notas: guarde cópias, traduções ou notas de sermão como livros separados</li><li>Destaques, marcadores, histórico recente, estatísticas de leitura</li><li>Leitura em voz alta (TTS), reprodução de mp3, rolagem automática</li><li>Widget de versículo do dia na tela de início</li><li>Backup e restauração por mesclagem, importação de pastas de dados antigas</li><li>Funciona em leitores de tinta eletrônica, virar página com as teclas de volume</li>',
+      'web.name': 'Versão web',
+      'web.tag': 'Qualquer aparelho com navegador · instale como um aplicativo',
+      'web.list': '<li>Abre na hora no iPhone, iPad, Mac, PC com Windows e Chromebook; instalada, funciona sem internet</li><li>Notas e cadernos de notas, com um modo de cópia que vai ao próximo versículo ao salvar</li><li>Destaques, marcadores, marcas de lido e estatísticas de leitura</li><li>Backup e restauração por mesclagem com os mesmos arquivos do aplicativo Android</li><li>Visão paralela: várias traduções em colunas que se ajustam à tela</li><li>Pesquisa com dois termos, na Bíblia toda, AT, NT, por tema ou por livro</li><li>Arraste e solte seus próprios arquivos da Bíblia (.lfa, .bdf)</li><li>Telas e ajuda em 7 idiomas, cores do texto e do fundo, deslizar para mudar de capítulo</li>',
+      'shared.backup': '<b>Continue no PC de onde parou no celular.</b> Os dois aplicativos usam o mesmo arquivo de backup. Abra um backup do Android em Backup e restauração na versão web, e suas notas, destaques, marcadores e marcas de lido são mesclados com o que você já tem. Os backups da versão web podem ser abertos no aplicativo Android a partir da 7.6.0, em Configurações &gt; Restaurar dados.',
+      'shared.files': 'Os dois aplicativos baixam os mesmos arquivos da Bíblia do mesmo servidor. Você também pode soltar na versão web a pasta de Bíblias exportada pelo aplicativo Android (<code>Download/LifoveBible/bible</code>).',
+      'cmp.title': 'O que cada um faz',
+      'cmp.sub': 'A versão web agora também tem notas, destaques e backups. Ouvir e os widgets estão só no aplicativo Android.',
+      'cmp.feature': 'Recurso', 'cmp.android': 'Android', 'cmp.web': 'Web', 'cmp.soon': 'Em breve',
+      'row.download': 'Baixar traduções · ler sem internet',
+      'row.parallel': 'Traduções em paralelo · comentários',
+      'row.search': 'Pesquisa',
+      'row.files': 'Adicionar arquivos da Bíblia (.lfa, .bdf)',
+      'row.view': 'Cores, deslizar para mudar de capítulo',
+      'row.memo': 'Notas · cadernos de notas · lista de notas',
+      'row.highlight': 'Destaques · Meus destaques · marcadores',
+      'row.read': 'Marcas de lido · estatísticas de leitura',
+      'row.copy': 'Copiar · enviar versículos',
+      'row.backup': 'Backup · restauração por mesclagem (vale nos dois)',
+      'row.lang': '7 idiomas de interface',
+      'row.style': 'Escolher cores e estilos de destaque',
+      'row.audio': 'Leitura em voz alta · mp3 · rolagem automática',
+      'row.widget': 'Widget na tela de início',
+      'cmp.legend': 'Em celulares Android, por enquanto recomendamos o aplicativo do Google Play, embora a versão web também funcione bem.',
+      'inst.title': 'Instalar a versão web',
+      'inst.sub': 'Sem loja de aplicativos. São só alguns toques, e ocupa muito pouco espaço.',
+      'why.icon': '<b>Abre por um ícone</b><span>Tela cheia, sem barra de endereço</span>',
+      'why.offline': '<b>Sem internet</b><span>Traduções baixadas, até no avião</span>',
+      'why.update': '<b>Atualiza sozinha</b><span>Avisa quando há uma nova versão</span>',
+      'tab.ios': 'iPhone · iPad', 'tab.desktop': 'PC · Mac · Chromebook', 'tab.android': 'Android',
+      'ios.safari.h': 'Safari',
+      'ios.safari.steps': '<li>Abra <a href="web/">lifovebible.github.io/web</a> no Safari.</li><li>Toque no botão Compartilhar <kbd>□↑</kbd>: embaixo no iPhone, ao lado da barra de endereço no iPad.</li><li>Role, toque em <b>Adicionar à Tela de Início</b> e depois em <b>Adicionar</b>.</li>',
+      'ios.safari.note': 'Requer iOS / iPadOS 16.4 ou superior.',
+      'ios.other.h': 'Chrome · Edge · Firefox',
+      'ios.other.steps': '<li>Toque no botão Compartilhar <kbd>□↑</kbd> ao lado da barra de endereço. No Edge ou Firefox ele pode estar no menu <kbd>⋯</kbd>.</li><li>Toque em <b>Adicionar à Tela de Início</b> → <b>Adicionar</b>.</li>',
+      'dt.chrome.h': 'Chrome (Windows · Mac · Linux · Chromebook)',
+      'dt.chrome.steps': '<li>Abra a <a href="web/">versão web</a>.</li><li>Clique no ícone de instalar no fim da barra de endereço e depois em <b>Instalar</b>.</li>',
+      'dt.chrome.note': 'Sem ícone? Menu <kbd>⋮</kbd> → Transmitir, salvar e compartilhar → Instalar página como app.',
+      'dt.edge.h': 'Edge · Whale',
+      'dt.edge.steps': '<li>Clique no ícone de instalar app na barra de endereço.</li><li>Clique em <b>Instalar</b>.</li>',
+      'dt.edge.note': 'No Edge você também pode usar o menu <kbd>⋯</kbd> → Aplicativos → Instalar este site como um aplicativo.',
+      'dt.safari.h': 'Safari no Mac',
+      'dt.safari.steps': '<li>Abra a <a href="web/">versão web</a> no Safari.</li><li>Escolha <b>Arquivo</b> → <b>Adicionar ao Dock</b>.</li>',
+      'dt.safari.note': 'macOS 14 Sonoma ou superior. O Firefox não instala aplicativos web; salve nos favoritos ou use o Chrome ou o Edge.',
+      'and.play.h': 'Aplicativo do Google Play (recomendado)',
+      'and.play.p': 'Tem todos os recursos: leitura em voz alta, reprodução de mp3, rolagem automática e widgets.',
+      'and.web.h': 'Instalar a versão web',
+      'and.web.steps': '<li>Abra a <a href="web/">versão web</a> no Chrome e toque no aviso de instalação embaixo.</li><li>Não apareceu? Menu <kbd>⋮</kbd> → <b>Instalar app</b> ou <b>Adicionar à tela inicial</b>.</li>',
+      'and.web.note': 'Samsung Internet: o ícone de instalar ↓ na barra de endereço, ou menu ≡ → Adicionar página a → Tela inicial.',
+      'inst.tip': '<b>Para quem usa iPhone.</b> No iPhone, o navegador e os apps da tela de início usam armazenamentos separados. Depois de instalar, abra pelo ícone e baixe suas traduções de novo. Se usar só no navegador, o iOS pode apagar as traduções baixadas depois de um tempo sem abrir, por isso recomendamos instalar.',
+      'inst.backupTip': '<b>Faça backup dos seus registros.</b> A versão web guarda notas, destaques e marcadores só no navegador daquele aparelho. Se você limpar os dados do navegador ou remover o app, eles também somem; salve de vez em quando um arquivo de backup pelo menu ☰ → Backup e restauração. A versão web avisa se você ficar muito tempo sem fazer backup.',
+      'bib.title': 'Bíblias e comentários em muitos idiomas',
+      'bib.sub': 'Só oferecemos textos de domínio público ou com permissão. Baixe apenas os que precisar.',
+      'bib.versions': 'traduções e comentários', 'bib.languages': 'idiomas', 'bib.uiLangs': 'idiomas do aplicativo',
+      'bib.examples': 'Algumas traduções', 'bib.more': 'e muitos outros',
+      'bib.comm': 'Comentários e referências cruzadas (para ler em paralelo)',
+      'road.title': 'Novidades e o que vem por aí',
+      'road.sub': 'Seguimos melhorando, uma sugestão dos usuários de cada vez.',
+      'road.web.when': 'Versão web<small>Novembro · novo</small>',
+      'road.web.body': '<h4>Notas, destaques, marcadores, backups e 7 idiomas</h4><p>Seus registros pessoais do aplicativo Android agora também estão na versão web: cadernos de notas e modo de cópia, listas de destaques e de notas, copiar e enviar versículos, marcas de lido e estatísticas de leitura, e backups que passam entre o aplicativo Android e a versão web. Telas e ajuda em coreano, inglês, japonês, chinês (tradicional e simplificado), espanhol e português.</p>',
+      'road.android.when': '7.6.0<small>Android · início de dezembro</small>',
+      'road.android.body': '<h4>Cadernos de notas e restauração por mesclagem</h4><p>Cadernos de notas para cópias, traduções e notas de sermão, um modo de cópia que salva e vai ao próximo versículo com Enter, restaurar um backup mesclando com os dados atuais, abrir backups da versão web e relatar um erro no texto tocando e segurando um versículo.</p>',
+      'road.sync.when': 'Depois<small>Planejado</small>',
+      'road.sync.body': '<h4>Sincronização pelo seu próprio Google Drive</h4><p>Sem servidor próprio: estamos preparando uma forma de manter notas, destaques e marcas de lido iguais entre seus celulares e a versão web, usando o seu próprio Google Drive.</p>',
+      'foot.tagline': 'Um aplicativo da Bíblia gratuito e sem anúncios', 'foot.feedback': 'Sugestões · problemas', 'foot.privacy': 'Política de privacidade'
+    }
+  };
+
+  var LANGS = ['ko', 'en', 'ja', 'zh', 'zh-CN', 'es', 'pt'];
+  var HTML_LANG = { ko: 'ko', en: 'en', ja: 'ja', zh: 'zh-Hant', 'zh-CN': 'zh-Hans', es: 'es', pt: 'pt' };
+  var root = document.documentElement;
+  var nodes = document.querySelectorAll('[data-i18n]');
+  var metaDesc = document.querySelector('meta[name="description"]');
+
+  // Korean is the text already in the page
+  var ko = { 'meta.desc': metaDesc.getAttribute('content') };
+  nodes.forEach(function (el) {
+    var k = el.getAttribute('data-i18n');
+    if (!(k in ko)) ko[k] = el.innerHTML;
+  });
+  T.ko = ko;
+
+  // Same mapping as the web app (web/js/strings.js langCode)
+  function langCode(tag) {
+    var t = String(tag || '').toLowerCase().replace(/_/g, '-');
+    var base = t.split('-')[0];
+    if (base === 'zh') return /-(hant|tw|hk|mo)\b/.test(t) ? 'zh' : 'zh-CN';
+    return base;
+  }
+  function pickLang() {
+    var list = navigator.languages && navigator.languages.length ? navigator.languages : [navigator.language];
+    for (var i = 0; i < list.length; i++) {
+      var c = langCode(list[i]);
+      if (LANGS.indexOf(c) >= 0) return c;
+    }
+    return 'en';
+  }
+
+  var select = document.getElementById('langSelect');
+  function setLang(l) {
+    var dict = T[l] || T.en;
+    nodes.forEach(function (el) {
+      var k = el.getAttribute('data-i18n');
+      var v = dict[k];
+      if (v == null) { v = T.en[k] != null ? T.en[k] : ko[k]; if (window.console) console.warn('i18n: missing', l, k); }
+      if (el.innerHTML !== v) el.innerHTML = v;
+    });
+    metaDesc.setAttribute('content', dict['meta.desc'] || ko['meta.desc']);
+    root.setAttribute('lang', HTML_LANG[l]);
+    select.value = l;
+  }
+
   var saved = null;
   try { saved = localStorage.getItem('lb-site-lang'); } catch (e) {}
   var q = new URLSearchParams(location.search).get('lang');
-  var nav = (navigator.language || 'ko').toLowerCase();
-  setLang(q === 'ko' || q === 'en' ? q : saved || (nav.indexOf('ko') === 0 ? 'ko' : 'en'));
-  document.querySelectorAll('[data-set-lang]').forEach(function (b) {
-    b.addEventListener('click', function () {
-      var l = b.getAttribute('data-set-lang');
-      setLang(l);
-      try { localStorage.setItem('lb-site-lang', l); } catch (e) {}
-    });
+  if (q) q = LANGS.indexOf(q) >= 0 ? q : langCode(q);
+  var start = [q, saved, pickLang()].filter(function (l) { return LANGS.indexOf(l) >= 0; })[0];
+  setLang(start);
+  select.addEventListener('change', function () {
+    setLang(select.value);
+    try { localStorage.setItem('lb-site-lang', select.value); } catch (e) {}
   });
 
   // Install tabs: open the one matching this device
