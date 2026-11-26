@@ -41,6 +41,7 @@ import { backupReminder, DAY, SNOOZE_DAYS } from './backupReminder.js';
 import { loadSqlJs } from './sqlite.js';
 import { highlightMap, targetsOf, highlightActions, highlightList, highlightsText } from './highlight.js';
 import { bookmarkList } from './bookmark.js';
+import { SPEEDS, nextSpeed, speedLabel, speechLang, speechItems, chapterTitle, pickVoice } from './tts.js';
 import { memoMap, isBlankMemo, memoList, memoWords, memoMatches, memosText } from './memo.js';
 import {
   defaultMemoBookRow, memoBookList, memoBookName, currentMemoBook, movedUids, memoCounts, DEFAULT_MEMO_BOOK,
@@ -366,6 +367,7 @@ async function render() {
     $verses.replaceChildren();
     updateVerseBtn();
     if (versionList.length) setStatus(S.noVersions);
+    ttsAfterRender();
     return;
   }
   // 한 역본이 실패해도 나머지는 보이게 따로따로 기다린다
@@ -405,6 +407,7 @@ async function render() {
   else if (!$verses.childElementCount) setStatus(S.noChapter);
   else setStatus('');
   showPendingVerse();
+  ttsAfterRender(); // 맨 위로 스크롤한 뒤에(읽는 절로 스크롤한 것이 덮이지 않게)
   updateVerseBtn(); // 스크롤이 그대로(맨 위)면 scroll 이벤트가 오지 않아서 직접
 }
 
@@ -1415,6 +1418,224 @@ $readCheck.addEventListener('change', async () => {
   updateReadCheck();
 });
 
+// ---- 음성 읽기(TTS) ----
+// 앱 VerseList의 오디오(▶ 단추, AudioControlBar, 읽는 절 따라가기, 장 끝에서 다음 장)를 따른다.
+// 브라우저 speechSynthesis로 절마다 읽는다(계산은 tts.js). 멈춤은 pause() 대신 cancel()하고 그 조각부터
+// 다시 읽는다: 안드로이드 크롬은 pause()가 듣지 않거나 resume() 뒤 소리가 안 나는 일이 있어서
+const synth = window.speechSynthesis;
+const $ttsBtn = $('ttsBtn'), $ttsBar = $('ttsBar'), $ttsPause = $('ttsPause');
+let tts = null; // 읽는 중이면 {items, i, book, chapter, lang, voice, paused}
+let ttsGen = 0; // 읽기 차례. 멈추거나 다시 읽으면 올려서 옛 조각의 onend·onerror를 버린다
+let ttsGoing = null; // 다음 장으로 넘어가는 중이면 그 위치. 그 장을 그린 뒤 이어 읽는다(ttsAfterRender)
+let ttsTouched = 0; // 사용자가 화면을 만진 때. 5초 동안은 읽는 절을 따라가지 않는다(앱 followCurrentVerse)
+let ttsVoices = synth ? synth.getVoices() : []; // 크롬은 처음에 비어 있다가 voiceschanged로 온다
+let wakeLock = null;
+if (synth) synth.addEventListener?.('voiceschanged', () => { ttsVoices = synth.getVoices(); });
+const ttsRate = () => (SPEEDS.includes(prefs.ttsRate) ? prefs.ttsRate : 1);
+
+label($('ttsPrev'), S.prev);
+label($('ttsNext'), S.next);
+label($('ttsStop'), S.ttsStop);
+
+function showTtsBtn() {
+  $ttsBtn.hidden = !synth || prefs.ttsButton === false;
+  if (tts) {
+    $ttsBtn.textContent = speedLabel(ttsRate());
+    label($ttsBtn, S.ttsSpeed(speedLabel(ttsRate())));
+  } else {
+    $ttsBtn.textContent = '▶︎';
+    label($ttsBtn, S.ttsPlay);
+  }
+  $ttsBar.hidden = !tts;
+  if (tts) {
+    $ttsPause.textContent = tts.paused ? '▶︎' : '❚❚';
+    label($ttsPause, tts.paused ? S.ttsResume : S.ttsPause);
+  }
+}
+
+/** 지금 장의 읽을 차례. 대조 보기면 첫 역본만(앱과 같다) */
+function ttsChapter() {
+  const v = prefs.versions[0];
+  const texts = shown.rows.slice(0, 5).map((r) => r.cells?.[0]?.text || '');
+  const lang = speechLang(v?.lang, v?.code, texts);
+  return { items: speechItems(shown.rows, chapterTitle(lang, pos.book, pos.chapter)), lang, book: pos.book, chapter: pos.chapter };
+}
+
+function ttsStart() {
+  const ch = ttsChapter();
+  if (!ch.items.length) return;
+  const voice = pickVoice(ttsVoices, ch.lang);
+  // 목소리 목록이 왔는데 이 언어가 없으면 알린다. 목록이 비어 있으면(아직 안 왔거나 알려 주지 않는 브라우저) lang만 주고 해 본다
+  if (ttsVoices.length && !voice) {
+    showToast(S.ttsNoVoice);
+    return;
+  }
+  tts = { ...ch, i: 0, voice, paused: false };
+  showTtsBtn();
+  ttsWake(true);
+  ttsSpeak();
+}
+
+function ttsSpeak() {
+  const gen = ++ttsGen;
+  synth.cancel();
+  const it = tts.items[tts.i];
+  ttsMark(it.verse);
+  const u = new SpeechSynthesisUtterance(it.text);
+  u.lang = tts.lang;
+  if (tts.voice) u.voice = tts.voice;
+  u.rate = ttsRate();
+  u.onend = () => { if (gen === ttsGen) ttsAdvance(); };
+  u.onerror = (e) => {
+    if (gen !== ttsGen || e.error === 'interrupted' || e.error === 'canceled') return;
+    console.warn('speech error', e.error);
+    showToast(S.ttsFailed);
+    ttsStop();
+  };
+  synth.speak(u);
+}
+
+function ttsAdvance() {
+  tts.i++;
+  if (tts.i < tts.items.length) ttsSpeak();
+  else ttsChapterDone();
+}
+
+/** 장을 다 읽었다(앱 onCompletion): 설정이면 읽음 표시, 다음 장으로 넘어가 이어 읽는다. 요한계시록 끝이면 멈춤 */
+async function ttsChapterDone() {
+  const { book, chapter } = tts;
+  if (prefs.ttsReadCheck) {
+    const codes = prefs.versions.map((v) => v.code);
+    try {
+      await setReadCheck(codes, book, chapter, true);
+      for (const c of codes) readSets.delete(c);
+    } catch (e) {
+      console.warn(e);
+    }
+    updateReadCheck();
+  }
+  if (!tts) return; // 읽음 표시를 저장하는 사이에 멈췄으면
+  ttsMove('next');
+}
+
+/** 읽으면서 이전/다음 장으로(재생 줄 ‹ ›, 장 끝). 그 장을 그린 뒤 처음부터 읽는다 */
+function ttsMove(dir) {
+  const to = dir === 'next' ? nextChapter(tts) : prevChapter(tts);
+  if (!to) {
+    ttsStop();
+    return;
+  }
+  ++ttsGen;
+  synth.cancel();
+  ttsGoing = to;
+  slideDir = dir; // goChapter처럼 새 장이 그쪽에서 들어오게
+  go(to);
+}
+
+/**
+ * 장을 그린 뒤(render 끝). 넘어가던 장이면 이어 읽고, 읽는 중에 사용자가 다른 장으로 옮겼으면 멈춘다
+ * (앱 audioReset: 장을 옮기면 재생을 멈춘다). 같은 장을 다시 그렸으면(역본 바꾸기 등) 그 절 강조만 다시
+ */
+function ttsAfterRender() {
+  if (!tts) return;
+  const going = ttsGoing;
+  ttsGoing = null;
+  if (going && going.book === pos.book && going.chapter === pos.chapter) {
+    const ch = ttsChapter();
+    if (!ch.items.length) { // 이 장이 없는 역본(신약만 있는 역본 등)
+      ttsStop();
+      return;
+    }
+    Object.assign(tts, ch, { i: 0, paused: false, voice: pickVoice(ttsVoices, ch.lang) || tts.voice });
+    showTtsBtn();
+    ttsWake(true);
+    ttsSpeak();
+  } else if (tts.book === pos.book && tts.chapter === pos.chapter) {
+    ttsMark(tts.items[tts.i]?.verse);
+  } else {
+    ttsStop();
+  }
+}
+
+function ttsPauseToggle() {
+  if (!tts) return;
+  tts.paused = !tts.paused;
+  if (tts.paused) {
+    ++ttsGen;
+    synth.cancel();
+  } else {
+    ttsSpeak(); // 멈춘 조각부터 다시
+  }
+  ttsWake(!tts.paused);
+  showTtsBtn();
+}
+
+function ttsStop() {
+  ++ttsGen;
+  ttsGoing = null;
+  if (synth) synth.cancel();
+  tts = null;
+  ttsMark(null);
+  ttsWake(false);
+  showTtsBtn();
+}
+
+/** 읽는 절을 칠하고, 보이지 않으면 맨 위로 스크롤한다. 장 제목(0)이면 칠하지 않는다 */
+function ttsMark(verse) {
+  $verses.querySelector('li.tts-now')?.classList.remove('tts-now');
+  if (!verse) return;
+  const li = $('v' + verse);
+  if (!li) return;
+  li.classList.add('tts-now');
+  if (Date.now() - ttsTouched < 5000) return;
+  const r = li.getBoundingClientRect(), area = viewArea();
+  if (r.top < area.top || r.bottom > area.bottom) scrollToTop(li);
+}
+
+/** 읽는 동안 화면이 꺼지지 않게(꺼지면 브라우저가 읽기를 멈춘다). 지원하지 않거나 거절되면 그냥 둔다 */
+async function ttsWake(on) {
+  try {
+    if (on && !wakeLock && navigator.wakeLock && document.visibilityState === 'visible') {
+      wakeLock = await navigator.wakeLock.request('screen');
+      wakeLock.addEventListener('release', () => { wakeLock = null; });
+    } else if (!on && wakeLock) {
+      await wakeLock.release();
+      wakeLock = null;
+    }
+  } catch (e) {
+    console.warn('wake lock', e);
+  }
+}
+
+// 다른 앱에 다녀오면 화면 켜짐을 다시 잡고(보이지 않으면 저절로 풀린다), 브라우저가 읽기를 멈췄으면 그 조각부터 다시
+document.addEventListener('visibilitychange', () => {
+  if (document.visibilityState !== 'visible' || !tts || tts.paused || ttsGoing) return;
+  ttsWake(true);
+  if (!synth.speaking && !synth.pending) ttsSpeak();
+});
+// 본문을 만지거나 굴릴 때만 센다(▶·재생 줄 단추를 누른 것은 빼려고)
+const ttsTouch = () => { ttsTouched = Date.now(); };
+$main.addEventListener('touchstart', ttsTouch, { passive: true });
+window.addEventListener('wheel', ttsTouch, { passive: true });
+
+// 앱처럼 읽지 않을 때는 시작, 읽는 동안에는 속도 바꾸기. 바꾼 속도는 다음에도 쓴다(앱은 멈추면 1.0x로 돌아간다)
+$ttsBtn.addEventListener('click', () => {
+  if (!tts) {
+    ttsStart();
+    return;
+  }
+  prefs.ttsRate = nextSpeed(ttsRate());
+  savePrefs();
+  showTtsBtn();
+  if (!tts.paused && !ttsGoing) ttsSpeak(); // 읽던 조각을 새 속도로 다시
+});
+$ttsPause.addEventListener('click', ttsPauseToggle);
+$('ttsStop').addEventListener('click', ttsStop);
+$('ttsPrev').addEventListener('click', () => tts && ttsMove('prev'));
+$('ttsNext').addEventListener('click', () => tts && ttsMove('next'));
+window.addEventListener('pagehide', () => synth?.cancel()); // 페이지를 떠난 뒤에도 읽지 않게
+showTtsBtn();
+
 // ---- 책갈피 ----
 // 앱 BookmarkStore·HistoryList. 역본과 상관없이 위치(책·장·절)만 남긴다. 추가는 맨 위에 보이는 절(앱 topVerseNumber)
 const $bmBox = $('bmBox'), $bmList = $('bmList');
@@ -2359,6 +2580,8 @@ function openSettings() {
   $('setNavUnit').value = NAV_UNITS.includes(prefs.navUnit) ? prefs.navUnit : NAV_UNIT_DEFAULT;
   $('setNavPos').value = navPosition(prefs.navPos);
   $('setSwipe').checked = prefs.swipeChapter !== false;
+  $('setTtsBtn').checked = prefs.ttsButton !== false;
+  $('setTtsRead').checked = !!prefs.ttsReadCheck;
   showColorInputs();
   $('settingsBox').showModal();
 }
@@ -3518,6 +3741,24 @@ $('setSwipeLabel').textContent = S.swipeChapter;
 $('setSwipeHint').textContent = S.swipeChapterHint;
 $('setSwipe').addEventListener('change', (e) => {
   prefs.swipeChapter = e.target.checked;
+  savePrefs();
+});
+// 음성(TTS) 설정. 앱 audio_button_preference(기본 켬), autoaudioreadcheck_preference(기본 끔).
+// 브라우저에 음성 읽기가 없으면 묶음째 숨긴다
+$('groupTts').textContent = S.groupTts;
+$('setTtsBtnLabel').textContent = S.ttsButton;
+$('setTtsBtnHint').textContent = S.ttsButtonHint;
+$('setTtsReadLabel').textContent = S.ttsReadCheck;
+$('setTtsReadHint').textContent = S.ttsReadCheckHint;
+if (!synth) for (const id of ['groupTts', 'setTtsBtn', 'setTtsRead']) $(id).closest('h3, label').hidden = true;
+$('setTtsBtn').addEventListener('change', (e) => {
+  prefs.ttsButton = e.target.checked;
+  savePrefs();
+  if (!e.target.checked) ttsStop(); // 앱: 끄면 오디오 기능을 쓰지 않는다
+  showTtsBtn();
+});
+$('setTtsRead').addEventListener('change', (e) => {
+  prefs.ttsReadCheck = e.target.checked;
   savePrefs();
 });
 $('setNavPos').append(...NAV_POSITIONS.map((p) => option(p, S.navPositions[p])));

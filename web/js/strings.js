@@ -79,6 +79,18 @@ const STRINGS = {
     navUnits: { verse: '한 절 이동', page: '한 화면(여러절) 이동', chapter: '한 장 이동' }, // entries_volumekey
     swipeChapter: '옆으로 밀어 장 넘기기', // text_pref_swipe_chapter
     swipeChapterHint: '본문을 왼쪽이나 오른쪽으로 밀면 다음 장이나 이전 장으로 넘어갑니다. 스크롤하다가 장이 넘어가는 일이 잦으면 끄세요.',
+    ttsPlay: '현재 장 TTS 듣기', // text_launch_tts_player
+    ttsSpeed: (rate) => `읽기 속도 ${rate}`, // 읽는 동안 ▶ 단추(속도)를 읽어 줄 때
+    ttsPause: '잠시 멈춤',
+    ttsResume: '이어 듣기',
+    ttsStop: '그만 듣기',
+    ttsNoVoice: '이 언어의 목소리가 없습니다. 음성 데이터를 설치해 주세요.', // text_tts_no_voice
+    ttsFailed: '이 장의 음성을 만들지 못했습니다.', // text_tts_failed
+    groupTts: '음성(TTS) 설정', // text_title_pref_tts
+    ttsButton: '오디오 버튼 표시', // text_pref_audio_button
+    ttsButtonHint: '본문 화면에 오디오 버튼(▶)을 표시합니다. 끄면 오디오 기능을 사용하지 않습니다.', // text_pref_audio_button_summary (앱은 '본문 화면 위쪽에'. 웹은 바가 아래가 기본이라 뺐다)
+    ttsReadCheck: '오디오 성경 자동 읽음 체크', // text_pref_autoaudioreadcheck_preference
+    ttsReadCheckHint: '오디오 낭독이 끝난 후 다음 장으로 넘어갈 때, 자동으로 읽음 체크 실행합니다.', // text_pref_autoaudioreadcheck_preference_summary
     navUp: '위로',
     navDown: '아래로',
     navBack: '최근목록 뒤로',
@@ -363,6 +375,18 @@ const STRINGS = {
     navUnits: { verse: 'Move One Verse', page: 'Move One Screen(verses)', chapter: 'Move One Chapter' }, // entries_volumekey
     swipeChapter: 'Swipe to change chapters', // text_pref_swipe_chapter
     swipeChapterHint: 'Swipe the text left or right to go to the next or previous chapter. Turn off if chapters change when you only meant to scroll.',
+    ttsPlay: 'Read a chapter (TTS)', // text_launch_tts_player
+    ttsSpeed: (rate) => `Speech speed ${rate}`,
+    ttsPause: 'Pause',
+    ttsResume: 'Resume',
+    ttsStop: 'Stop',
+    ttsNoVoice: 'No voice for this language. Please install voice data.', // text_tts_no_voice
+    ttsFailed: 'Could not create speech for this chapter.', // text_tts_failed
+    groupTts: 'Speech (TTS) Settings', // text_title_pref_tts
+    ttsButton: 'Show audio button', // text_pref_audio_button
+    ttsButtonHint: 'Show the audio button (▶) in the Bible viewer. Turn off if you don\'t use audio.', // text_pref_audio_button_summary
+    ttsReadCheck: 'Audio Bible Read Check', // text_pref_autoaudioreadcheck_preference
+    ttsReadCheckHint: 'Automatically check the chapter as read when finished reading the chapter by Audio Bible', // text_pref_autoaudioreadcheck_preference_summary
     navUp: 'Up',
     navDown: 'Down',
     navBack: 'History back',
@@ -648,6 +672,18 @@ const STRINGS = {
     navUnits: { verse: '1節ずつ移動', page: '1画面ずつ移動', chapter: '1章ずつ移動' }, // entries_volumekey
     swipeChapter: 'スワイプで章を移動', // text_pref_swipe_chapter
     swipeChapterHint: '本文を左右にスワイプすると、次の章や前の章に移動します。スクロール中に章が変わってしまうことが多ければ、オフにしてください。',
+    ttsPlay: '章を読み上げる', // text_launch_tts_player
+    ttsSpeed: (rate) => `読み上げ速度 ${rate}`,
+    ttsPause: '一時停止',
+    ttsResume: '再開',
+    ttsStop: '停止',
+    ttsNoVoice: 'この言語の声がありません。音声データをインストールしてください。', // text_tts_no_voice
+    ttsFailed: 'この章の音声を作成できませんでした。', // text_tts_failed
+    groupTts: '読み上げ(TTS)の設定', // text_title_pref_tts
+    ttsButton: '音声ボタンを表示', // text_pref_audio_button
+    ttsButtonHint: '本文画面に音声ボタン(▶)を表示します。音声を使わない場合はオフにしてください。', // text_pref_audio_button_summary
+    ttsReadCheck: '音声で既読にする', // text_pref_autoaudioreadcheck_preference
+    ttsReadCheckHint: 'オーディオ聖書が章を読み終えると、その章を既読にします', // text_pref_autoaudioreadcheck_preference_summary
     navUp: '上へ',
     navDown: '下へ',
     navBack: '履歴を戻る',
@@ -935,6 +971,18 @@ const STRINGS = {
     navUnits: { verse: '移動1節', page: '移動1畫面', chapter: '移動1章' }, // entries_volumekey
     swipeChapter: '左右滑動換章', // text_pref_swipe_chapter
     swipeChapterHint: '將經文向左或向右滑動，即可前往下一章或上一章。若捲動時常常不小心換章，請關閉此功能。',
+    ttsPlay: '朗讀本章（語音）', // text_launch_tts_player
+    ttsSpeed: (rate) => `朗讀速度 ${rate}`,
+    ttsPause: '暫停',
+    ttsResume: '繼續朗讀',
+    ttsStop: '停止朗讀',
+    ttsNoVoice: '沒有這個語言的聲音，請安裝語音資料。', // text_tts_no_voice
+    ttsFailed: '無法產生本章的語音。', // text_tts_failed
+    groupTts: '語音（TTS）設定', // text_title_pref_tts
+    ttsButton: '顯示音訊按鈕', // text_pref_audio_button
+    ttsButtonHint: '在閱讀器中顯示音訊按鈕（▶）。不使用音訊時可以關閉。', // text_pref_audio_button_summary
+    ttsReadCheck: '有聲聖經閱讀標記', // text_pref_autoaudioreadcheck_preference
+    ttsReadCheckHint: '有聲聖經讀完一章時，自動將該章標記為已讀', // text_pref_autoaudioreadcheck_preference_summary
     navUp: '向上',
     navDown: '向下',
     navBack: '歷史上一筆',
@@ -1222,6 +1270,18 @@ const STRINGS = {
     navUnits: { verse: '移动1节', page: '移动1画面', chapter: '移动1章' }, // entries_volumekey
     swipeChapter: '左右滑动换章', // text_pref_swipe_chapter
     swipeChapterHint: '将经文向左或向右滑动，即可前往下一章或上一章。若卷动时常常不小心换章，请关闭此功能。',
+    ttsPlay: '朗读本章（语音）', // text_launch_tts_player
+    ttsSpeed: (rate) => `朗读速度 ${rate}`,
+    ttsPause: '暂停',
+    ttsResume: '继续朗读',
+    ttsStop: '停止朗读',
+    ttsNoVoice: '没有这个语言的声音，请安装语音资料。', // text_tts_no_voice
+    ttsFailed: '无法产生本章的语音。', // text_tts_failed
+    groupTts: '语音（TTS）设定', // text_title_pref_tts
+    ttsButton: '显示音讯按钮', // text_pref_audio_button
+    ttsButtonHint: '在阅读器中显示音讯按钮（▶）。不使用音讯时可以关闭。', // text_pref_audio_button_summary
+    ttsReadCheck: '有声圣经阅读标记', // text_pref_autoaudioreadcheck_preference
+    ttsReadCheckHint: '有声圣经读完一章时，自动将该章标记为已读', // text_pref_autoaudioreadcheck_preference_summary
     navUp: '向上',
     navDown: '向下',
     navBack: '历史上一笔',
@@ -1508,6 +1568,18 @@ const STRINGS = {
     navUnits: { verse: 'Mover un versículo', page: 'Mover una pantalla', chapter: 'Mover un capítulo' }, // entries_volumekey
     swipeChapter: 'Deslizar para cambiar de capítulo', // text_pref_swipe_chapter
     swipeChapterHint: 'Desliza el texto a la izquierda o a la derecha para ir al capítulo siguiente o anterior. Desactívalo si el capítulo cambia cuando solo querías desplazarte.',
+    ttsPlay: 'Leer el capítulo (voz)', // text_launch_tts_player
+    ttsSpeed: (rate) => `Velocidad de lectura ${rate}`,
+    ttsPause: 'Pausa',
+    ttsResume: 'Reanudar',
+    ttsStop: 'Detener',
+    ttsNoVoice: 'No hay voz para este idioma. Instala los datos de voz.', // text_tts_no_voice
+    ttsFailed: 'No se pudo crear la voz de este capítulo.', // text_tts_failed
+    groupTts: 'Ajustes de voz (TTS)', // text_title_pref_tts
+    ttsButton: 'Mostrar botón de audio', // text_pref_audio_button
+    ttsButtonHint: 'Muestra el botón de audio (▶) en el lector. Desactívalo si no usas audio.', // text_pref_audio_button_summary
+    ttsReadCheck: 'Marcar lectura con audio', // text_pref_autoaudioreadcheck_preference
+    ttsReadCheckHint: 'Marca el capítulo como leído cuando el audio de la Biblia termina el capítulo', // text_pref_autoaudioreadcheck_preference_summary
     navUp: 'Arriba',
     navDown: 'Abajo',
     navBack: 'Atrás en el historial',
@@ -1794,6 +1866,18 @@ const STRINGS = {
     navUnits: { verse: 'Mover um versículo', page: 'Mover uma tela', chapter: 'Mover um capítulo' }, // entries_volumekey
     swipeChapter: 'Deslizar para mudar de capítulo', // text_pref_swipe_chapter
     swipeChapterHint: 'Deslize o texto para a esquerda ou para a direita para ir ao próximo capítulo ou ao anterior. Desative se o capítulo mudar quando você só queria rolar.',
+    ttsPlay: 'Ler o capítulo (voz)', // text_launch_tts_player
+    ttsSpeed: (rate) => `Velocidade de leitura ${rate}`,
+    ttsPause: 'Pausar',
+    ttsResume: 'Continuar',
+    ttsStop: 'Parar',
+    ttsNoVoice: 'Não há voz para este idioma. Instale os dados de voz.', // text_tts_no_voice
+    ttsFailed: 'Não foi possível criar a voz deste capítulo.', // text_tts_failed
+    groupTts: 'Configurações de voz (TTS)', // text_title_pref_tts
+    ttsButton: 'Mostrar botão de áudio', // text_pref_audio_button
+    ttsButtonHint: 'Mostra o botão de áudio (▶) no leitor. Desative se você não usa áudio.', // text_pref_audio_button_summary
+    ttsReadCheck: 'Marcar leitura com áudio', // text_pref_autoaudioreadcheck_preference
+    ttsReadCheckHint: 'Marca o capítulo como lido quando o áudio da Bíblia termina o capítulo', // text_pref_autoaudioreadcheck_preference_summary
     navUp: 'Para cima',
     navDown: 'Para baixo',
     navBack: 'Voltar no histórico',

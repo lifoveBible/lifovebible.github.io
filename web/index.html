@@ -19,6 +19,9 @@
     <!-- 앱 verselist.xml처럼 책·장·절 단추를 따로 둔다. 절 단추는 맨 위 절과 마지막 절 번호를 두 줄로(어디까지 읽었는지).
          글자 크기 가-/가+는 본문화면설정으로 옮겼다 -->
     <div class="nav">
+      <!-- 음성 읽기(앱 book_audio, 책 단추 앞). 읽는 동안에는 속도(1.0x)가 보이고 누르면 속도가 바뀐다(앱과 같다).
+           FE0E: 이모지 그림이 아니라 글자로 -->
+      <button id="ttsBtn" class="tts-btn" hidden>▶&#xFE0E;</button>
       <button id="bookBtn" class="ref"></button>
       <button id="chapterBtn" class="chap"></button>
       <button id="verseBtn" class="verse"><span id="verseNow"></span><span id="verseLast"></span></button>
@@ -30,6 +33,14 @@
     </div>
     <!-- 앱의 메뉴처럼 오른쪽 위 끝. 폰 폭에서도 첫 줄 끝에 오게 CSS order로 자리를 정한다 -->
     <button id="menuBtn" class="icon" aria-haspopup="menu">☰</button>
+    <!-- 음성 읽기 줄(앱 AudioControlBar: 이전 장, 멈춤, 다음 장, 정지). 읽는 동안만 바의 한 줄로 보인다.
+         바 안에 두어 바 높이(--bar-h)에 저절로 들어가므로 떠 있는 것들의 위치를 따로 고치지 않아도 된다 -->
+    <div id="ttsBar" class="tts-bar" hidden>
+      <button id="ttsPrev" class="icon"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M15.41,7.41L14,6l-6,6 6,6 1.41,-1.41L10.83,12z" fill="currentColor"/></svg></button>
+      <button id="ttsPause" class="icon"></button>
+      <button id="ttsNext" class="icon"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M10,6L8.59,7.41 13.17,12l-4.58,4.59L10,18l6,-6z" fill="currentColor"/></svg></button>
+      <button id="ttsStop" class="icon">■&#xFE0E;</button>
+    </div>
   </header>
 
   <main>
@@ -317,6 +328,12 @@
       <label class="setting stack"><span id="navUnitLabel"></span><select id="setNavUnit"></select></label>
       <label class="setting"><input type="checkbox" id="setSwipe">
         <span><span id="setSwipeLabel"></span><small id="setSwipeHint"></small></span></label>
+      <!-- 앱은 설정 > 본문화면설정의 오디오 버튼 표시, 설정 > 오디오 성경 자동 읽음 체크 -->
+      <h3 id="groupTts"></h3>
+      <label class="setting"><input type="checkbox" id="setTtsBtn">
+        <span><span id="setTtsBtnLabel"></span><small id="setTtsBtnHint"></small></span></label>
+      <label class="setting"><input type="checkbox" id="setTtsRead">
+        <span><span id="setTtsReadLabel"></span><small id="setTtsReadHint"></small></span></label>
       <!-- 앱은 설정 > 메모 설정 > 메모책. 웹은 설정 화면이 이것 하나라 여기 묶음으로 -->
       <h3 id="groupMemo"></h3>
       <button id="setMemoBooks" type="button" class="setting nav">
