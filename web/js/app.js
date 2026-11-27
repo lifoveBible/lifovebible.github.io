@@ -43,7 +43,7 @@ import { highlightMap, targetsOf, highlightActions, highlightList, highlightsTex
 import { bookmarkList } from './bookmark.js';
 import {
   SPEEDS, nextSpeed, speedLabel, speechLang, speechItems, chapterTitle, pickVoice, cleanForSpeech,
-  voiceKey, voicesFor, chosenVoice, voiceLabels,
+  voiceKey, voicesFor, chosenVoice, voiceLabels, utterLang,
 } from './tts.js';
 import { memoMap, isBlankMemo, memoList, memoWords, memoMatches, memosText } from './memo.js';
 import {
@@ -1519,7 +1519,7 @@ function ttsSpeak() {
   const it = tts.items[tts.i];
   ttsMark(it.verse);
   const u = new SpeechSynthesisUtterance(it.text);
-  u.lang = tts.lang;
+  u.lang = utterLang(tts.lang, tts.voice); // 고른 목소리의 언어로(안드로이드 크롬은 voice보다 lang을 따름)
   if (tts.voice) u.voice = tts.voice;
   u.rate = ttsRate();
   u.onend = () => { if (gen === ttsGen) ttsAdvance(); };
@@ -1750,7 +1750,7 @@ async function voiceSample(lang, voice) {
   ++ttsGen; // 멈춰 둔 읽기의 옛 조각이 이어지지 않게
   synth.cancel();
   const u = new SpeechSynthesisUtterance(text);
-  u.lang = lang;
+  u.lang = utterLang(lang, voice);
   if (voice) u.voice = voice;
   u.rate = ttsRate();
   synth.speak(u);

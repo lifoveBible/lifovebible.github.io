@@ -122,6 +122,15 @@ export function voicesFor(voices, lang) {
 }
 
 /**
+ * utterance.lang에 넣을 언어. 목소리가 있으면 그 목소리의 언어.
+ * 갤럭시 크롬은 voice보다 lang을 따라서, 중국어 역본(zh-TW)에서 광둥어(yue-HK)를 골라도 표준 중국어로
+ * 읽었다(2026-11-28 사용자 확인). 목소리 언어를 넣으면 고른 목소리로 읽는다
+ */
+export function utterLang(lang, voice) {
+  return voice?.lang ? voice.lang.replace(/_/g, '-') : lang;
+}
+
+/**
  * 읽을 때 쓸 목소리. 고른 것(voiceURI)이 지금도 있으면 그것, 없으면(지웠거나 다른 기기) pickVoice
  * @param saved prefs.ttsVoices({키: voiceURI})
  */
