@@ -1,11 +1,16 @@
-// 앱 백업 파일(SQLite, 앱 BibleDbAdapter DB 버전 12) 만들기와 읽기. DOM·IndexedDB 없이(테스트하려고).
+// 앱 백업 파일(SQLite, 앱 BibleDbAdapter DB 버전 14) 만들기와 읽기. DOM·IndexedDB 없이(테스트하려고).
 // sql.js(SQL)는 부르는 쪽이 넘긴다(브라우저는 sqlite.js가 불러오고, 테스트는 Node에서 require).
 // 표와 칸은 앱과 똑같이 만든다. 앱의 '데이터 복구'(바꾸기·합치기)가 이 파일을 그대로 열 수 있어야 해서다.
 
-import { NO_TIME, rec, latest, memo as memoChoice, TAKE_OTHER, CONFLICT } from './mergeRules.js';
+import { NO_TIME, rec, latest, memo as memoChoice, TAKE_OTHER, CONFLICT, effectiveVv, maxVv } from './mergeRules.js';
+import { normalizeVv } from './syncMerge.js';
 
-/** 앱 BibleDbAdapter.DATABASE_VERSION. 백업 파일의 user_version */
-export const APP_DB_VERSION = 12;
+/**
+ * 앱 BibleDbAdapter.DATABASE_VERSION. 백업 파일의 user_version. 이보다 큰 백업은 'newer'로 열지 않는다.
+ * 올릴 때는 앱의 그 버전 CREATE 문과 같은 표·칸을 모두 SCHEMA·TABLES에 넣는다(버전만 올리면 앱 복구가 깨진다).
+ * 14(앱 7.7): my_memo.vv(메모 버전 벡터, JSON 글, 빈 글 = 7.7 전 메모). 13은 앱 개발 중에만 있었다(sync_memo_base)
+ */
+export const APP_DB_VERSION = 14;
 
 // 앱 BibleDbAdapter의 create 문 그대로(글자 하나 바꾸지 않음). 위젯·역본 설정 표는 웹에 없지만,
 // 앱이 여는 DB와 모양이 같도록 빈 표로 만든다
@@ -18,7 +23,7 @@ const SCHEMA = [
     + 'book_id integer not null, chapter_no integer not null,'
     + 'verse_no integer not null, '
     + 'memo text not null, type integer not null, ver text not null, updated_at integer not null default 0, deleted integer not null default 0, '
-    + "memo_book text not null default 'default');",
+    + "memo_book text not null default 'default', vv text not null default '');",
   'create table if not exists my_read_check (_id integer primary key autoincrement, '
     + 'book_id integer not null, chapter_no integer not null,'
     + "check_table_id integer not null, ver text not null, check_datetime datetime default (datetime('now','localtime')), updated_at integer not null default 0, deleted integer not null default 0);",
@@ -68,7 +73,7 @@ export const TABLES = {
   },
   my_memo: {
     keys: ['memo_book', 'book_id', 'chapter_no', 'verse_no'],
-    cols: { memo: '', type: 1, ver: '', updated_at: 0, deleted: 0 },
+    cols: { memo: '', type: 1, ver: '', updated_at: 0, deleted: 0, vv: '' }, // vv: DB 14, 웹 행에는 객체(fill·readBackup이 바꿈)
   },
   my_read_check: {
     keys: ['ver', 'book_id', 'chapter_no', 'check_table_id'],
@@ -108,7 +113,7 @@ export function buildBackup(SQL, data) {
       const rows = [...(data[table] || [])].sort((a, b) => order(a) - order(b));
       for (const row of rows) {
         if (t.keys.some((k) => row[k] == null)) continue;
-        stmt.run(names.map((n) => cell(n in t.cols ? row[n] ?? t.cols[n] : row[n])));
+        stmt.run(names.map((n) => (n === 'vv' ? vvText(row.vv) : cell(n in t.cols ? row[n] ?? t.cols[n] : row[n]))));
         counts[table]++;
       }
       stmt.free();
@@ -120,6 +125,12 @@ export function buildBackup(SQL, data) {
   } finally {
     db.close();
   }
+}
+
+/** 메모 vv를 앱 DB 칸 글로: JSON 객체 글, 비었으면 ''(앱이 7.7 전 메모로 본다) */
+function vvText(vv) {
+  const o = normalizeVv(vv);
+  return Object.keys(o).length ? JSON.stringify(o) : '';
 }
 
 function order(row) {
@@ -208,6 +219,7 @@ export function readBackup(db) {
       }
       if (t.keys.some((k) => row[k] == null || Number.isNaN(row[k]))) continue; // 키가 빈 깨진 행
       for (const c of data) row[c] = r[c];
+      if (table === 'my_memo') row.vv = normalizeVv(cols.has('vv') ? r.vv : ''); // 7.6 이하 백업은 칸이 없음 → 옛 메모
       const value = VALUE_COL[table];
       const item = {
         row,
@@ -254,16 +266,20 @@ export function planMerge(local, backup, now = Date.now()) {
         conflicts.push({
           memo_book: o.row.memo_book, book_id: o.row.book_id, chapter_no: o.row.chapter_no, verse_no: o.row.verse_no,
           localMemo: m.rec.value, backupMemo: o.rec.value, type: m.row.type, ver: m.row.ver,
+          backupVv: o.row.vv ?? {}, backupUpdatedAt: o.rec.updatedAt, // 고른 결과의 vv에 백업 쪽 항목도 합친다
         });
         continue;
       }
       if (choice !== TAKE_OTHER) continue;
-      puts[table].push({
+      const row = {
         ...(m ? m.row : fill(table, {}, now)),
         ...o.row,
         updated_at: o.rec.updatedAt === NO_TIME ? now : o.rec.updatedAt,
         deleted: o.rec.deleted ? 1 : 0,
-      });
+      };
+      // 가져온 메모의 vv는 두 쪽의 항목별 큰 값(이 기기 항목은 찍지 않는다. sync-format 판 2 5절)
+      if (table === 'my_memo' && m) row.vv = maxVv(effectiveVv(m.row.vv, m.row.updated_at), effectiveVv(o.row.vv, o.rec.updatedAt));
+      puts[table].push(row);
       n[table]++;
     }
   }
@@ -344,6 +360,7 @@ function fill(table, row, now) {
     if (out[c] !== undefined) continue;
     out[c] = c === 'check_datetime' ? localDateTime(new Date(now)) : v;
   }
+  if (table === 'my_memo') out.vv = normalizeVv(out.vv); // 웹 행에는 객체로(바꾸기 복구는 백업의 vv 그대로)
   return out;
 }
 

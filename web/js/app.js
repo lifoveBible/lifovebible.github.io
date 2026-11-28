@@ -13,7 +13,8 @@ import { getLfa, cachedUrls, deleteLfa, pruneLfa, canCache } from './lfaStore.js
 import { registerServiceWorker } from './pwa.js';
 import { detectPlatform, isStandalone } from './platform.js';
 import {
-  alignChapters, toggleCode, groupByLang, isCached, pickableVersions, fallbackVersions,
+  alignChapters, toggleCode, groupByLang, isCached, pickableVersions, fallbackVersions, verOrderMap, orderVersions,
+  readableColor,
 } from './compare.js';
 import { pickLang, stringsFor } from './strings.js';
 import { PRESETS, validColor, presetOf } from './viewColors.js';
@@ -24,6 +25,7 @@ import {
 import { swipeDirection } from './swipe.js';
 import { groupFiles, prepareGroup, openRecord, mergeLocal, classifyName } from './localBible.js';
 import { listLocal, getLocal, putLocal, deleteLocal } from './localStore.js';
+import { offerKey, codeKey } from './bibleSync.js';
 import { formatChapter, formatVerses, rowsOfSingle } from './verseCopy.js';
 import { verseErrorMail } from './report.js';
 import { STYLES, normalizeStyle, toggleStyle, styleClasses, cssColorToHex } from './highlightStyle.js';
@@ -31,14 +33,18 @@ import { readSet, isRead, readChaptersOf, readStats, percent } from './readCheck
 import {
   readChecksOf, versWithReadChecks, setReadCheck, clearReadChecks, highlightsOfChapter, setHighlights,
   allHighlights, deleteHighlight, clearHighlights, addBookmark, allBookmarks, deleteBookmark,
-  memosOfChapter, saveMemo, deleteMemo, allMemos, clearMemos,
+  memosOfChapter, saveMemo, savePickedMemo, deleteMemo, allMemos, clearMemos,
   allMemoBooks, addMemoBook, updateMemoBook, setMemoBookOrder, deleteMemoBook, onDbNotice, allUserData,
-  putUserRows, replaceUserRows,
+  putUserRows, replaceUserRows, allVerSettings,
 } from './userStore.js';
 import { buildBackup, backupName, openBackup, readBackup, planMerge, planReplace } from './appBackup.js';
 import { resolveMemo, PICK_LOCAL, PICK_OTHER, PICK_BOTH } from './mergeRules.js';
 import { backupReminder, DAY, SNOOZE_DAYS } from './backupReminder.js';
 import { loadSqlJs } from './sqlite.js';
+import { setupSync } from './syncUi.js';
+import { forgetSyncFiles } from './syncStore.js';
+import { browserModel } from './drive.js';
+import { suggestPosition, suggestTranslations } from './syncMerge.js';
 import { highlightMap, targetsOf, highlightActions, highlightList, highlightsText } from './highlight.js';
 import { bookmarkList } from './bookmark.js';
 import {
@@ -113,7 +119,8 @@ const prefs = loadPrefs();
 //          showVerName, fontColor, bgColor, navBar(앱 값 1~8), navUnit('verse'|'page'|'chapter'),
 //          navPos('right-middle'|'right-bottom'|'left-middle'|'left-bottom', 웹에만. 기본 오른쪽 아래),
 //          swipeChapter(옆으로 밀어 장 넘기기. 없으면 켬), memoShown, memoBook(지금 메모책 uid. 없으면 기본),
-//          hlStyle(형광펜 모양 배열, highlightStyle.STYLES), hlColor(형광펜 색), hlTextColor(밑줄·글자 색) }
+//          hlStyle(형광펜 모양 배열, highlightStyle.STYLES), hlColor(형광펜 색), hlTextColor(밑줄·글자 색),
+//          posAt(읽던 장을 옮긴 시각, 동기화 device 파일), syncPosSeen·syncVersSeen·syncFilesSeen(이미 물어본 동기화 제안. syncFilesSeen은 역본 파일의 "코드@넣은 시각") }
 // started: 역본을 한 번이라도 골랐다. 처음 쓰는 사람에게만 기본 역본을 받아 주려고(syncPrefsVersions).
 // 시작할 때 한 번만 보면 첫 방문에서 다 지웠을 때 또 받아 버려서 그때그때 본다
 
@@ -124,6 +131,8 @@ let localList = []; // 직접 넣은 역본(내용 없이)
 let versionList = []; // 둘을 합친 것. mergeLocal 참고
 let cachedSet = new Set(); // 받아 둔 .lfa 주소(refreshCached)
 let cacheOk = true; // 받아 둘 수 있는 주소인가(Cache Storage)
+// 역본 순서·색(ver_setting, 동기화로 받은 앱 설정): 코드 → { index, color }. 비었으면 웹의 예전 순서(고른 순서, 언어 묶음)
+let verOrder = new Map();
 let listOld = false; // 서버 목록을 새로 받지 못해 전에 받은 목록을 쓰는 중
 const opened = new Map(); // url → LfaFile. 지금 고른 역본만 메모리에 둔다
 const opening = new Map(); // url → Promise<LfaFile>. 받는 중(같은 파일을 두 번 받지 않게)
@@ -255,7 +264,7 @@ async function refreshCached() {
  * 다 빠지면 받은 것 중 하나(처음 쓰는 사람이면 기본 역본을 받는다. compare.fallbackVersions)
  */
 function syncPrefsVersions() {
-  prefs.versions = prefs.versions.map((v) => versionList.find((x) => x.code === v.code)).filter(Boolean);
+  prefs.versions = orderVersions(prefs.versions.map((v) => versionList.find((x) => x.code === v.code)).filter(Boolean), verOrder);
   if (!prefs.versions.length) {
     prefs.versions = fallbackVersions(versionList, cachedSet, cacheOk, DEFAULT_VERSION[lang], !prefs.started);
   }
@@ -352,6 +361,8 @@ async function render() {
   fitRef();
   document.title = S.ref(name, pos.chapter) + ' - Lifove Bible';
 
+  // 읽던 곳이 바뀐 시각(동기화 device 파일의 position.at. 다른 기기가 "여기로 갈까요?"를 제안할 때 쓴다)
+  if (prefs.pos?.book !== pos.book || prefs.pos?.chapter !== pos.chapter) prefs.posAt = Date.now();
   prefs.pos = pos;
   savePrefs();
   // 장이 바뀌었으면 최근목록의 지금 칸을 고친다(이전/다음 장, 브라우저 뒤로 가기). 앱도 장 이동은 새 칸을 만들지 않는다
@@ -402,6 +413,7 @@ async function render() {
     $verses.replaceChildren(...rows.map((r) => compareItem(r, names, vers.map((v) => v.lang))));
     shown = { rows, names, codes: vers.map((v) => v.code) };
   }
+  colorVerses();
   loadHighlights();
   loadMemos();
   playSlide(slide);
@@ -457,6 +469,23 @@ function showPendingVerse() {
   li.classList.remove('flash');
   void li.offsetWidth; // 같은 절을 또 눌러도 다시 칠해지게
   li.classList.add('flash');
+}
+
+/**
+ * 역본별 글자색(ver_setting.text_color, 앱 VerseAdapter의 gVerTextColor). 지정한 역본만 절(대조 보기는 그 칸)에 색을 준다.
+ * 칸에 주므로 형광펜의 글자색(.text의 클래스)이 그 위에서 이긴다
+ */
+function colorVerses() {
+  // 지금 배경과 대비가 3:1 미만인 색은 기본 글자색으로(sync-format 4a). 배경은 body(--page-bg)에서 읽는다
+  const bg = cssColorToHex(getComputedStyle(document.body).backgroundColor);
+  const colors = (shown.codes || []).map((c) => readableColor(verOrder.get(c)?.color, bg) || '');
+  if (colors.length === 1) {
+    for (const li of $verses.children) li.style.color = colors[0];
+    return;
+  }
+  for (const li of $verses.children) {
+    li.querySelectorAll('.cell').forEach((cell, i) => { cell.style.color = colors[i] || ''; });
+  }
 }
 
 function verseNum(verse) {
@@ -2497,6 +2526,14 @@ $mbEdit.addEventListener('close', () => { mbEditing = null; });
 $('mbClose').addEventListener('click', () => $mbBox.close());
 $mbBox.addEventListener('click', (e) => { if (e.target === $mbBox) $mbBox.close(); });
 $('setMemoBooks').addEventListener('click', openMemoBooks);
+// 구글 드라이브 동기화(설정 맨 아래 > 동기화, syncUi.js). syncApi.changed(): 넣은 역본이 바뀌었다(파일째 올리려고)
+const syncApi = setupSync($, S, {
+  deviceInfo: syncDeviceInfo, askConflicts: askSyncConflicts, changed: () => reloadUserData(), suggest: syncSuggest,
+  when: (at) => new Date(at).toLocaleString(lang, { dateStyle: 'medium', timeStyle: 'short' }),
+  serverCodes: () => serverList.map((v) => v.code),
+  ask: (text, yes, no) => askSync(text, yes, no),
+  suggestBibles: syncSuggestBibles,
+});
 
 // ---- 성경읽기통계 ----
 // 앱 ReadCheckTable: 역본 하나를 골라 전체·구약·신약과 66권의 읽은 장 수·퍼센트·막대. 앱처럼 받아 둔 역본에서 고르고,
@@ -2628,8 +2665,11 @@ function applyView() {
   const hb = validColor(prefs.hlColor), hf = validColor(prefs.hlTextColor);
   if (hb) root.style.setProperty('--hl-bg', hb); else root.style.removeProperty('--hl-bg');
   if (hf) root.style.setProperty('--hl-fg', hf); else root.style.removeProperty('--hl-fg');
+  colorVerses(); // 배경이 바뀌면 역본 글자색이 읽히는지 다시 본다
 }
 applyView();
+// 배경을 고르지 않았으면 테마(밝게/어둡게)를 따르므로, 기기 테마가 바뀔 때도 다시 본다
+matchMedia('(prefers-color-scheme: dark)').addEventListener('change', colorVerses);
 
 $('settingsTitle').textContent = S.viewerSettings;
 label($('settingsClose'), S.close);
@@ -2944,6 +2984,8 @@ async function runRestore(file, merge) {
       conflicts = plan.conflicts;
     } else {
       await replaceUserRows(planReplace(local, tables, defaultMemoBookRow()).rows);
+      // 이 기기 데이터를 통째로 바꿨으니 동기화가 '이미 합친 파일'로 기억한 것도 버린다(다음 동기화에서 다시 다 받아 합친다)
+      await forgetSyncFiles().catch((e) => console.warn('[LifoveSync]', e));
       message = S.restoreDone;
     }
   } catch (e) {
@@ -2970,8 +3012,124 @@ function mergeSummary({ counts: c, conflicts }) {
   return s;
 }
 
-/** 복구한 뒤 화면의 형광펜·메모·읽음·메모책을 다시 읽는다 */
+/**
+ * 동기화 device 파일(sync-format 4절)에 넣을 것. 읽던 곳은 책·장까지만 기억하므로 절은 1.
+ * 받아 둔 역본은 서버에서 받은 것과 직접 넣은 것 모두(코드만)
+ */
+function syncDeviceInfo() {
+  const v = prefs.versions[0];
+  const p = prefs.pos;
+  return {
+    name: browserModel(navigator.userAgent),
+    position: v && isValidPosition(p) ? { ver: v.code, book_id: p.book, chapter_no: p.chapter, verse_no: 1, at: prefs.posAt || 0 } : null,
+    translations: versionList.filter((x) => x.local || cachedSet.has(x.url)).map((x) => x.code),
+  };
+}
+
+/** 동기화 제안 창: 예면 true, 아니오·Esc면 false */
+function askSync(text, yes, no) {
+  const $box = $('syncAsk');
+  $('syncAskText').textContent = text;
+  $('syncAskYes').textContent = yes;
+  $('syncAskNo').textContent = no;
+  return new Promise((resolve) => {
+    let answer = false;
+    $('syncAskYes').onclick = () => { answer = true; $box.close(); };
+    $('syncAskNo').onclick = () => $box.close();
+    $box.onclose = () => resolve(answer);
+    $box.showModal();
+  });
+}
+
+/**
+ * 동기화 뒤 다른 기기의 device 파일로 제안한다(sync-format 4절·5a. 제안만, 자동으로 옮기지 않음).
+ * 같은 제안을 동기화할 때마다 묻지 않게, 물어본 읽던 곳의 시각(prefs.syncPosSeen)과 역본 코드(prefs.syncVersSeen)를 남긴다.
+ * 답이 예면 시험 창과 설정 창을 닫고 그리로 간다
+ */
+async function syncSuggest(devices) {
+  const closeSettings = () => { for (const id of ['syncBox', 'settingsBox']) if ($(id).open) $(id).close(); };
+  // 읽던 곳: 책·장·절만 따라가고 역본은 이 기기의 지금 역본
+  const p = suggestPosition(devices, { book: pos.book, chapter: pos.chapter, at: prefs.posAt || 0 }, prefs.syncPosSeen || 0);
+  if (p && isValidPosition({ book: p.book, chapter: p.chapter })) {
+    prefs.syncPosSeen = p.at;
+    savePrefs();
+    if (await askSync(S.syncPositionAsk(p.name, S.verseRef(NAMES[p.book], p.chapter, p.verse)), S.syncGo, S.close)) {
+      closeSettings();
+      jumpTo({ book: p.book, chapter: p.chapter }, p.verse, true);
+    }
+  }
+  // 역본: 서버에서 받을 수 있는 것만. 받은 것을 알 수 없는 주소(http://192.168.x.x, 보관 못 함)에서는 묻지 않는다
+  if (!cacheOk) return;
+  const have = versionList.filter((x) => x.local || cachedSet.has(x.url)).map((x) => x.code);
+  const codes = suggestTranslations(devices, have, serverList.map((v) => v.code), prefs.syncVersSeen || []);
+  if (!codes.length) return;
+  prefs.syncVersSeen = [...(prefs.syncVersSeen || []), ...codes];
+  savePrefs();
+  const names = codes.map((c) => versionList.find((v) => v.code === c)?.name || c).join(', ');
+  if (await askSync(S.syncVersionsAsk(names), S.download, S.close)) {
+    closeSettings();
+    openDownload(codes);
+  }
+}
+
+/**
+ * 다른 기기가 드라이브에 올린 역본 파일(sync-format 6b)을 받을지 묻는다. 자동으로 받지 않는다(수 MB, 데이터 요금).
+ * 없는 역본은 한 번에 묻고, 이 기기에도 있지만 다른 기기가 더 나중에 넣은 것은 하나씩 바꿀지 묻는다.
+ * 같은 제안(코드와 넣은 시각)은 다시 묻지 않는다(prefs.syncFilesSeen). 결과 글을 돌려준다(동기화 창 아래 줄)
+ * @param fetchOne (항목) => Promise<{record}|{reason}> 드라이브에서 받아 넣을 행으로
+ */
+async function syncSuggestBibles(offers, fetchOne) {
+  const seen = new Set(prefs.syncFilesSeen || []);
+  const fresh = offers.filter((d) => !seen.has(offerKey(d)));
+  if (!fresh.length) return null;
+  prefs.syncFilesSeen = [...seen, ...fresh.map(offerKey)].slice(-200);
+  savePrefs();
+  const nameOf = (d) => d.name || d.code;
+  const want = [];
+  const adds = fresh.filter((d) => !d.replace);
+  if (adds.length && await askSync(S.syncFilesAsk(adds.map(nameOf).join(', ')), S.syncGet, S.close)) want.push(...adds);
+  for (const d of fresh.filter((x) => x.replace)) {
+    if (await askSync(S.syncFileReplaceAsk(nameOf(d)), S.syncReplace, S.close)) want.push(d);
+  }
+  if (!want.length) return null;
+  showToast(S.downloading);
+  const got = [], failed = [];
+  for (const d of want) {
+    try {
+      const r = await fetchOne(d);
+      if (r.reason) {
+        failed.push(`${nameOf(d)} (${S.reasons[r.reason] || r.reason})`);
+        continue;
+      }
+      // 대소문자만 다른 코드로 이미 넣어 두었으면 이 기기의 코드 그대로(고른 역본·기록이 그 코드를 쓴다)
+      const old = localList.find((l) => codeKey(l.code) === codeKey(d.code));
+      if (old) r.record.code = old.code;
+      await putLocal(r.record);
+      got.push(nameOf(d));
+    } catch (e) {
+      console.warn('[LifoveSync]', e);
+      failed.push(`${nameOf(d)} (${e.message || e})`);
+    }
+  }
+  const changed = await reloadLocal();
+  if ($importBox.open) drawLocalList();
+  if (changed) render();
+  const lines = [];
+  if (got.length) lines.push(S.imported(got.join(', ')));
+  if (failed.length) lines.push(S.importFailed(failed.join(', ')));
+  showToast(lines.join('\n'));
+  return lines.join('\n');
+}
+
+/** 복구·동기화 뒤 화면의 형광펜·메모·읽음·메모책을 다시 읽는다 */
 async function reloadUserData() {
+  if (await loadVerOrder()) {
+    const before = prefs.versions.map((v) => v.code).join();
+    prefs.versions = orderVersions(prefs.versions, verOrder);
+    savePrefs();
+    if (before !== prefs.versions.map((v) => v.code).join()) render();
+    else colorVerses(); // 차례는 같고 색만 바뀜
+  }
   await refreshMemoBooks();
   loadHighlights();
   loadMemos();
@@ -2983,6 +3141,32 @@ $('restoreResultOk').addEventListener('click', () => $restoreResult.close());
 // 메모 고르기(앱 MemoConflictDialogs). 고르지 않고 닫으면(Esc) 남은 것은 이 기기 메모 그대로다:
 // 합치기는 충돌 메모를 쓰지 않았으므로 안전하다. 결과 알림은 백업 창 아래 줄에(모달 창이 #toast를 가려서)
 let conflictList = [], conflictAt = 0;
+// 동기화가 연 메모 고르기: { picks, resolve }. 고른 것을 쓰지 않고 sync.js에 돌려준다(쓰기는 sync.js가 한 거래로)
+let conflictSync = null;
+
+/**
+ * 동기화의 메모 충돌을 묻는다: [이 기기][다른 기기][둘 다]. 충돌마다 고른 것(멈추면 null)을 돌려준다
+ * @param conflicts syncMerge.planSync의 conflicts
+ */
+function askSyncConflicts(conflicts) {
+  return new Promise((resolve) => {
+    conflictSync = { picks: conflicts.map(() => null), resolve };
+    for (const id of ['conflictBackupHead', 'conflictPickBackup']) $(id).textContent = S.conflictOther;
+    startConflicts(conflicts.map(({ local, other }) => ({
+      memo_book: local.memo_book, book_id: local.book_id, chapter_no: local.chapter_no, verse_no: local.verse_no,
+      // 지움과 고침이 부딪힌 충돌도 있다(sync-format 5절): 지운 쪽은 '(지운 메모)'로 보인다
+      localMemo: local.deleted ? S.conflictDeleted : local.memo, backupMemo: other.deleted ? S.conflictDeleted : other.memo,
+    })));
+  });
+}
+
+function endSyncConflicts() {
+  for (const id of ['conflictBackupHead', 'conflictPickBackup']) $(id).textContent = S.conflictBackup;
+  const done = conflictSync;
+  conflictSync = null;
+  conflictList = [];
+  done.resolve(done.picks);
+}
 
 function startConflicts(list) {
   conflictList = list;
@@ -3010,12 +3194,24 @@ function showConflict() {
 /** 고른 것을 쓰고 다음으로. '남은 것에도'면 남은 것 모두(앱 choose) */
 async function pickConflict(pick) {
   const end = $('conflictRest').checked ? conflictList.length : conflictAt + 1;
+  if (conflictSync) {
+    for (let k = conflictAt; k < end; k++) conflictSync.picks[k] = pick;
+    conflictAt = end;
+    if (conflictAt < conflictList.length) {
+      showConflict();
+      return;
+    }
+    $conflictBox.close();
+    endSyncConflicts();
+    return;
+  }
   try {
     for (let k = conflictAt; k < end; k++) {
       const c = conflictList[k];
       const text = resolveMemo(c.localMemo, c.backupMemo, pick);
-      if (text == null || text === c.localMemo) continue; // 지금 것 그대로: 쓸 것 없음(앱 applyMemoChoice)
-      await saveMemo(c.book_id, c.chapter_no, c.verse_no, text, c.ver, c.memo_book);
+      if (text == null) continue;
+      // [이 기기]로 글이 그대로여도 쓴다: vv에 백업 쪽 항목을 합치고 이 기기를 찍는다(앱 applyMemoChoice, 판 2)
+      await savePickedMemo(c, text);
     }
   } catch (e) {
     console.error(e);
@@ -3041,6 +3237,10 @@ $('conflictPickBackup').addEventListener('click', () => pickConflict(PICK_OTHER)
 $('conflictPickBoth').addEventListener('click', () => pickConflict(PICK_BOTH));
 // Esc로 닫으면 멈춤(앱 setOnCancelListener). 바깥 누르기로는 닫지 않는다(앱 setCanceledOnTouchOutside(false))
 $conflictBox.addEventListener('cancel', () => {
+  if (conflictSync) {
+    endSyncConflicts(); // 남은 것은 고르지 않음(null): 이 기기 글 그대로, 다음 동기화에서 다시 묻는다
+    return;
+  }
   if (!conflictList.length) return;
   conflictList = [];
   backupNote(S.conflictStopped);
@@ -3205,8 +3405,16 @@ async function openVerPicker(mode) {
 }
 
 function drawVerList() {
-  const list = pickableVersions(versionList, cachedSet, prefs.versions.map((v) => v.code), cacheOk);
-  $verList.replaceChildren(...groupedList(list, verRow));
+  const list = orderVersions(pickableVersions(versionList, cachedSet, prefs.versions.map((v) => v.code), cacheOk), verOrder);
+  // 역본 순서가 있으면(앱에서 정한 순서를 동기화로 받음) 앱처럼 한 목록으로 그 순서대로. 없으면 언어별 묶음
+  if (verOrder.size) {
+    const ul = document.createElement('ul');
+    ul.className = 'ver-list';
+    ul.append(...list.map(verRow));
+    $verList.replaceChildren(ul);
+  } else {
+    $verList.replaceChildren(...groupedList(list, verRow));
+  }
   $('verEmpty').hidden = list.length > 0;
   updateDraft();
 }
@@ -3234,17 +3442,18 @@ function verRow(v) {
   return li;
 }
 
-/** 고른 순서 번호(둘 이상일 때만)와 확인 버튼 */
+/** 대조 보기에서 몇째 단인지(둘 이상일 때만)와 확인 버튼. 역본 순서가 있으면 그 순서, 없으면 고른 순서 */
 function updateDraft() {
+  const cols = orderVersions(draft, verOrder);
   for (const li of $verList.querySelectorAll('li')) {
-    const i = draft.indexOf(li.dataset.code);
+    const i = cols.indexOf(li.dataset.code);
     li.querySelector('.order').textContent = draft.length > 1 && i >= 0 ? i + 1 : '';
   }
   $verOk.disabled = !draft.length; // 앱처럼 하나는 꼭 골라야 한다
 }
 
 function applyVersions() {
-  const chosen = draft.map((c) => versionList.find((v) => v.code === c)).filter(Boolean);
+  const chosen = orderVersions(draft, verOrder).map((c) => versionList.find((v) => v.code === c)).filter(Boolean);
   if (!chosen.length) return;
   prefs.oneColumn = $oneColumn.checked;
   useVersions(chosen);
@@ -3279,9 +3488,10 @@ let dlChecked = new Set(); // 체크한 코드
 let dlRun = null; // 받는 중이면 { codes, done, failed, now: {name, got, total} }
 let dlResult = ''; // 마지막 받기 결과 문구
 
-async function openDownload() {
+/** @param preselect 처음부터 체크해 둘 코드(동기화의 "없는 역본을 받을까요?"에서 예) */
+async function openDownload(preselect = []) {
   if (!dlRun) {
-    dlChecked = new Set();
+    dlChecked = new Set(Array.isArray(preselect) ? preselect : []);
     dlResult = '';
   }
   $dlList.replaceChildren();
@@ -3412,6 +3622,12 @@ function drawLocalList() {
     const li = document.createElement('li');
     li.append(nameLabel(v), deleteButton(v.name, async () => {
       if (!confirm(S.deleteLocalConfirm(v.name))) return;
+      // 드라이브에 올린 파일은 남는다(6b). 방금 지운 그 파일을 다음 동기화에서 "받을까요?"로 묻지 않게 본 것으로 둔다
+      const mine = localList.find((l) => l.code === v.code);
+      if (mine) {
+        prefs.syncFilesSeen = [...(prefs.syncFilesSeen || []), offerKey({ code: mine.code, writtenAt: Number(mine.addedAt) || 0 })].slice(-200);
+        savePrefs();
+      }
       await deleteLocal(v.code);
       // 서버에도 있는 역본이면 서버 역본으로 돌아간다. 받아 두지 않았으면 고른 역본에서 뺀다
       const changed = await reloadLocal();
@@ -3467,6 +3683,7 @@ async function importItems(items) {
     $('importProgress').hidden = true;
   }
   let changed = await reloadLocal();
+  if (added.length) syncApi.changed(); // 서버에 없는 역본이면 동기화가 파일째 올린다(6b)
   // 읽을 역본이 없던 사람이면 넣은 역본으로 바로 본다
   if (!prefs.versions.length && added.length) {
     prefs.versions = [versionList.find((v) => v.code === added[0])].filter(Boolean);
@@ -3957,9 +4174,28 @@ async function start() {
   navigator.storage?.persist?.().catch(() => {});
   applyFont();
   setStatus('');
+  await loadVerOrder();
   await loadVersionList();
   if (location.hash !== formatHash(pos)) history.replaceState(null, '', formatHash(pos));
   render();
+}
+
+/**
+ * 역본 순서·색을 읽는다(ver_setting). 앱 Util.getOrderedVerCodeAndTextColor처럼 대조 보기의 단 차례, 역본 고르기 목록,
+ * 역본별 글자색에 쓴다. 바뀌었으면 true(다시 그려야 함). DB를 못 읽으면 예전 순서 그대로
+ */
+async function loadVerOrder() {
+  let rows = [];
+  try {
+    rows = await allVerSettings();
+  } catch (e) {
+    console.warn('ver_setting unavailable', e);
+  }
+  const next = verOrderMap(rows);
+  const key = (m) => JSON.stringify([...m]);
+  const changed = key(next) !== key(verOrder);
+  verOrder = next;
+  return changed;
 }
 
 // ---- 설치·업데이트 ----

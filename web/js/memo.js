@@ -1,11 +1,11 @@
 // 메모(앱 my_memo) 계산. DOM·IndexedDB 없이(테스트하려고).
 // 행 모양은 앱 BibleDbAdapter(DB 12)의 my_memo 칸 그대로 둔다. 앱 백업과 주고받기(6단계)·동기화를 위해서:
 //   { memo_book('default' 또는 메모책 uid), book_id(0~65), chapter_no(1~), verse_no(1~), memo, type(1), ver,
-//     updated_at(epoch ms), deleted(0|1) }
+//     updated_at(epoch ms), deleted(0|1), vv(버전 벡터 객체, 앱 DB 14·sync-format 판 2) }
 // 앱의 _id는 두지 않고 내용 키(memo_book, book_id, chapter_no, verse_no)로 알아본다(앱 memoKey, MERGE_MEMO 키.
 // 메모는 메모책마다 한 절에 하나). 메모책을 여럿 쓰는 것은 다음 단계라 지금은 늘 기본 메모책
 
-export { deletedRow } from './readCheck.js'; // 지우기 규칙은 읽음 표시와 같다(삭제 표시만)
+import { stampVv, maxVv, effectiveVv } from './mergeRules.js';
 
 export const DEFAULT_MEMO_BOOK = 'default'; // 앱 DEFAULT_MEMO_BOOK
 export const MEMO_TYPE = 1; // 앱 MemoPanel.write는 늘 1을 넣는다
@@ -22,8 +22,9 @@ export function isBlankMemo(text) {
  * 저장할 행. 살아 있는 행이 있으면 앱 updateMemo처럼 메모 글과 고친 시각만 바꾼다(ver·type은 처음 쓴 그대로).
  * 없거나 지운 행이면 앱 createMemo(upsert)처럼 새 값으로 되살린다. 앱에서 온 모르는 칸은 남긴다
  */
-export function memoRow(prev, memoBook, book, chapter, verse, text, ver, now = Date.now()) {
-  if (prev && !prev.deleted) return { ...prev, memo: text, updated_at: now };
+export function memoRow(prev, memoBook, book, chapter, verse, text, ver, now = Date.now(), device = null) {
+  const vv = memoVv(prev, device, now);
+  if (prev && !prev.deleted) return { ...prev, memo: text, updated_at: now, vv };
   return {
     ...prev,
     memo_book: memoBook,
@@ -35,7 +36,35 @@ export function memoRow(prev, memoBook, book, chapter, verse, text, ver, now = D
     ver,
     updated_at: now,
     deleted: 0,
+    vv,
   };
+}
+
+/**
+ * 메모를 쓰고·고치고·지울 때의 vv(sync-format 판 2 5절 '고칠 때'): 이 기기 항목만 지금으로(이미 지금 이상이면 +1).
+ * 새 메모는 { 이 기기: 지금 } 하나, vv가 빈 옛 메모는 { "0": 예전 updated_at }을 넣고 찍는다(stampVv).
+ * 동기화를 켜지 않았어도 찍는다. device가 없으면(기기ID를 못 얻음) 예전 vv 그대로
+ */
+export function memoVv(prev, device, now) {
+  if (!device) return prev?.vv ?? {};
+  if (!prev) return { [device]: now };
+  return stampVv(prev.vv, prev.updated_at, device, now);
+}
+
+/**
+ * 메모 충돌에서 고른 글로 쓸 행(복구의 메모 고르기, 앱 applyMemoChoice). 무엇을 골랐든(글이 그대로여도) 쓰고,
+ * vv는 두 쪽의 항목별 큰 값 위에 이 기기를 찍는다(sync-format 5절 '합친 결과의 vv'. 그래야 다른 기기가 다시 묻지 않는다)
+ * @param otherVv·otherUpdatedAt 다른 쪽(백업) 행의 vv와 시각
+ */
+export function pickedMemoRow(cur, text, otherVv, otherUpdatedAt, device, now = Date.now()) {
+  const vv = maxVv(effectiveVv(cur.vv, cur.updated_at), effectiveVv(otherVv, otherUpdatedAt));
+  return { ...cur, memo: text, deleted: 0, updated_at: now, vv: device ? stampVv(vv, cur.updated_at, device, now) : vv };
+}
+
+/** 메모 지우기(삭제 표시만, 앱 softDelete). 이미 지운 행이면 null(고친 시각도 vv도 바꾸지 않는다) */
+export function deletedMemoRow(row, now = Date.now(), device = null) {
+  if (!row || row.deleted) return null;
+  return { ...row, deleted: 1, updated_at: now, vv: memoVv(row, device, now) };
 }
 
 /** 한 장의 행들 → 절 번호 → 메모 글(한 메모책만, 지운 행·빈 메모는 뺀다. 앱 fetchMemosInToChapter) */

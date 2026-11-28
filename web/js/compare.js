@@ -119,3 +119,68 @@ export function fallbackVersions(list, cached, canCache, defaultCode, firstRun) 
   // 처음이거나 보관을 못 하는 주소(그때는 pool이 전체 목록)
   return list.length ? [list.find((v) => v.code === defaultCode) || list[0]] : [];
 }
+
+// ---- 역본 순서·색(ver_setting, 앱과 동기화) ----
+// 앱 Util.getOrderedVerCodeAndTextColor와 같게: ver_setting의 살아 있는 행을 ver_order 순으로, 없는 역본은 그 뒤.
+// 웹에는 순서를 바꾸는 화면이 아직 없고, 동기화로 받은 앱의 순서·색을 쓴다
+
+/**
+ * ver_setting 행들 → 코드 → { index(0부터 차례), color(CSS 색 또는 null) }. 지운 행은 뺀다.
+ * ver_order가 같으면 코드 순(앱 DB 정렬은 ver_order만이라 같을 때 순서가 정해지지 않음. syncVerOrder와 같게)
+ * @returns {Map<string, {index: number, color: (string|null)}>}
+ */
+export function verOrderMap(rows) {
+  const alive = (rows || []).filter((r) => r && typeof r.ver === 'string' && !Number(r.deleted))
+    .sort((a, b) => (Number(a.ver_order) || 0) - (Number(b.ver_order) || 0) || (a.ver < b.ver ? -1 : a.ver > b.ver ? 1 : 0));
+  const out = new Map();
+  for (const r of alive) if (!out.has(r.ver)) out.set(r.ver, { index: out.size, color: verColor(r.text_color) });
+  return out;
+}
+
+/**
+ * 역본 목록을 순서대로: 순서가 있는 역본은 그 차례로 앞에, 없는 역본은 원래 순서를 지켜 뒤에(앱과 같다)
+ * @param list 역본들({code}) 또는 코드들
+ */
+export function orderVersions(list, order) {
+  const codeOf = (v) => (typeof v === 'string' ? v : v.code);
+  return (list || []).map((v, i) => [order?.get(codeOf(v))?.index ?? Infinity, i, v])
+    .sort((a, b) => a[0] - b[0] || a[1] - b[1]).map((x) => x[2]);
+}
+
+/**
+ * 앱 text_color(안드로이드 색 정수, ARGB) → CSS 색. 0이나 없으면 '지정 안 함'(null)
+ */
+export function verColor(textColor) {
+  const n = Number(textColor);
+  if (!Number.isInteger(n) || n === 0) return null;
+  return '#' + ((n >>> 0) & 0xffffff).toString(16).padStart(6, '0');
+}
+
+// ---- 읽히는 글자색(sync-format 4a, 앱 ReadableColor와 같게) ----
+// 밝은 배경 기기에서 고른 색이 동기화로 어두운 배경 기기에 오면 안 보이므로, 대비가 3:1 미만이면 기본 글자색으로 보인다.
+// 고른 색(ver_setting)은 바꾸지 않고 보일 때만 바꾼다
+
+/** '#rrggbb' → WCAG 2 상대 휘도. 모르는 꼴이면 NaN */
+function luminance(hex) {
+  const m = /^#([0-9a-f]{6})$/i.exec(hex || '');
+  if (!m) return NaN;
+  const n = parseInt(m[1], 16);
+  const ch = (v) => { const c = v / 255; return c <= 0.03928 ? c / 12.92 : ((c + 0.055) / 1.055) ** 2.4; };
+  return 0.2126 * ch((n >> 16) & 255) + 0.7152 * ch((n >> 8) & 255) + 0.0722 * ch(n & 255);
+}
+
+/** 두 색('#rrggbb')의 명암 대비(1~21). 하나라도 모르면 NaN */
+export function contrastRatio(a, b) {
+  const la = luminance(a), lb = luminance(b);
+  return (Math.max(la, lb) + 0.05) / (Math.min(la, lb) + 0.05);
+}
+
+/**
+ * 역본 글자색을 지금 배경에서 쓸지: 대비 3:1 이상이면 그 색, 미만이면 null(기본 글자색).
+ * 배경을 모르면(읽지 못함) 고른 색 그대로
+ */
+export function readableColor(color, bg) {
+  if (!color) return null;
+  const r = contrastRatio(color, bg);
+  return Number.isNaN(r) || r >= 3 ? color : null;
+}

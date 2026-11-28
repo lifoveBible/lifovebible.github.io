@@ -1,5 +1,5 @@
 // 사용자 데이터 보관(IndexedDB, 5단계). 읽음 표시(my_read_check), 형광펜(my_underline), 책갈피(my_bookmark), 메모(my_memo),
-// 메모책(memo_book).
+// 메모책(memo_book), 역본 순서·색(ver_setting: 동기화로 받은 앱의 순서·색. 웹은 화면에 쓰기만 하고 아직 고치지 않는다).
 // 직접 넣은 성경 파일(localStore.js, lifove-files)과 DB를 나눈다: 이쪽은 작고, 앱 백업과 주고받는 대상이다.
 // 저장소 이름은 앱 DB의 표 이름을 그대로 쓴다. 메모·형광펜 등을 더할 때 DB 버전을 올리고 저장소를 더한다.
 // 규칙(앱 BibleDbAdapter와 같음): 쓰기는 updated_at을 남기고, 지우기는 deleted=1 표시만, 읽을 때 지운 행은 뺀다.
@@ -8,18 +8,21 @@
 import { checkedRow, deletedRow, CHECK_TABLE } from './readCheck.js';
 import { highlightRow } from './highlight.js';
 import { bookmarkRow } from './bookmark.js';
-import { memoRow, isBlankMemo, DEFAULT_MEMO_BOOK } from './memo.js';
+import { memoRow, deletedMemoRow, pickedMemoRow, isBlankMemo, DEFAULT_MEMO_BOOK } from './memo.js';
+import { deviceId } from './syncStore.js';
+import { newDeviceId } from './drive.js';
 import {
   defaultMemoBookRow, newMemoBookRow, renamedMemoBookRow, reorderedMemoBooks, memoBookList, newUid, optionsMemoBookRow,
 } from './memoBook.js';
 
 const DB_NAME = 'lifove-data';
-const DB_VERSION = 5; // 1: 읽음 표시, 2: 형광펜, 3: 책갈피, 4: 메모, 5: 메모책
+const DB_VERSION = 6; // 1: 읽음 표시, 2: 형광펜, 3: 책갈피, 4: 메모, 5: 메모책, 6: 역본 설정(동기화)
 const READ_CHECK = 'my_read_check';
 const UNDERLINE = 'my_underline';
 const BOOKMARK = 'my_bookmark';
 const MEMO = 'my_memo';
 const MEMO_BOOK = 'memo_book';
+const VER_SETTING = 'ver_setting';
 
 let dbPromise = null;
 let notice = () => {}; // 화면에 알릴 것(onDbNotice)
@@ -66,6 +69,11 @@ function openDb() {
           // 키는 앱 uid. 앱처럼 기본 메모책 행을 처음부터 넣어 둔다(앱 DATABASE_INSERT_DEFAULT_MEMO_BOOK)
           db.createObjectStore(MEMO_BOOK, { keyPath: 'uid' }).put(defaultMemoBookRow());
         }
+        if (e.oldVersion < 6) {
+          // 키는 앱 ver_setting의 내용 키(sync-format 3절: ver). 웹은 역본 순서·색을 아직 고치지 않고,
+          // 다른 기기에서 받은 목록을 그대로 두었다가 다시 올린다(sync-format 5a·6절 (가))
+          db.createObjectStore(VER_SETTING, { keyPath: 'ver' });
+        }
       };
       req.onblocked = () => {
         console.warn('lifove-data upgrade blocked by another tab');
@@ -95,12 +103,34 @@ function openDb() {
   return dbPromise;
 }
 
+let changeListener = () => {};
+
+/**
+ * 사용자가 데이터를 고쳤을 때 불린다(자동 동기화가 모았다가 올리려고, autoSync.changed). 쓰기 거래가 끝난 뒤에.
+ * 동기화가 쓴 것(mergeSyncData, applyResolvedMemos)은 알리지 않는다: 알리면 동기화가 또 동기화를 부른다
+ */
+export function onUserDataChanged(fn) {
+  changeListener = fn;
+}
+
+function changed(mode, notify) {
+  if (mode !== 'readwrite' || !notify) return;
+  try {
+    changeListener();
+  } catch (e) {
+    console.warn('change listener', e);
+  }
+}
+
 /** 한 거래(transaction). fn은 저장소를 받아 일을 걸고, 거래가 끝나면 fn이 돌려준 값을 돌려준다 */
-function run(mode, fn, store = READ_CHECK) {
+function run(mode, fn, store = READ_CHECK, notify = true) {
   return openDb().then((db) => new Promise((resolve, reject) => {
     const tx = db.transaction(store, mode);
     const out = fn(tx.objectStore(store));
-    tx.oncomplete = () => resolve(typeof out === 'function' ? out() : out);
+    tx.oncomplete = () => {
+      resolve(typeof out === 'function' ? out() : out);
+      changed(mode, notify);
+    };
     tx.onerror = () => reject(tx.error);
     tx.onabort = () => reject(tx.error || new Error('aborted'));
   }));
@@ -111,7 +141,10 @@ function runAll(mode, stores, fn) {
   return openDb().then((db) => new Promise((resolve, reject) => {
     const tx = db.transaction(stores, mode);
     const out = fn(tx);
-    tx.oncomplete = () => resolve(typeof out === 'function' ? out() : out);
+    tx.oncomplete = () => {
+      resolve(typeof out === 'function' ? out() : out);
+      changed(mode, true);
+    };
     tx.onerror = () => reject(tx.error);
     tx.onabort = () => reject(tx.error || new Error('aborted'));
   }));
@@ -288,20 +321,57 @@ export function memoOf(book, chapter, verse, memoBook = DEFAULT_MEMO_BOOK) {
  */
 export function saveMemo(book, chapter, verse, text, ver, memoBook = DEFAULT_MEMO_BOOK) {
   if (isBlankMemo(text)) return deleteMemo(book, chapter, verse, memoBook);
+  return memoDevice().then((dev) => {
+    const now = Date.now();
+    return run('readwrite', (s) => {
+      const req = s.get([memoBook, book, chapter, verse]);
+      req.onsuccess = () => s.put(memoRow(req.result, memoBook, book, chapter, verse, text, ver, now, dev));
+    }, MEMO);
+  });
+}
+
+let sessionDevice = null; // 기기ID를 못 읽었을 때 이 세션 동안 쓸 임시 기기ID
+
+/**
+ * 메모 vv에 찍을 이 기기ID(sync-format 판 2: 동기화를 켜지 않았어도 찍는다). 기기ID DB를 못 열면 이 세션 동안 쓸
+ * 임시 기기ID(16자리 hex)로라도 찍는다: 찍지 않고 저장한 고침은 다른 기기에 '이미 아는 옛 버전'으로 보여 말없이 덮일 수 있다
+ * (앱 지적, 2026-11-28). 모르는 기기 항목이 하나 늘 뿐 판단은 맞다. 임시 ID로는 내 파일 이름을 정할 수 없으므로
+ * 동기화(올리기)는 syncStore.deviceId로만 한다(못 읽으면 동기화가 오류로 멈춘다)
+ */
+function memoDevice() {
+  return deviceId().catch((e) => {
+    if (!sessionDevice) {
+      sessionDevice = newDeviceId();
+      console.warn('device id unavailable, memo vv stamped with a session id', e);
+    }
+    return sessionDevice;
+  });
+}
+
+/**
+ * 복구의 메모 고르기에서 고른 글을 쓴다(앱 applyMemoChoice). 글이 그대로여도 쓴다: vv에 백업 쪽 항목을 합치고
+ * 이 기기를 찍어야 다른 기기가 다시 묻지 않는다. 그 사이에 메모가 없어졌으면(다른 탭에서 지움 등) 쓰지 않는다
+ * @param c appBackup.planMerge의 충돌 하나
+ */
+export async function savePickedMemo(c, text) {
+  const dev = await memoDevice();
   const now = Date.now();
   return run('readwrite', (s) => {
-    const req = s.get([memoBook, book, chapter, verse]);
-    req.onsuccess = () => s.put(memoRow(req.result, memoBook, book, chapter, verse, text, ver, now));
+    const req = s.get([c.memo_book, c.book_id, c.chapter_no, c.verse_no]);
+    req.onsuccess = () => {
+      if (req.result) s.put(pickedMemoRow(req.result, text, c.backupVv, c.backupUpdatedAt, dev, now));
+    };
   }, MEMO);
 }
 
 /** 메모 하나를 지운다(삭제 표시만. 앱 deleteMemo) */
-export function deleteMemo(book, chapter, verse, memoBook = DEFAULT_MEMO_BOOK) {
+export async function deleteMemo(book, chapter, verse, memoBook = DEFAULT_MEMO_BOOK) {
+  const dev = await memoDevice();
   const now = Date.now();
   return run('readwrite', (s) => {
     const req = s.get([memoBook, book, chapter, verse]);
     req.onsuccess = () => {
-      const row = deletedRow(req.result, now);
+      const row = deletedMemoRow(req.result, now, dev);
       if (row) s.put(row);
     };
   }, MEMO);
@@ -316,7 +386,8 @@ export function allMemos() {
 }
 
 /** 한 메모책의 메모를 모두 지운다(앱 deleteAllMemo(memoBook), 전체삭제). 다른 메모책은 그대로, 행은 deleted=1로 남는다 */
-export function clearMemos(memoBook = DEFAULT_MEMO_BOOK) {
+export async function clearMemos(memoBook = DEFAULT_MEMO_BOOK) {
+  const dev = await memoDevice();
   const now = Date.now();
   return run('readwrite', (s) => {
     const req = s.openCursor();
@@ -324,7 +395,7 @@ export function clearMemos(memoBook = DEFAULT_MEMO_BOOK) {
       const c = req.result;
       if (!c) return;
       if (c.value.memo_book === memoBook) {
-        const row = deletedRow(c.value, now);
+        const row = deletedMemoRow(c.value, now, dev);
         if (row) c.update(row);
       }
       c.continue();
@@ -382,8 +453,9 @@ export function setMemoBookOrder(uids) {
  * 메모책과 그 안의 메모를 한 거래로 지운 표시를 한다(앱 deleteMemoBook). 기본 메모책은 지우지 않는다.
  * 메모까지 지우는 까닭은 앱과 같다: 메모책 없이 남은 메모는 어느 화면에도 보이지 않은 채 남는다
  */
-export function deleteMemoBook(uid) {
-  if (uid === DEFAULT_MEMO_BOOK) return Promise.resolve();
+export async function deleteMemoBook(uid) {
+  if (uid === DEFAULT_MEMO_BOOK) return;
+  const dev = await memoDevice();
   const now = Date.now();
   return runAll('readwrite', [MEMO, MEMO_BOOK], (tx) => {
     const books = tx.objectStore(MEMO_BOOK);
@@ -397,7 +469,7 @@ export function deleteMemoBook(uid) {
       const c = cur.result;
       if (!c) return;
       if (c.value.memo_book === uid) {
-        const row = deletedRow(c.value, now);
+        const row = deletedMemoRow(c.value, now, dev);
         if (row) c.update(row);
       }
       c.continue();
@@ -437,4 +509,79 @@ export function replaceUserRows(rows) {
       for (const row of rows[name] || []) s.put(row);
     }
   });
+}
+
+// ---- 동기화(7.7 2단계, sync.js) ----
+
+/** 동기화 파일에 넣는 저장소(= 앱 표). 백업 저장소에 ver_setting을 더한 것 */
+export const SYNC_STORES = [...BACKUP_STORES, VER_SETTING];
+
+/** 역본 순서·색 행 모두(지운 것 포함. 거르기·정렬은 compare.verOrderMap). 동기화로 받은 앱의 순서를 화면에 쓴다 */
+export function allVerSettings() {
+  return run('readonly', (s) => {
+    const req = s.getAll();
+    return () => req.result;
+  }, VER_SETTING);
+}
+
+/** 동기화할 모든 행(지운 것 포함), 저장소 이름 → 행들 */
+export function allSyncData() {
+  return runAll('readonly', SYNC_STORES, (tx) => {
+    const reqs = SYNC_STORES.map((name) => [name, tx.objectStore(name).getAll()]);
+    return () => Object.fromEntries(reqs.map(([name, req]) => [name, req.result]));
+  });
+}
+
+/**
+ * 한 거래 안에서 지금 행을 모두 읽고 plan(data)이 돌려준 puts를 쓴다. 읽고 쓰는 사이에 다른 탭이 끼어들지 못해서
+ * 합칠 때 '그 순간의 지금 행'과 비교하게 된다(먼저 읽어 둔 것으로 덮어쓰지 않음). plan은 동기 함수여야 한다
+ * (거래 안에서 기다리면 거래가 끝나 버린다). plan이 던지면 하나도 쓰지 않는다
+ * @returns plan의 결과
+ */
+export function mergeSyncData(plan) {
+  return openDb().then((db) => new Promise((resolve, reject) => {
+    const tx = db.transaction(SYNC_STORES, 'readwrite');
+    const data = {};
+    let left = SYNC_STORES.length, out, failed = null;
+    for (const name of SYNC_STORES) {
+      tx.objectStore(name).getAll().onsuccess = (e) => {
+        data[name] = e.target.result;
+        if (--left) return;
+        try {
+          out = plan(data);
+          for (const n of SYNC_STORES) for (const row of out.puts[n] || []) tx.objectStore(n).put(row);
+        } catch (err) {
+          failed = err;
+          tx.abort();
+        }
+      };
+    }
+    tx.oncomplete = () => resolve(out);
+    tx.onerror = () => reject(failed || tx.error);
+    tx.onabort = () => reject(failed || tx.error || new Error('aborted'));
+  }));
+}
+
+/**
+ * 메모 충돌에서 고른 행을 쓴다. 지금 행이 expected(충돌을 찾을 때의 행)와 같을 때만(고르는 동안 다른 탭에서
+ * 고쳤으면 쓰지 않는다). 쓴 항목의 key들을 돌려준다
+ * @param items [{key, expected, row}]
+ */
+export function applyResolvedMemos(items) {
+  const done = [];
+  return run('readwrite', (s) => {
+    for (const it of items) {
+      const r = it.row;
+      const req = s.get([r.memo_book, r.book_id, r.chapter_no, r.verse_no]);
+      req.onsuccess = () => {
+        const cur = req.result, exp = it.expected;
+        // vv까지 같아야 고르는 동안 아무도 고치지 않은 것(다른 탭이 고쳤으면 그 탭이 이 기기 항목을 찍었다)
+        if (!cur || cur.updated_at !== exp.updated_at || (cur.deleted ? 1 : 0) !== exp.deleted || cur.memo !== exp.memo
+          || JSON.stringify(cur.vv ?? {}) !== JSON.stringify(exp.vv ?? {})) return;
+        s.put({ ...cur, ...r });
+        done.push(it.key);
+      };
+    }
+    return () => done;
+  }, MEMO, false); // 동기화가 쓰는 것: 고친 것으로 알리지 않는다
 }

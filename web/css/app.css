@@ -434,6 +434,7 @@ button.primary { background: var(--accent); color: var(--bg); border-color: var(
 .restore-mode input { flex: none; width: 18px; height: 18px; margin: 2px 0 0; }
 .restore-mode b { display: block; font-size: 1rem; }
 #restoreResultText { white-space: pre-line; }
+#syncAskText { white-space: pre-line; overflow-wrap: anywhere; } /* 역본 이름 목록이 길 수 있다 */
 #conflictBox[open] { display: flex; flex-direction: column; max-height: calc(100dvh - 32px); }
 .conflict-body { flex: 1 1 auto; min-height: 0; overflow-y: auto; margin-bottom: 10px; }
 #conflictBox .conflict-ref { margin: 0 0 4px; font-weight: 700; font-size: 1.05rem; }
@@ -765,6 +766,18 @@ main { overflow-x: clip; }
 #updateLater { flex: none; }
 #updateBtn { flex: none; }
 #updateBtn { background: var(--accent); color: var(--bg); border-color: var(--accent); }
+/* 자동 동기화 띠: 새 버전 알림과 같은 모양, 같은 자리. 둘 다 보이면 비킨다 */
+#syncBand {
+  position: fixed; left: 50%; top: 16px; transform: translateX(-50%); z-index: 5;
+  display: flex; align-items: center; gap: 12px; width: max-content; max-width: calc(100% - 32px);
+  padding: 8px 8px 8px 16px; border: 1px solid var(--line); border-radius: 8px;
+  background: var(--bar); box-shadow: 0 2px 8px rgb(0 0 0 / 0.2);
+}
+#syncBand[hidden] { display: none; }
+#updateBar:not([hidden]) ~ #syncBand { top: 76px; }
+.bar-top #syncBand { top: auto; bottom: 16px; }
+.bar-top #updateBar:not([hidden]) ~ #syncBand { top: auto; bottom: 76px; }
+#syncBandBtn { flex: none; background: var(--accent); color: var(--bg); border-color: var(--accent); }
 
 /* ---- 메모책 ----
    제목 단추(입력판·나의메모목록): 메모책이 하나뿐이면 꺼 두는데, 흐리지 않게 그냥 글자처럼 보인다 */
@@ -778,6 +791,20 @@ main { overflow-x: clip; }
 #mlTitle.book-pick { font-size: inherit; text-align: center; }
 dialog.ask .ask-title { margin: 0 0 10px; font-size: 1.05rem; }
 .ask-btns .spacer { flex: 1; }
+/* 구글 드라이브 동기화 창. 기록(자세히)은 긴 줄을 접어서 가로 스크롤 없이 */
+#syncBody { word-break: keep-all; overflow-wrap: anywhere; }
+#syncStatus { white-space: pre-line; }
+#syncDetails { margin: 8px 0; }
+#syncDetails summary { cursor: pointer; font-size: 0.85rem; color: var(--muted); }
+#syncLog { max-height: 40dvh; overflow-y: auto; margin: 6px 0 0; padding: 8px; font-size: 0.75rem;
+  white-space: pre-wrap; overflow-wrap: anywhere; word-break: normal; user-select: text; border: 1px solid var(--line); border-radius: 6px; }
+#syncLog:empty { display: none; }
+#syncFiles[hidden] { display: none; }
+#syncFiles h3 { margin: 14px 0 4px; font-size: 0.95rem; }
+.sync-files { list-style: none; margin: 0; padding: 0; }
+.sync-files li { display: flex; align-items: center; gap: 8px; padding: 2px 0; border-bottom: 1px solid var(--line); font-size: 0.9rem; }
+.sync-files li span { flex: 1; overflow-wrap: anywhere; }
+.sync-files .del { flex: none; min-width: 40px; min-height: 36px; border: 0; background: none; }
 .mb-pick { display: flex; flex-direction: column; max-height: 50dvh; overflow-y: auto; margin-bottom: 12px; }
 .mb-pick[hidden] { display: none; } /* 목소리 창: 이 언어의 목소리가 없을 때 */
 .mb-pick .check { min-height: 44px; font-size: 1rem; border-bottom: 1px solid var(--line); overflow-wrap: anywhere; }

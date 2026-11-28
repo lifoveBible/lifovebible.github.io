@@ -357,6 +357,55 @@
       <h3 id="groupMemo"></h3>
       <button id="setMemoBooks" type="button" class="setting nav">
         <span><span id="setMemoBooksLabel"></span><small id="setMemoBooksHint"></small></span></button>
+      <!-- 구글 드라이브 동기화(syncUi.js). 앱은 7.7에서 설정 > 데이터 관리에 둘 예정. 아래 줄에 켜짐·계정을 보인다 -->
+      <h3 id="groupSync"></h3>
+      <button id="setSyncOpen" type="button" class="setting nav">
+        <span><span id="setSyncLabel"></span><small id="setSyncHint"></small></span></button>
+    </div>
+  </dialog>
+
+  <!-- 동기화 제안(sync-format 4절·5a): "다른 기기에서 읽던 곳으로 갈까요?", "없는 역본을 받을까요?". 제안만 한다 -->
+  <dialog id="syncAsk" class="ask">
+    <p id="syncAskText"></p>
+    <div class="ask-btns">
+      <button id="syncAskNo"></button>
+      <button id="syncAskYes" class="primary"></button>
+    </div>
+  </dialog>
+
+  <!-- 구글 드라이브 동기화(syncUi.js): 켜기·끄기, 계정, 마지막 동기화, 지금 동기화. 접힌 '자세히'는 마지막 동기화 기록(영어, 문제를 알아볼 때) -->
+  <dialog id="syncBox">
+    <div class="picker-head">
+      <h2 id="syncTitle"></h2>
+      <button id="syncClose" class="icon">✕</button>
+    </div>
+    <div id="syncBody" class="scroll">
+      <p id="syncAbout" class="hint"></p>
+      <label class="setting"><input type="checkbox" id="syncOn">
+        <span><span id="syncOnLabel"></span><small id="syncOnHint"></small></span></label>
+      <p id="syncAccount" class="hint backup-last" hidden></p>
+      <p id="syncLast" class="hint" hidden></p>
+      <div class="import">
+        <button id="syncNow"></button>
+      </div>
+      <p id="syncWebNote" class="hint"></p>
+      <!-- 드라이브에 올린 역본 파일(sync-format 6b): 서버에 없는 역본을 파일째. 수·용량과 지우기 -->
+      <div id="syncFiles" hidden>
+        <h3 id="syncFilesTitle"></h3>
+        <p id="syncFilesHint" class="hint"></p>
+        <p id="syncFilesSummary" class="hint backup-last"></p>
+        <ul id="syncFilesList" class="sync-files"></ul>
+      </div>
+      <details id="syncDetails">
+        <summary id="syncLogTitle"></summary>
+        <pre id="syncLog"></pre>
+      </details>
+    </div>
+    <div class="picker-foot">
+      <!-- 창이 알림(#toast)을 가리므로 결과는 여기에 -->
+      <p id="syncStatus" class="foot-status" role="status" hidden></p>
+      <span class="spacer"></span>
+      <button id="syncDone"></button>
     </div>
   </dialog>
 
@@ -513,6 +562,11 @@
     <span id="updateText"></span>
     <button id="updateLater" hidden></button>
     <button id="updateBtn"></button>
+  </div>
+  <!-- 자동 동기화 띠(syncUi.js): 토큰이 없을 때 "누르면 동기화", 메모 충돌이 남았을 때 "눌러서 고르기" -->
+  <div id="syncBand" role="status" hidden>
+    <span id="syncBandText"></span>
+    <button id="syncBandBtn"></button>
   </div>
 
   <!-- 성경 파일을 끌어다 놓는 동안 보인다 -->
