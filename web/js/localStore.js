@@ -3,7 +3,9 @@
 // IndexedDB는 http로 연 주소(다른 PC에서 http://192.168.x.x:8000)에서도 쓸 수 있다(Cache Storage는 안 된다).
 // 메모 같은 사용자 데이터(5단계)와는 DB를 나눈다. 크고, 앱 백업과 주고받는 대상도 아니라서.
 //
-// 한 역본 = 한 행: { code, name, lang, kind: 'lfa'|'bdf', restricted, size, addedAt, data }
+// 한 역본 = 한 행: { code, name, userName, lang, kind: 'lfa'|'bdf', restricted, size, addedAt, data }
+//   name: 파일 안 이름(lfa biblename 첫 줄) 또는 드라이브에서 받은 이름. 없으면 null
+//   userName: 사용자가 ✎로 정한 이름(이 기기에만). 없으면 null/없음. 화면 이름 차례는 localBible.mergeLocal
 //   lang: 언어 코드, ''는 살펴봤지만 모름, 없으면(옛 행) 아직 안 살펴봄(app.js reloadLocal이 채운다)
 //   lfa: data는 ArrayBuffer(파일 그대로)
 //   bdf: data는 {1: 문자열, ...}. 넣을 때 인코딩을 한 번 풀어 둔다(MS949 판별을 매번 하지 않게)
@@ -49,8 +51,8 @@ export async function listLocal() {
       req.onsuccess = () => {
         const c = req.result;
         if (!c) return;
-        const { code, name, lang, kind, restricted, size, addedAt } = c.value;
-        out.push({ code, name, lang, kind, restricted, size, addedAt });
+        const { code, name, userName, lang, kind, restricted, size, addedAt } = c.value;
+        out.push({ code, name, userName, lang, kind, restricted, size, addedAt });
         c.continue();
       };
       return null;

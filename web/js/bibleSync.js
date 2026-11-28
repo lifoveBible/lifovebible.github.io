@@ -194,7 +194,7 @@ export async function uploadBible(drive, record, prev, { device, lang = '' }) {
   const props = {
     format: String(BIBLE_FORMAT),
     code: fitProp('code', record.code),
-    name: fitProp('name', record.name || ''),
+    name: fitProp('name', record.userName || record.name || ''), // 고친 이름이 있으면 그것(이 칸을 나누기 전과 같게)
     lang: fitProp('lang', record.lang || lang),
     kind: record.kind,
     parts: String(parts.length),

@@ -13,6 +13,7 @@ import { LfaFile } from './lfa.js';
 import { readEntry } from './zip.js';
 import { readChapter } from './chapterLines.js';
 import { parseBibleName, guessBibleLang } from './langGuess.js';
+import { officialName } from './versionNames.js';
 
 const LFA_NAME = /^(.+)\.lfa$/i;
 const BDF_NAME = /^(.+?)([1-7])\.bdf$/i;
@@ -172,18 +173,26 @@ export function groupFiles(files) {
 
 /**
  * 서버 역본 목록과 직접 넣은 역본을 합친다.
- * - 코드가 같으면 서버 항목의 이름·언어를 쓰고 넣은 파일로 읽는다(받지 않아도 된다)
+ * - 코드가 같으면 서버 항목의 언어를 쓰고 넣은 파일로 읽는다(받지 않아도 된다)
  * - 서버에 없는 것은 언어 ''(화면에서 "직접 넣은 역본" 묶음)로 붙인다
+ * 이름 차례(2026-11-28 사용자): ✎로 고친 이름 > 서버 목록(biblelist.txt) 이름 > 파일 안 이름(biblename)
+ *   > 정식 이름 표(versionNames.js: biblelist와 앱 arrays.xml) > 코드.
+ *   표가 biblename보다 뒤인 까닭: 사용자가 만든 lfa의 이름이 더 맞을 수 있어서. 표는 이름 없는 파일(bdf 등)을 채운다
  * 넣은 역본의 url은 'local:<코드>'다. 받은 파일 보관(Cache Storage)과 겹치지 않게 하려고.
  * @param {{code: string, url: string, name: string, lang: string}[]} server
- * @param {{code: string, name: string|null}[]} local
+ * @param {{code: string, name: string|null, userName?: string|null}[]} local
+ * @param {string} [uiLang] 화면 언어(정식 이름의 한국어판을 고르려고)
  */
-export function mergeLocal(server, local) {
+export function mergeLocal(server, local, uiLang) {
   const byCode = new Map(local.map((l) => [l.code, l]));
-  const out = server.map((v) => (byCode.has(v.code) ? { ...v, url: localUrl(v.code), local: true } : v));
+  const out = server.map((v) => {
+    const l = byCode.get(v.code);
+    return l ? { ...v, name: l.userName || v.name, url: localUrl(v.code), local: true } : v;
+  });
   for (const l of local) {
     if (!server.some((v) => v.code === l.code)) {
-      out.push({ code: l.code, url: localUrl(l.code), name: l.name || l.code, lang: l.lang || '', local: true }); // 언어를 모르면 '직접 넣은 역본' 묶음
+      const name = l.userName || l.name || officialName(l.code, uiLang) || l.code;
+      out.push({ code: l.code, url: localUrl(l.code), name, lang: l.lang || '', local: true }); // 언어를 모르면 '직접 넣은 역본' 묶음
     }
   }
   return out;

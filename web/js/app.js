@@ -24,6 +24,7 @@ import {
 } from './navBar.js';
 import { swipeDirection } from './swipe.js';
 import { groupFiles, prepareGroup, openRecord, mergeLocal, classifyName, detectLang } from './localBible.js';
+import { officialName } from './versionNames.js';
 import { listLocal, getLocal, putLocal, deleteLocal } from './localStore.js';
 import { offerKey, codeKey } from './bibleSync.js';
 import { formatChapter, formatVerses, rowsOfSingle } from './verseCopy.js';
@@ -249,7 +250,7 @@ async function loadVersionList() {
   if (!old && list.length) pruneLfa(list.map((v) => v.url)).catch((e) => console.warn('prune failed', e));
   localList = await listLocal();
   await fillLocalLangs(); // 언어 기능 전에 넣은 역본은 처음 한 번 살펴본다
-  versionList = mergeLocal(serverList, localList);
+  versionList = mergeLocal(serverList, localList, lang);
   cacheOk = await canCache();
   await refreshCached();
   // 고른 역본을 목록 기준으로 고친다(서버에서 주소·이름이 바뀌었을 수 있다). 목록에서 빠진 것은 뺀다
@@ -276,7 +277,7 @@ function syncPrefsVersions() {
 async function reloadLocal() {
   localList = await listLocal();
   await fillLocalLangs();
-  versionList = mergeLocal(serverList, localList);
+  versionList = mergeLocal(serverList, localList, lang);
   // 같은 코드라도 넣은 파일 ↔ 서버 파일로 url이 바뀐다. 열어 둔 것은 다시 연다(보관본에서 금방 열린다)
   opened.clear();
   const before = prefs.versions.map((v) => v.url).join();
@@ -3113,7 +3114,7 @@ async function syncSuggestBibles(offers, fetchOne) {
   if (!fresh.length) return null;
   prefs.syncFilesSeen = [...seen, ...fresh.map(offerKey)].slice(-200);
   savePrefs();
-  const nameOf = (d) => d.name || d.code;
+  const nameOf = (d) => d.name || officialName(d.code, lang) || d.code;
   const want = [];
   const adds = fresh.filter((d) => !d.replace);
   if (adds.length && await askSync(S.syncFilesAsk(adds.map(nameOf).join(', ')), S.syncGet, S.close)) want.push(...adds);
@@ -3129,7 +3130,7 @@ async function syncSuggestBibles(offers, fetchOne) {
  * @param fetchOne (항목) => Promise<{record}|{reason}>
  */
 async function downloadBibles(want, fetchOne) {
-  const nameOf = (d) => d.name || d.code;
+  const nameOf = (d) => d.name || officialName(d.code, lang) || d.code;
   showToast(S.downloading);
   const got = [], failed = [];
   for (const d of want) {
@@ -3142,7 +3143,8 @@ async function downloadBibles(want, fetchOne) {
       // 대소문자만 다른 코드로 이미 넣어 두었으면 이 기기의 코드 그대로(고른 역본·기록이 그 코드를 쓴다)
       const old = localList.find((l) => codeKey(l.code) === codeKey(d.code));
       if (old) r.record.code = old.code;
-      if (old && !r.record.name) r.record.name = old.name || null; // 드라이브 쪽에 이름이 없으면 이 기기에서 정한 이름을 지킨다
+      if (old && !r.record.name) r.record.name = old.name || null; // 드라이브 쪽에 이름이 없으면 이 기기에 있던 이름을 지킨다
+      if (old?.userName) r.record.userName = old.userName; // ✎로 고친 이름은 이 기기 것이라 그대로
       await putLocal(r.record);
       got.push(nameOf(d));
     } catch (e) {
@@ -3683,20 +3685,24 @@ function drawLocalList() {
 }
 
 /**
- * 넣은 역본의 이름을 사용자가 정한다(biblename이 없는 lfa, bdf는 이름 없이 코드로 보이므로). 비우면 다시 코드로.
+ * 넣은 역본의 이름을 사용자가 정한다(userName. 파일 안 이름 name은 그대로). 비우면 원래 이름(mergeLocal 차례)으로.
  * 이 기기에만 둔다: addedAt을 그대로 두어 동기화가 다시 올리지 않는다. 이름을 드라이브로 주고받는 일은
  * 앱도 이름 고치기를 만든 뒤 sync-format에 정해서 함께 한다(2026-11-28 사용자 결정)
+ * 이 칸을 두기 전(64271c6)에 고친 이름은 name에 들어 있어 원래 이름처럼 다룬다
  */
 async function renameLocal(v) {
-  const cur = localList.find((l) => l.code === v.code)?.name || '';
-  const input = prompt(S.localRenamePrompt(v.code), cur);
+  const row = localList.find((l) => l.code === v.code);
+  const cur = row?.userName || '';
+  const original = mergeLocal(serverList, row ? [{ ...row, userName: null }] : [], lang).find((x) => x.code === v.code)?.name || v.code;
+  const input = prompt(S.localRenamePrompt(original), cur || original);
   if (input == null) return;
-  const name = input.trim() || null;
+  let name = input.trim() || null;
+  if (name === original) name = null; // 원래 이름 그대로 두면 고친 것이 아니다(나중에 표·목록 이름이 바뀌면 따라가게)
   if (name === (cur || null)) return;
   try {
     const rec = await getLocal(v.code);
     if (!rec) return;
-    rec.name = name;
+    rec.userName = name;
     await putLocal(rec);
   } catch (e) {
     console.warn('rename failed', v.code, e);
@@ -3738,8 +3744,10 @@ async function importItems(items) {
           continue;
         }
         r.record.addedAt = Date.now();
-        // 같은 역본을 다시 넣었는데 파일에 이름이 없으면 사용자가 정한 이름을 지킨다
-        if (!r.record.name) r.record.name = localList.find((l) => codeKey(l.code) === codeKey(g.code))?.name || null;
+        // 같은 역본을 다시 넣으면 ✎로 고친 이름은 그대로. 새 파일에 이름이 없으면 있던 이름도 지킨다
+        const prev = localList.find((l) => codeKey(l.code) === codeKey(g.code));
+        r.record.userName = prev?.userName || null;
+        if (!r.record.name) r.record.name = prev?.name || null;
         // 언어: biblename 둘째 줄 → 코드 → 본문(langGuess). 모르면 ''(살펴봤지만 모름)
         if (!r.record.lang) r.record.lang = (await detectLang(r.record).catch(() => null)) || '';
         await putLocal(r.record);

@@ -15,6 +15,10 @@ import { syncOnce } from './sync.js';
 import { mergeSyncData, allSyncData, applyResolvedMemos, onUserDataChanged } from './userStore.js';
 import { createAutoSync } from './autoSync.js';
 import { listLocal, getLocal } from './localStore.js';
+import { officialName } from './versionNames.js';
+
+/** 드라이브 역본의 보일 이름. 올린 쪽이 이름을 안 실었으면 정식 이름 표(versionNames.js), 그래도 없으면 코드 */
+const nameOf = (d) => d.name || officialName(d.code, document.documentElement.lang) || d.code;
 import {
   driveBibles, planBibles, uploadBible, fetchBible, driveSummary, codeKey, canUploadBibles, isMobileDevice, planLangFills, fillBibleLang,
 } from './bibleSync.js';
@@ -185,20 +189,20 @@ export function setupSync($, S, hooks) {
     $list.replaceChildren(...[...driveList.values()].map((d) => {
       const li = document.createElement('li');
       const name = document.createElement('span');
-      name.textContent = `${d.name || d.code} (${d.code}, ${Math.max(0.1, Math.round(d.size / 1024 / 102.4) / 10)} MB)`
+      name.textContent = `${nameOf(d)} (${d.code}, ${Math.max(0.1, Math.round(d.size / 1024 / 102.4) / 10)} MB)`
         + (d.complete ? '' : ' ' + S.syncFileIncomplete);
       // 받기 제안은 한 판에 한 번만 묻으므로 여기서 언제든 받을 수 있게(6b). 덜 올라온 bdf·모르는 새 판은 받지 않는다
       const get = document.createElement('button');
       get.className = 'icon del';
       get.textContent = '⬇';
-      get.title = S.syncGet + ' ' + (d.name || d.code);
+      get.title = S.syncGet + ' ' + nameOf(d);
       get.setAttribute('aria-label', get.title);
       get.disabled = !d.complete || !!d.newer;
       get.addEventListener('click', () => downloadFromDrive(d, get));
       const del = document.createElement('button');
       del.className = 'icon del';
       del.textContent = '🗑';
-      del.title = S.delete + ' ' + (d.name || d.code);
+      del.title = S.delete + ' ' + nameOf(d);
       del.setAttribute('aria-label', del.title);
       del.addEventListener('click', () => removeBible(d, del));
       li.append(name, get, del);
@@ -208,7 +212,7 @@ export function setupSync($, S, hooks) {
 
   /** 드라이브의 역본을 받는다. 이 기기에 이미 있으면 드라이브의 것으로 바꾼다고 먼저 묻는다(6b) */
   async function downloadFromDrive(d, $btn) {
-    const name = d.name || d.code;
+    const name = nameOf(d);
     if (hooks.hasBible(d.code) && !await hooks.ask(S.syncFileReplaceConfirm(name), S.syncReplace, S.close)) return;
     $btn.disabled = true;
     try {
@@ -227,7 +231,7 @@ export function setupSync($, S, hooks) {
 
   /** 드라이브에서 역본 파일 지우기. 서버에서 받을 수 없는 역본이면 되찾을 길이 없다고 한 번 더 묻는다(6b, JC 결정) */
   async function removeBible(d, $btn) {
-    const name = d.name || d.code;
+    const name = nameOf(d);
     const onServer = hooks.serverCodes().some((c) => codeKey(c) === codeKey(d.code));
     if (!await hooks.ask(onServer ? S.syncFileDeleteAskPlain(name) : S.syncFileDeleteAsk(name), S.delete, S.close)) return;
     $btn.disabled = true;
