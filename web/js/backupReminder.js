@@ -12,11 +12,13 @@ export const SNOOZE_DAYS = 7; // [나중에]를 누르면 이만큼 묻지 않�
  * - 마지막 백업 뒤에 바뀐 기록(지운 것도)이 없으면 알리지 않는다(새로 백업해도 같은 파일이라)
  * - 기준은 마지막 백업 시각, 백업한 적이 없으면 가장 오래된 기록의 시각. 그로부터 REMIND_DAYS가 지나야 한다
  * - [나중에]로 미룬 동안은 알리지 않는다
+ * - 구글 드라이브 동기화를 켜 두고 REMIND_DAYS 안에 동기화를 마쳤으면 알리지 않는다(기록이 본인 드라이브에도 있다. 2026-11-28 사용자)
  * 기본 메모책 행은 시각이 0(고친 적 없음)이라 저절로 빠진다
  * @param {Object<string, object[]>} data userStore.allUserData()
- * @param {{lastBackup?: number, snoozeUntil?: number}} state
+ * @param {{lastBackup?: number, snoozeUntil?: number, lastSync?: number}} state lastSync: 동기화를 켰을 때 마지막으로 마친 시각(껐으면 0)
  */
-export function backupReminder(data, { lastBackup = 0, snoozeUntil = 0 } = {}, now = Date.now()) {
+export function backupReminder(data, { lastBackup = 0, snoozeUntil = 0, lastSync = 0 } = {}, now = Date.now()) {
+  if (lastSync > 0 && now - lastSync < REMIND_DAYS * DAY) return null;
   let newest = 0, oldest = Infinity, alive = false;
   for (const rows of Object.values(data || {})) {
     for (const r of rows || []) {

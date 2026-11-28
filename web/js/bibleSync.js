@@ -124,6 +124,29 @@ export function planBibles({ local, drive, serverCodes = [], removed = {} }) {
   return { upload, offers };
 }
 
+/**
+ * 지금 역본 파일을 올려도 되나(6b, 2026-11-28 JC: 데이터 요금이 없는 네트워크에서만. 받기는 [받기]를 누를 때라 제한 없음).
+ * 웹은 안드로이드 크롬 등에서만 navigator.connection.type을 안다. 모를 때는 JC가 정한 대로: PC는 올리고,
+ * 폰·태블릿은 사용자가 직접 동기화할 때(지금 동기화·켜기·띠 누르기)만
+ * @param o.connection navigator.connection(없을 수 있음)
+ * @param o.mobile 폰·태블릿인가
+ * @param o.manual 사용자가 직접 누른 동기화인가
+ */
+export function canUploadBibles({ connection, mobile, manual }) {
+  if (connection?.saveData) return false; // 데이터 절약을 켰다
+  const type = connection?.type;
+  if (type === 'cellular') return false;
+  if (type === 'wifi' || type === 'ethernet') return true;
+  return mobile ? !!manual : true;
+}
+
+/** 폰·태블릿인가(userAgent로 대강. 데스크톱 모드 아이패드는 터치 점으로) */
+export function isMobileDevice(nav = globalThis.navigator) {
+  if (nav?.userAgentData?.mobile) return true;
+  const ua = nav?.userAgent || '';
+  return /Android|iPhone|iPad|iPod|Mobile/i.test(ua) || (/Macintosh/.test(ua) && (nav?.maxTouchPoints || 0) > 1);
+}
+
 /** 같은 제안을 다시 묻지 않으려고 기억하는 표(코드와 넣은 시각) */
 export const offerKey = (d) => `${codeKey(d.code)}@${d.writtenAt}`;
 

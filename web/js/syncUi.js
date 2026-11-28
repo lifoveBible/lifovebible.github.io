@@ -15,7 +15,9 @@ import { syncOnce } from './sync.js';
 import { mergeSyncData, allSyncData, applyResolvedMemos, onUserDataChanged } from './userStore.js';
 import { createAutoSync } from './autoSync.js';
 import { listLocal, getLocal } from './localStore.js';
-import { driveBibles, planBibles, uploadBible, fetchBible, driveSummary, codeKey } from './bibleSync.js';
+import {
+  driveBibles, planBibles, uploadBible, fetchBible, driveSummary, codeKey, canUploadBibles, isMobileDevice,
+} from './bibleSync.js';
 
 // Cloud Console "Lifove Bible" 프로젝트의 웹 OAuth 클라이언트 ID(공개해도 되는 값). 승인된 자바스크립트 원본:
 // https://lifovebible.github.io, http://localhost:8000
@@ -112,6 +114,7 @@ export function setupSync($, S, hooks) {
   let lastBibleError = null; // 역본 파일을 주고받다 난 오류(나머지 동기화는 끝났다)
   let lastSaid = null; // 역본 받기 제안의 결과 글(받았습니다 등)
   let driveList = null; // 드라이브의 역본 파일(driveBibles). 이번에 동기화하기 전에는 모른다
+  let waitingBibles = 0; // 네트워크 때문에 아직 올리지 못한 역본 수(6b: 데이터 요금이 없는 네트워크에서만)
 
   const save = () => {
     try {
@@ -173,6 +176,8 @@ export function setupSync($, S, hooks) {
     }
     const { count, mb } = driveSummary(driveList);
     $('syncFilesSummary').textContent = count ? S.syncFilesSummary(count, mb) : S.syncFilesNone;
+    $('syncFilesWaiting').textContent = waitingBibles ? S.syncFilesWaiting(waitingBibles) : '';
+    $('syncFilesWaiting').hidden = !waitingBibles;
     $list.replaceChildren(...[...driveList.values()].map((d) => {
       const li = document.createElement('li');
       const name = document.createElement('span');
@@ -219,18 +224,22 @@ export function setupSync($, S, hooks) {
    * 역본 파일(6b): 서버 목록에 없는 이 기기의 역본을 올리고(없거나 이 기기가 더 나중에 넣었으면), 받을 것(제안)을 돌려준다.
    * 받기는 묻고 나서(자동으로 받지 않음)
    */
-  async function syncBibleFiles(drive, listed, device) {
+  async function syncBibleFiles(drive, listed, device, manual) {
     let list = driveBibles(listed);
     const local = await listLocal();
     const opts = { serverCodes: hooks.serverCodes(), removed: loadRemoved() };
     const plan = planBibles({ local, drive: list, ...opts });
-    for (const l of plan.upload) {
+    // 데이터 요금이 없는 네트워크에서만 올린다(6b). 못 올린 것은 다음 동기화에서 다시 본다
+    const allowed = canUploadBibles({ connection: navigator.connection, mobile: isMobileDevice(), manual });
+    waitingBibles = allowed ? 0 : plan.upload.length;
+    if (waitingBibles) line(`Bible files waiting for Wi-Fi: ${plan.upload.map((l) => l.code).join(', ')}`);
+    for (const l of allowed ? plan.upload : []) {
       const rec = await getLocal(l.code);
       if (!rec) continue;
       const n = await uploadBible(drive, rec, list.get(codeKey(l.code)), { device });
       line(`Uploaded bible ${l.code} (${n} file(s), ${Math.round((rec.size || 0) / 1024)} KB)`);
     }
-    if (plan.upload.length) list = driveBibles(await drive.listAppData());
+    if (allowed && plan.upload.length) list = driveBibles(await drive.listAppData());
     driveList = list;
     drawFiles();
     const { offers } = planBibles({ local, drive: list, ...opts });
@@ -281,7 +290,7 @@ export function setupSync($, S, hooks) {
       r.offers = [];
       lastBibleError = null;
       try {
-        r.offers = await syncBibleFiles(drive, r.listed, device);
+        r.offers = await syncBibleFiles(drive, r.listed, device, interactive); // 직접 누른 동기화면 interactive
       } catch (e) {
         if (e.status === 401) throw e;
         console.warn('[LifoveSync]', e);
@@ -303,6 +312,7 @@ export function setupSync($, S, hooks) {
       try {
         const r = await syncWith(new DriveClient(t), interactive);
         state.at = Date.now();
+        hooks.synced?.(); // 떠 있는 '오래 백업 안 함' 알림을 내린다
         save();
         lastNewer = !!r.newer;
         // 읽던 곳·역본 제안은 켤 때·열 때·다시 볼 때·눌렀을 때만(고칠 때마다 창이 뜨지 않게)
@@ -423,5 +433,9 @@ export function setupSync($, S, hooks) {
     loadGis().catch((e) => console.warn('[LifoveSync]', e));
     auto.start();
   }
-  return { changed: () => auto.changed() };
+  return {
+    changed: () => auto.changed(),
+    /** 동기화를 켰을 때 마지막으로 마친 시각(껐으면 0). '오래 백업 안 함' 알림이 본다 */
+    lastSyncAt: () => (state.on ? Number(state.at) || 0 : 0),
+  };
 }

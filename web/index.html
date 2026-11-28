@@ -357,10 +357,6 @@
       <h3 id="groupMemo"></h3>
       <button id="setMemoBooks" type="button" class="setting nav">
         <span><span id="setMemoBooksLabel"></span><small id="setMemoBooksHint"></small></span></button>
-      <!-- 구글 드라이브 동기화(syncUi.js). 앱은 7.7에서 설정 > 데이터 관리에 둘 예정. 아래 줄에 켜짐·계정을 보인다 -->
-      <h3 id="groupSync"></h3>
-      <button id="setSyncOpen" type="button" class="setting nav">
-        <span><span id="setSyncLabel"></span><small id="setSyncHint"></small></span></button>
     </div>
   </dialog>
 
@@ -394,6 +390,7 @@
         <h3 id="syncFilesTitle"></h3>
         <p id="syncFilesHint" class="hint"></p>
         <p id="syncFilesSummary" class="hint backup-last"></p>
+        <p id="syncFilesWaiting" class="hint" hidden></p>
         <ul id="syncFilesList" class="sync-files"></ul>
       </div>
       <details id="syncDetails">
@@ -451,13 +448,17 @@
     </div>
   </dialog>
 
-  <!-- 데이터 백업·복구. 앱의 설정 > 데이터 백업 / 데이터 복구에 해당. 파일은 앱과 같은 SQLite(DB 12)라 서로 주고받는다 -->
+  <!-- 데이터 관리(앱 설정의 "데이터 관리" 묶음): 맨 위에 구글 드라이브 동기화(syncUi.js, 줄 아래에 켜짐·계정), 그 아래 데이터 백업 / 데이터 복구.
+       백업 파일은 앱과 같은 SQLite라 서로 주고받는다. 동기화는 처음에 본문화면설정 맨 아래 있었는데 데이터 일이라 여기로 옮겼다(2026-11-28 사용자) -->
   <dialog id="backupBox">
     <div class="picker-head">
       <h2 id="backupTitle"></h2>
       <button id="backupClose" class="icon">✕</button>
     </div>
     <div id="backupBody" class="scroll">
+      <h3 id="groupSync"></h3>
+      <button id="setSyncOpen" type="button" class="setting nav">
+        <span><span id="setSyncLabel"></span><small id="setSyncHint"></small></span></button>
       <h3 id="backupSaveTitle"></h3>
       <p id="backupSaveHint" class="hint"></p>
       <p id="backupLast" class="hint backup-last"></p>
@@ -472,6 +473,7 @@
         <h3 id="backupNoticeTitle"></h3>
         <p id="backupNotice1"></p>
         <p id="backupNotice2"></p>
+        <p id="backupNoticeSync"></p>
         <p id="backupNotice3"></p>
       </div>
       <h3 id="restoreTitle"></h3>

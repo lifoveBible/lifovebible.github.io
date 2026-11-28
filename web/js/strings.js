@@ -270,7 +270,7 @@ const STRINGS = {
     memoBookDeleteConfirmEmpty: (name) => `“${name}” 메모책을 지울까요?`, // text_memo_book_delete_confirm_empty
     memoBookPick: '메모책 바꾸기',
     memoBookFailed: '메모책을 저장하지 못했습니다',
-    backupMenu: '데이터 백업·복구', // menu_db_backup + menu_db_restore
+    backupMenu: '데이터 관리', // text_title_pref_3(앱 설정의 데이터 관리 묶음). 동기화·백업·복구를 한 창에(2026-11-28)
     backupSaveTitle: '데이터 백업', // menu_db_backup
     backupSaveHint: '나의 형광펜, 메모, 읽기통계 데이터를 모두 백업합니다. 책갈피와 메모책도 들어갑니다. 안드로이드 앱과 같은 백업 파일(.db)이라 앱의 설정 > 데이터 복구로도 열 수 있습니다.', // text_pref_db_backup_summary에 웹 설명을 붙임
     backupRun: '백업 실행', // menu_db_backup_run
@@ -283,6 +283,7 @@ const STRINGS = {
     backupNoticeTitle: '꼭 읽어 주세요: 기록 보관 안내',
     backupNotice1: '형광펜, 메모, 책갈피, 읽기 기록은 이 기기의 이 브라우저 안에만 저장되며, 서버에는 따로 보관되지 않습니다. 브라우저의 사이트 데이터를 지우거나, 저장 공간이 부족하거나, 기기나 브라우저를 바꾸면 기록이 사라질 수 있고, 사라진 기록은 되살릴 방법이 없습니다. 아이폰·아이패드의 사파리는 홈 화면에 추가하지 않은 채 7일 넘게 열지 않으면 기록을 지울 수도 있습니다.',
     backupNotice2: '소중한 기록을 잃지 않도록 정기적으로 백업해 주시고, 받은 백업 파일은 PC나 클라우드 드라이브처럼 안전한 곳에 함께 보관해 주세요. 백업한 지 7일이 지나면 화면 위에 알려 드립니다.',
+    backupNoticeSync: '구글 드라이브 동기화(☰ → 데이터 관리 맨 위)를 켜면 기록이 본인의 구글 드라이브에도 저장되어 다른 기기에서도 이어서 쓸 수 있습니다. 동기화를 켜 두고 7일 안에 동기화되었으면 백업 알림은 띄우지 않습니다. 그래도 백업 파일을 함께 보관해 두시면 더 안전합니다.', // 동기화를 켜면(2026-11-28 사용자 승인, 기록 보관 안내에 더함)
     backupNotice3: '백업과 백업 파일 보관은 사용자께서 직접 관리해 주셔야 합니다. 백업하지 않아 사라진 기록은 저희가 되돌려 드릴 수 없으며, 그 책임은 사용자께 있다는 점을 너그러이 양해해 주시기 바랍니다.',
     reminderNever: '아직 백업하지 않은 기록이 있습니다. 기록이 사라지지 않도록 백업해 주세요.',
     reminderDays: (n) => `마지막 백업 후 ${n}일이 지났습니다. 기록이 사라지지 않도록 백업해 주세요.`,
@@ -346,6 +347,7 @@ const STRINGS = {
     syncGet: '받기',
     syncReplace: '바꾸기',
     syncFilesFailed: (msg) => `역본 파일을 주고받지 못했습니다. (${msg})`,
+    syncFilesWaiting: (n) => `아직 올리지 않은 역본 ${n}개는 와이파이처럼 데이터 요금이 없는 네트워크에서 올립니다. 폰에서는 [지금 동기화]를 누르면 바로 올립니다(모바일 데이터로 알려진 때는 빼고).`, // 6b: 데이터 요금이 없는 네트워크에서만 올림(모르면 PC는 올리고 폰은 직접 누를 때만, 2026-11-28 JC)
     syncPositionAsk: (device, ref) => `${device}에서 읽던 곳은 ${ref}입니다. 이동할까요?`, // 웹에서 먼저: 동기화 읽던 곳 제안(sync-format 4절)
     syncGo: '이동',
     syncVersionsAsk: (names) => `다른 기기에 있는 역본을 이 기기에도 받을까요?
@@ -622,7 +624,7 @@ ${names}`, // 웹에서 먼저: 동기화 역본 제안(5a)
     memoBookDeleteConfirmEmpty: (name) => `Delete the memo book “${name}”?`, // text_memo_book_delete_confirm_empty
     memoBookPick: 'Change memo book',
     memoBookFailed: 'Could not save the memo book',
-    backupMenu: 'Backup & Restore', // menu_db_backup + menu_db_restore
+    backupMenu: 'Data Management', // text_title_pref_3(앱 설정의 데이터 관리 묶음). 동기화·백업·복구를 한 창에(2026-11-28)
     backupSaveTitle: 'Data Backup', // menu_db_backup
     backupSaveHint: 'Backup My Highlight, My Memo, and Read Statistics. Bookmarks and memo books are included. The file is the same backup file (.db) as the Android app, so you can open it in the app under Settings > Restore Data.', // text_pref_db_backup_summary + web note
     backupRun: 'Proceed Backup', // menu_db_backup_run
@@ -635,6 +637,7 @@ ${names}`, // 웹에서 먼저: 동기화 역본 제안(5a)
     backupNoticeTitle: 'Please read: keeping your records',
     backupNotice1: 'Your highlights, memos, bookmarks, and reading records are stored only in this browser on this device; they are not kept on our server. They can be lost if you clear the browser\'s site data, the device runs low on storage, or you change devices or browsers, and lost records cannot be recovered. Safari on iPhone and iPad may also delete them if the site is not added to the Home Screen and is not opened for more than 7 days.',
     backupNotice2: 'To keep your records safe, please back up regularly and keep the backup files in a safe place such as a computer or a cloud drive. If 7 days pass since your last backup, a reminder appears at the top of the screen.',
+    backupNoticeSync: 'If you turn on Google Drive sync (at the top of ☰ → Data Management), your records are also saved in your own Google Drive and you can continue on your other devices. While sync is on and has run within the last 7 days, the backup reminder does not appear. Keeping backup files as well is still safer.',
     backupNotice3: 'Making backups and keeping the files is up to you. We cannot restore records that were lost without a backup, and we kindly ask for your understanding that this responsibility rests with you.',
     reminderNever: 'Some of your records have not been backed up yet. Please back up so they are not lost.',
     reminderDays: (n) => `It has been ${n} days since your last backup. Please back up so your records are not lost.`,
@@ -696,6 +699,7 @@ ${names}`, // 웹에서 먼저: 동기화 역본 제안(5a)
     syncGet: 'Download',
     syncReplace: 'Replace',
     syncFilesFailed: (msg) => `Could not sync the version files. (${msg})`,
+    syncFilesWaiting: (n) => `${n} version(s) not uploaded yet will be uploaded on a network without data charges, such as Wi-Fi. On a phone, tapping [Sync now] uploads them right away (unless you are known to be on mobile data).`,
     syncPositionAsk: (device, ref) => `You were reading ${ref} on ${device}. Go there?`,
     syncGo: 'Go',
     syncVersionsAsk: (names) => `Download the versions you have on your other devices?
@@ -973,7 +977,7 @@ ${names}`,
     memoBookDeleteConfirmEmpty: (name) => `メモ帳「${name}」を削除しますか？`, // text_memo_book_delete_confirm_empty
     memoBookPick: 'メモ帳を切り替え',
     memoBookFailed: 'メモ帳を保存できませんでした',
-    backupMenu: 'バックアップと復元', // menu_db_backup + menu_db_restore
+    backupMenu: 'データ管理', // text_title_pref_3(앱 설정의 데이터 관리 묶음). 동기화·백업·복구를 한 창에(2026-11-28)
     backupSaveTitle: 'データのバックアップ', // menu_db_backup
     backupSaveHint: 'マイライン、マイメモ、通読の統計をバックアップします。しおりとメモ帳も含まれます。Androidアプリと同じバックアップファイル(.db)なので、アプリの[設定] > [データの復元]でも開けます。', // text_pref_db_backup_summary에 웹 설명을 붙임
     backupRun: 'バックアップする', // menu_db_backup_run
@@ -987,6 +991,7 @@ ${names}`,
     backupNoticeTitle: '必ずお読みください: 記録の保管について',
     backupNotice1: '線、メモ、しおり、既読の記録は、この端末のこのブラウザの中にだけ保存され、サーバーには保管されません。ブラウザのサイトデータを消したり、保存容量が足りなくなったり、端末やブラウザを替えたりすると記録が失われることがあり、失われた記録を元に戻す方法はありません。iPhone・iPadのSafariでは、ホーム画面に追加しないまま7日以上開かないと、記録が削除されることもあります。',
     backupNotice2: '大切な記録を失わないよう、定期的にバックアップし、バックアップファイルはパソコンやクラウドドライブなど安全な場所にあわせて保管してください。最後のバックアップから7日が過ぎると、画面の上でお知らせします。',
+    backupNoticeSync: 'Googleドライブ同期(☰ → データ管理の一番上)をオンにすると、記録はご自分のGoogleドライブにも保存され、ほかの端末でも続けて使えます。同期をオンにして7日以内に同期されていれば、バックアップのお知らせは表示しません。それでもバックアップファイルも一緒に保管しておくと、より安全です。',
     backupNotice3: 'バックアップとバックアップファイルの保管は、ご自身で管理していただく必要があります。バックアップしなかったために失われた記録を私たちが元に戻すことはできず、その責任はご利用者様にあることを、どうかご了承ください。',
     reminderNever: 'まだバックアップしていない記録があります。記録が失われないようバックアップしてください。',
     reminderDays: (n) => `最後のバックアップから${n}日が過ぎました。記録が失われないようバックアップしてください。`,
@@ -1048,6 +1053,7 @@ ${names}`,
     syncGet: 'ダウンロード',
     syncReplace: '置き換える',
     syncFilesFailed: (msg) => `訳のファイルを同期できませんでした。(${msg})`,
+    syncFilesWaiting: (n) => `まだアップロードしていない訳${n}件は、Wi-Fiなどデータ料金のかからないネットワークでアップロードします。スマートフォンでは[今すぐ同期]を押すとすぐにアップロードします(モバイルデータとわかっているときを除く)。`,
     syncPositionAsk: (device, ref) => `${device}で読んでいた所は${ref}です。移動しますか？`,
     syncGo: '移動',
     syncVersionsAsk: (names) => `他の端末にある訳をこの端末にもダウンロードしますか？
@@ -1326,7 +1332,7 @@ ${names}`,
     memoBookDeleteConfirmEmpty: (name) => `要刪除備忘冊「${name}」嗎？`, // text_memo_book_delete_confirm_empty
     memoBookPick: '切換備忘冊',
     memoBookFailed: '無法儲存備忘冊',
-    backupMenu: '資料備份與恢復', // menu_db_backup + menu_db_restore
+    backupMenu: '資料管理', // text_title_pref_3(앱 설정의 데이터 관리 묶음). 동기화·백업·복구를 한 창에(2026-11-28)
     backupSaveTitle: '資料備份', // menu_db_backup
     backupSaveHint: '備份我的精選、我的備忘及閱讀統計。書籤和備忘冊也會一併備份。這是與 Android App 相同的備份檔（.db），也可以在 App 的「設定 > 恢復資料」中開啟。', // text_pref_db_backup_summary에 웹 설명을 붙임
     backupRun: '進行備份', // menu_db_backup_run
@@ -1340,6 +1346,7 @@ ${names}`,
     backupNoticeTitle: '請務必閱讀：紀錄保存須知',
     backupNotice1: '精選、備忘、書籤和閱讀紀錄只儲存在這部裝置的這個瀏覽器中，不會另外保存在伺服器上。若清除瀏覽器的網站資料、儲存空間不足，或更換裝置或瀏覽器，紀錄可能會遺失，而遺失的紀錄無法復原。iPhone、iPad 的 Safari 若未加入主畫面，且超過 7 天沒有開啟，也可能會刪除紀錄。',
     backupNotice2: '為了避免遺失寶貴的紀錄，請定期備份，並將備份檔一併保存在電腦或雲端硬碟等安全的地方。距離上次備份超過 7 天時，會在畫面上方提醒您。',
+    backupNoticeSync: '開啟 Google 雲端硬碟同步（☰ → 資料管理的最上方）後，紀錄也會儲存在您自己的 Google 雲端硬碟中，可以在其他裝置上接著使用。開啟同步且 7 天內完成過同步時，不會顯示備份提醒。不過，同時保存備份檔案會更安全。',
     backupNotice3: '備份及備份檔的保存需要由您自行管理。因未備份而遺失的紀錄，我們無法為您復原，此責任由使用者自行承擔，敬請見諒。',
     reminderNever: '還有尚未備份的紀錄。為了避免紀錄遺失，請進行備份。',
     reminderDays: (n) => `距離上次備份已經 ${n} 天了。為了避免紀錄遺失，請進行備份。`,
@@ -1401,6 +1408,7 @@ ${names}`,
     syncGet: '下載',
     syncReplace: '取代',
     syncFilesFailed: (msg) => `無法同步譯本檔案。（${msg}）`,
+    syncFilesWaiting: (n) => `尚未上傳的 ${n} 個譯本，會在 Wi-Fi 等不產生數據費用的網路上上傳。在手機上按 [立即同步] 會立刻上傳（已知使用行動數據時除外）。`,
     syncPositionAsk: (device, ref) => `在${device}上讀到${ref}。要前往嗎？`,
     syncGo: '前往',
     syncVersionsAsk: (names) => `要在此裝置下載其他裝置上的譯本嗎？
@@ -1679,7 +1687,7 @@ ${names}`,
     memoBookDeleteConfirmEmpty: (name) => `要删除备忘册「${name}」吗？`, // text_memo_book_delete_confirm_empty
     memoBookPick: '切换备忘册',
     memoBookFailed: '无法储存备忘册',
-    backupMenu: '资料备份与恢复', // menu_db_backup + menu_db_restore
+    backupMenu: '资料管理', // text_title_pref_3(앱 설정의 데이터 관리 묶음). 동기화·백업·복구를 한 창에(2026-11-28)
     backupSaveTitle: '资料备份', // menu_db_backup
     backupSaveHint: '备份我的精选、我的备忘及阅读统计。书签和备忘册也会一并备份。这是与 Android App 相同的备份档（.db），也可以在 App 的「设定 > 恢复资料」中开启。', // text_pref_db_backup_summary에 웹 설명을 붙임
     backupRun: '进行备份', // menu_db_backup_run
@@ -1693,6 +1701,7 @@ ${names}`,
     backupNoticeTitle: '请务必阅读：纪录保存须知',
     backupNotice1: '精选、备忘、书签和阅读纪录只储存在这部装置的这个浏览器中，不会另外保存在伺服器上。若清除浏览器的网站资料、储存空间不足，或更换装置或浏览器，纪录可能会遗失，而遗失的纪录无法复原。iPhone、iPad 的 Safari 若未加入主画面，且超过 7 天没有开启，也可能会删除纪录。',
     backupNotice2: '为了避免遗失宝贵的纪录，请定期备份，并将备份档一并保存在电脑或云端硬碟等安全的地方。距离上次备份超过 7 天时，会在画面上方提醒您。',
+    backupNoticeSync: '开启 Google 云端硬碟同步（☰ → 资料管理的最上方）后，纪录也会储存在您自己的 Google 云端硬碟中，可以在其他装置上接著使用。开启同步且 7 天内完成过同步时，不会显示备份提醒。不过，同时保存备份档案会更安全。',
     backupNotice3: '备份及备份档的保存需要由您自行管理。因未备份而遗失的纪录，我们无法为您复原，此责任由使用者自行承担，敬请见谅。',
     reminderNever: '还有尚未备份的纪录。为了避免纪录遗失，请进行备份。',
     reminderDays: (n) => `距离上次备份已经 ${n} 天了。为了避免纪录遗失，请进行备份。`,
@@ -1754,6 +1763,7 @@ ${names}`,
     syncGet: '下载',
     syncReplace: '取代',
     syncFilesFailed: (msg) => `无法同步译本档案。（${msg}）`,
+    syncFilesWaiting: (n) => `尚未上传的 ${n} 个译本，会在 Wi-Fi 等不产生数据费用的网路上上传。在手机上按 [立即同步] 会立刻上传（已知使用行动数据时除外）。`,
     syncPositionAsk: (device, ref) => `在${device}上读到${ref}。要前往吗？`,
     syncGo: '前往',
     syncVersionsAsk: (names) => `要在此装置下载其他装置上的译本吗？
@@ -2031,7 +2041,7 @@ ${names}`,
     memoBookDeleteConfirmEmpty: (name) => `¿Eliminar el cuaderno “${name}”?`, // text_memo_book_delete_confirm_empty
     memoBookPick: 'Cambiar de cuaderno',
     memoBookFailed: 'No se pudo guardar el cuaderno',
-    backupMenu: 'Copia de seguridad y restauración', // menu_db_backup + menu_db_restore
+    backupMenu: 'Gestión de datos', // text_title_pref_3(앱 설정의 데이터 관리 묶음). 동기화·백업·복구를 한 창에(2026-11-28)
     backupSaveTitle: 'Copia de seguridad', // menu_db_backup
     backupSaveHint: 'Copia Mis resaltados, Mis notas y Estadísticas de lectura. También incluye los marcadores y los cuadernos de notas. Es el mismo archivo de copia (.db) que el de la aplicación de Android, así que puedes abrirlo en la aplicación en Ajustes > Restaurar datos.', // text_pref_db_backup_summary에 웹 설명을 붙임
     backupRun: 'Hacer copia', // menu_db_backup_run
@@ -2045,6 +2055,7 @@ ${names}`,
     backupNoticeTitle: 'Lea esto, por favor: cómo conservar sus registros',
     backupNotice1: 'Sus resaltados, notas, marcadores y registros de lectura se guardan solo en este navegador de este dispositivo; no se conservan en nuestro servidor. Pueden perderse si borra los datos del sitio del navegador, si el dispositivo se queda sin espacio o si cambia de dispositivo o de navegador, y los registros perdidos no se pueden recuperar. Safari en iPhone y iPad también puede borrarlos si el sitio no se ha añadido a la pantalla de inicio y no se abre durante más de 7 días.',
     backupNotice2: 'Para no perder sus registros, haga copias de seguridad con regularidad y guarde los archivos en un lugar seguro, como una computadora o una unidad en la nube. Si pasan 7 días desde la última copia, aparecerá un aviso en la parte superior de la pantalla.',
+    backupNoticeSync: 'Si activa la sincronización con Google Drive (arriba en ☰ → Gestión de datos), sus registros también se guardan en su propio Google Drive y puede seguir usándolos en sus otros dispositivos. Mientras la sincronización esté activada y se haya realizado en los últimos 7 días, no aparecerá el aviso de copia de seguridad. Aun así, es más seguro conservar también los archivos de copia de seguridad.',
     backupNotice3: 'Hacer las copias y guardar los archivos queda a su cargo. No podemos recuperar los registros que se pierdan sin una copia, y le pedimos amablemente que comprenda que esta responsabilidad es suya.',
     reminderNever: 'Algunos de tus registros todavía no tienen copia. Haz una copia para no perderlos.',
     reminderDays: (n) => `Han pasado ${n} días desde tu última copia. Haz una copia para no perder tus registros.`,
@@ -2106,6 +2117,7 @@ ${names}`,
     syncGet: 'Descargar',
     syncReplace: 'Reemplazar',
     syncFilesFailed: (msg) => `No se pudieron sincronizar los archivos de versiones. (${msg})`,
+    syncFilesWaiting: (n) => `${n} versión(es) aún sin subir se subirán en una red sin cargos de datos, como Wi-Fi. En un teléfono, al tocar [Sincronizar ahora] se suben enseguida (salvo si se sabe que usas datos móviles).`,
     syncPositionAsk: (device, ref) => `En ${device} estabas leyendo ${ref}. ¿Ir allí?`,
     syncGo: 'Ir',
     syncVersionsAsk: (names) => `¿Descargar en este dispositivo las versiones que tienes en otros dispositivos?
@@ -2383,7 +2395,7 @@ ${names}`,
     memoBookDeleteConfirmEmpty: (name) => `Excluir o caderno “${name}”?`, // text_memo_book_delete_confirm_empty
     memoBookPick: 'Trocar de caderno',
     memoBookFailed: 'Não foi possível salvar o caderno',
-    backupMenu: 'Backup e restauração', // menu_db_backup + menu_db_restore
+    backupMenu: 'Gerenciamento de dados', // text_title_pref_3(앱 설정의 데이터 관리 묶음). 동기화·백업·복구를 한 창에(2026-11-28)
     backupSaveTitle: 'Backup de dados', // menu_db_backup
     backupSaveHint: 'Faz backup de Meus destaques, Minhas notas e Estatísticas de leitura. Marcadores e cadernos de notas também entram. É o mesmo arquivo de backup (.db) do aplicativo Android, então você pode abri-lo no aplicativo em Configurações > Restaurar dados.', // text_pref_db_backup_summary에 웹 설명을 붙임
     backupRun: 'Fazer backup', // menu_db_backup_run
@@ -2397,6 +2409,7 @@ ${names}`,
     backupNoticeTitle: 'Leia, por favor: como guardar seus registros',
     backupNotice1: 'Seus destaques, notas, marcadores e registros de leitura ficam salvos apenas neste navegador, neste dispositivo; eles não são guardados em nosso servidor. Eles podem se perder se você apagar os dados do site no navegador, se o dispositivo ficar sem espaço ou se você trocar de dispositivo ou de navegador, e os registros perdidos não podem ser recuperados. O Safari no iPhone e no iPad também pode apagá-los se o site não tiver sido adicionado à Tela de Início e não for aberto por mais de 7 dias.',
     backupNotice2: 'Para não perder seus registros, faça backup regularmente e guarde os arquivos em um lugar seguro, como um computador ou um armazenamento na nuvem. Se passarem 7 dias desde o último backup, um aviso aparecerá no topo da tela.',
+    backupNoticeSync: 'Se você ativar a sincronização com o Google Drive (no alto de ☰ → Gerenciamento de dados), seus registros também ficam salvos no seu próprio Google Drive e você pode continuar nos seus outros dispositivos. Enquanto a sincronização estiver ativada e tiver sido feita nos últimos 7 dias, o aviso de backup não aparece. Mesmo assim, guardar também os arquivos de backup é mais seguro.',
     backupNotice3: 'Fazer os backups e guardar os arquivos fica sob sua responsabilidade. Não podemos recuperar registros perdidos sem backup e pedimos, gentilmente, sua compreensão de que essa responsabilidade é sua.',
     reminderNever: 'Alguns dos seus registros ainda não têm backup. Faça um backup para não perdê-los.',
     reminderDays: (n) => `Já se passaram ${n} dias desde o seu último backup. Faça um backup para não perder seus registros.`,
@@ -2458,6 +2471,7 @@ ${names}`,
     syncGet: 'Baixar',
     syncReplace: 'Substituir',
     syncFilesFailed: (msg) => `Não foi possível sincronizar os arquivos de traduções. (${msg})`,
+    syncFilesWaiting: (n) => `${n} tradução(ões) ainda não enviada(s) será(ão) enviada(s) em uma rede sem cobrança de dados, como Wi-Fi. No celular, tocar em [Sincronizar agora] envia na hora (exceto quando se sabe que você está usando dados móveis).`,
     syncPositionAsk: (device, ref) => `Em ${device} você estava lendo ${ref}. Ir para lá?`,
     syncGo: 'Ir',
     syncVersionsAsk: (names) => `Baixar neste dispositivo as traduções que você tem em outros dispositivos?
@@ -2736,7 +2750,7 @@ ${names}`,
     memoBookDeleteConfirmEmpty: (name) => `Supprimer le carnet « ${name} » ?`,
     memoBookPick: 'Changer de carnet',
     memoBookFailed: "Impossible d'enregistrer le carnet",
-    backupMenu: 'Sauvegarde et restauration',
+    backupMenu: 'Gestion des données', // text_title_pref_3(앱 설정의 데이터 관리 묶음). 동기화·백업·복구를 한 창에(2026-11-28)
     backupSaveTitle: 'Sauvegarde des données',
     backupSaveHint: "Sauvegarde Mes surlignages, Mes notes et les Statistiques de lecture. Les signets et les carnets sont inclus. C'est le même fichier de sauvegarde (.db) que l'application Android : vous pouvez l'ouvrir dans l'application sous Réglages > Restaurer les données.",
     backupRun: 'Lancer la sauvegarde',
@@ -2749,6 +2763,7 @@ ${names}`,
     backupNoticeTitle: 'À lire : conservation de vos données',
     backupNotice1: "Vos surlignages, notes, signets et lectures sont enregistrés uniquement dans ce navigateur, sur cet appareil ; ils ne sont pas conservés sur notre serveur. Ils peuvent être perdus si vous effacez les données du site dans le navigateur, si l'appareil manque d'espace, ou si vous changez d'appareil ou de navigateur, et les données perdues ne peuvent pas être récupérées. Sur iPhone et iPad, Safari peut aussi les supprimer si le site n'est pas ajouté à l'écran d'accueil et n'est pas ouvert pendant plus de 7 jours.",
     backupNotice2: "Pour protéger vos données, veuillez faire des sauvegardes régulièrement et garder les fichiers en lieu sûr, par exemple sur un ordinateur ou un stockage en ligne. Si 7 jours passent depuis votre dernière sauvegarde, un rappel apparaît en haut de l'écran.",
+    backupNoticeSync: 'Si vous activez la synchronisation Google Drive (en haut de ☰ → Gestion des données), vos données sont aussi enregistrées dans votre propre Google Drive et vous pouvez continuer sur vos autres appareils. Tant que la synchronisation est activée et a eu lieu au cours des 7 derniers jours, le rappel de sauvegarde ne s\'affiche pas. Conserver aussi des fichiers de sauvegarde reste toutefois plus sûr.',
     backupNotice3: "La sauvegarde et la conservation des fichiers relèvent de votre responsabilité. Nous ne pouvons pas restaurer des données perdues sans sauvegarde, et nous vous remercions de bien vouloir comprendre que cette responsabilité vous incombe.",
     reminderNever: "Certaines de vos données n'ont pas encore été sauvegardées. Veuillez faire une sauvegarde pour ne pas les perdre.",
     reminderDays: (n) => `${n} jours se sont écoulés depuis votre dernière sauvegarde. Veuillez faire une sauvegarde pour ne pas perdre vos données.`,
@@ -2810,6 +2825,7 @@ ${names}`,
     syncGet: 'Télécharger',
     syncReplace: 'Remplacer',
     syncFilesFailed: (msg) => `Impossible de synchroniser les fichiers de versions. (${msg})`,
+    syncFilesWaiting: (n) => `${n} version(s) pas encore envoyée(s) le sera/seront sur un réseau sans frais de données, comme le Wi-Fi. Sur un téléphone, toucher [Synchroniser maintenant] les envoie tout de suite (sauf si l'on sait que vous utilisez les données mobiles).`,
     syncPositionAsk: (device, ref) => `Sur ${device}, vous lisiez ${ref}. Y aller ?`,
     syncGo: 'Y aller',
     syncVersionsAsk: (names) => `Télécharger sur cet appareil les versions présentes sur vos autres appareils ?

@@ -2533,6 +2533,8 @@ const syncApi = setupSync($, S, {
   serverCodes: () => serverList.map((v) => v.code),
   ask: (text, yes, no) => askSync(text, yes, no),
   suggestBibles: syncSuggestBibles,
+  // 동기화를 마쳤으면 '오래 백업 안 함' 알림은 필요 없다(기록이 드라이브에도 있다). 새 버전·DB 막힘 알림은 그대로
+  synced: () => { if (updateBarKind === 'backup') hideUpdateBar(); },
 });
 
 // ---- 성경읽기통계 ----
@@ -2827,7 +2829,7 @@ $('colorReset').addEventListener('click', () => {
 $('settingsClose').addEventListener('click', () => $('settingsBox').close());
 $('settingsBox').addEventListener('click', (e) => { if (e.target === $('settingsBox')) $('settingsBox').close(); });
 
-// ---- 데이터 백업·복구 ----
+// ---- 데이터 관리(동기화 줄, 데이터 백업·복구) ----
 // 앱의 설정 > 데이터 백업 / 데이터 복구. 웹에는 설정 화면이 따로 없어 ☰ 메뉴에서 한 창으로 연다.
 // 파일은 앱과 같은 SQLite(DB 12, appBackup.js)라 앱에서 바로 복구할 수 있다. sql.js는 이 창에서만 불러온다
 const $backupBox = $('backupBox'), $backupNote = $('backupNote');
@@ -2842,6 +2844,7 @@ $('backupMoveHint').textContent = S.backupMoveHint;
 $('backupNoticeTitle').textContent = S.backupNoticeTitle;
 $('backupNotice1').textContent = S.backupNotice1;
 $('backupNotice2').textContent = S.backupNotice2;
+$('backupNoticeSync').textContent = S.backupNoticeSync;
 $('backupNotice3').textContent = S.backupNotice3;
 
 // 마지막 백업 시각과 [나중에]로 미룬 때. 화면 설정처럼 localStorage에 둔다(사이트 데이터를 지우면 기록과 함께 사라지므로
@@ -3047,7 +3050,7 @@ function askSync(text, yes, no) {
  * 답이 예면 시험 창과 설정 창을 닫고 그리로 간다
  */
 async function syncSuggest(devices) {
-  const closeSettings = () => { for (const id of ['syncBox', 'settingsBox']) if ($(id).open) $(id).close(); };
+  const closeSettings = () => { for (const id of ['syncBox', 'backupBox', 'settingsBox']) if ($(id).open) $(id).close(); };
   // 읽던 곳: 책·장·절만 따라가고 역본은 이 기기의 지금 역본
   const p = suggestPosition(devices, { book: pos.book, chapter: pos.chapter, at: prefs.posAt || 0 }, prefs.syncPosSeen || 0);
   if (p && isValidPosition({ book: p.book, chapter: p.chapter })) {
@@ -4232,7 +4235,9 @@ $('updateLater').addEventListener('click', () => {
 async function checkBackupReminder() {
   if (updateBarKind) return;
   try {
-    const due = backupReminder(await allUserData(), { lastBackup: backupState().at, snoozeUntil: backupState().snooze });
+    const due = backupReminder(await allUserData(), {
+      lastBackup: backupState().at, snoozeUntil: backupState().snooze, lastSync: syncApi.lastSyncAt(),
+    });
     if (due && !updateBarKind) showUpdateBar('backup', due.never ? S.reminderNever : S.reminderDays(due.days));
   } catch (e) {
     console.warn('backup reminder', e); // DB가 막힌 경우 등. 그 알림이 따로 뜬다
