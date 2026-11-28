@@ -80,7 +80,7 @@ Ve a Ajustes > Gestión de listas > **Nombre de los libros 1** y elige Español 
 
 ### ¿Cómo uso los marcadores y el historial?
 
-- Usa 'Añadir marcador' en el menú para guardar dónde estás. Mantén pulsado un marcador para eliminarlo. Si añades otra vez el mismo lugar, sube al principio en vez de duplicarse.
+- Usa 'Añadir marcador' en el menú para guardar dónde estás. Para guardar un versículo concreto, mantén pulsado el versículo y elige 'Añadir marcador' (7.7.0 o posterior). Mantén pulsado un marcador para eliminarlo. Si añades otra vez el mismo lugar, sube al principio en vez de duplicarse.
 - El Historial guarda los lugares leídos recientemente. Los botones ↶ ↷ del lector te llevan a los lugares vistos antes.
 
 ### Encontré un error en el texto de la Biblia

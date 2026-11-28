@@ -80,7 +80,7 @@ Vá em Configurações > Gerenciamento de listas > **Nome dos livros 1** e escol
 
 ### Como uso marcadores e histórico?
 
-- Use 'Adicionar marcador' no menu para guardar onde você está. Toque e segure um marcador para excluí-lo. Adicionar o mesmo lugar de novo o leva para o topo, sem duplicar.
+- Use 'Adicionar marcador' no menu para guardar onde você está. Para marcar um versículo específico, toque e segure o versículo e escolha 'Adicionar marcador' (7.7.0 ou superior). Toque e segure um marcador para excluí-lo. Adicionar o mesmo lugar de novo o leva para o topo, sem duplicar.
 - O Histórico guarda os lugares lidos recentemente. Os botões ↶ ↷ do leitor levam de volta aos lugares vistos antes.
 
 ### Encontrei um erro no texto da Bíblia

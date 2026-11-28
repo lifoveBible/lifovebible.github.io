@@ -76,7 +76,7 @@ For now it supports basic reading only; more features will keep coming in future
 
 ### How do I use bookmarks and history?
 
-- Use 'Add Bookmark' in the menu to save your place. Long-press a bookmark to delete it. Adding the same place again moves it to the top instead of adding a duplicate.
+- Use 'Add Bookmark' in the menu to save your place. To bookmark a particular verse, long-press it and choose 'Add Bookmark' (7.7.0 or later). Long-press a bookmark to delete it. Adding the same place again moves it to the top instead of adding a duplicate.
 - History keeps the places you read recently. The ↶ ↷ buttons in the viewer take you back to places you viewed before.
 
 ### I found a mistake in the Bible text
