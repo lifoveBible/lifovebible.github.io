@@ -3142,6 +3142,7 @@ async function downloadBibles(want, fetchOne) {
       // 대소문자만 다른 코드로 이미 넣어 두었으면 이 기기의 코드 그대로(고른 역본·기록이 그 코드를 쓴다)
       const old = localList.find((l) => codeKey(l.code) === codeKey(d.code));
       if (old) r.record.code = old.code;
+      if (old && !r.record.name) r.record.name = old.name || null; // 드라이브 쪽에 이름이 없으면 이 기기에서 정한 이름을 지킨다
       await putLocal(r.record);
       got.push(nameOf(d));
     } catch (e) {
@@ -3660,7 +3661,12 @@ function drawLocalList() {
   const list = versionList.filter((v) => v.local);
   $('localList').replaceChildren(...list.map((v) => {
     const li = document.createElement('li');
-    li.append(nameLabel(v), deleteButton(v.name, async () => {
+    const edit = document.createElement('button');
+    edit.className = 'icon edit';
+    edit.textContent = '✎';
+    label(edit, S.localRename(v.name));
+    edit.addEventListener('click', () => renameLocal(v));
+    li.append(nameLabel(v), edit, deleteButton(v.name, async () => {
       if (!confirm(S.deleteLocalConfirm(v.name))) return;
       // 드라이브에 올린 파일은 남는다(6b). 지운 역본은 다음 동기화에서 "받을까요?"로 다시 물을 수 있다(자기 드라이브 파일로 되찾게, 앱과 같음)
       await deleteLocal(v.code);
@@ -3674,6 +3680,32 @@ function drawLocalList() {
     return li;
   }));
   $('localEmpty').hidden = list.length > 0;
+}
+
+/**
+ * 넣은 역본의 이름을 사용자가 정한다(biblename이 없는 lfa, bdf는 이름 없이 코드로 보이므로). 비우면 다시 코드로.
+ * 이 기기에만 둔다: addedAt을 그대로 두어 동기화가 다시 올리지 않는다. 이름을 드라이브로 주고받는 일은
+ * 앱도 이름 고치기를 만든 뒤 sync-format에 정해서 함께 한다(2026-11-28 사용자 결정)
+ */
+async function renameLocal(v) {
+  const cur = localList.find((l) => l.code === v.code)?.name || '';
+  const input = prompt(S.localRenamePrompt(v.code), cur);
+  if (input == null) return;
+  const name = input.trim() || null;
+  if (name === (cur || null)) return;
+  try {
+    const rec = await getLocal(v.code);
+    if (!rec) return;
+    rec.name = name;
+    await putLocal(rec);
+  } catch (e) {
+    console.warn('rename failed', v.code, e);
+    showImportNote(S.reasons.storeFailed, true);
+    return;
+  }
+  await reloadLocal(); // 고른 역본(prefs.versions)의 이름도 목록에서 다시 가져온다
+  drawLocalList();
+  render(); // 대조 보기 머리 등 이름이 보이는 곳
 }
 
 function showImportNote(text, isError = false) {
@@ -3706,6 +3738,8 @@ async function importItems(items) {
           continue;
         }
         r.record.addedAt = Date.now();
+        // 같은 역본을 다시 넣었는데 파일에 이름이 없으면 사용자가 정한 이름을 지킨다
+        if (!r.record.name) r.record.name = localList.find((l) => codeKey(l.code) === codeKey(g.code))?.name || null;
         // 언어: biblename 둘째 줄 → 코드 → 본문(langGuess). 모르면 ''(살펴봤지만 모름)
         if (!r.record.lang) r.record.lang = (await detectLang(r.record).catch(() => null)) || '';
         await putLocal(r.record);

@@ -370,7 +370,7 @@ button.link { border: 0; background: none; color: var(--accent); padding: 4px 0;
   border-radius: 10px;
   padding: 0 6px;
 }
-.ver-list .del { min-width: 40px; min-height: 36px; border: 0; background: none; }
+.ver-list .del, .ver-list .edit { min-width: 40px; min-height: 36px; border: 0; background: none; }
 .picker-foot {
   display: flex;
   flex-wrap: wrap;
