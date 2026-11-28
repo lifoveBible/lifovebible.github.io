@@ -87,6 +87,9 @@ export function driveBibles(files) {
     }).sort((a, b) => b.writtenAt - a.writtenAt);
     const [best, ...others] = entries;
     for (const o of others) best.extra.push(...o.files.map((x) => x.id), ...o.extra);
+    // 조각이 parts만큼 다 올라오지 않은 bdf(올리는 중이거나 끊김)는 받지 않는다(6b 받기 제안 규칙)
+    best.complete = best.kind === 'lfa'
+      || Array.from({ length: best.parts }, (_, k) => k + 1).every((n) => best.files.some((f) => f.part === n));
     // 모르는 더 새 판은 받지 않는다(목록에는 보이고 지울 수 있다)
     best.newer = best.format > BIBLE_FORMAT;
     out.set(key, best);
@@ -113,10 +116,13 @@ export function planBibles({ local, drive, serverCodes = [], removed = {} }) {
     const d = drive.get(key);
     const at = Number(l.addedAt) || 0;
     if (removed[key] != null && at <= removed[key]) continue;
-    if (!d || (!d.newer && at > d.writtenAt)) upload.push(l);
+    // 덜 올라온 같은 판은 다시 올린다(끊긴 올리기를 마저)
+    if (!d || (!d.newer && (at > d.writtenAt || (!d.complete && at >= d.writtenAt)))) upload.push(l);
   }
+  // 받기 제안(6b): 이 기기에 없으면 받기, 있으면 드라이브 것이 더 나중에 넣은 것일 때만 바꾸기.
+  // 내가 올린 것도 이 기기에 없으면 제안한다(지운 뒤 자기 드라이브 파일로 되찾게). 덜 올라온 bdf는 빼고
   for (const [key, d] of drive) {
-    if (d.newer) continue;
+    if (d.newer || !d.complete) continue;
     const l = mine.get(key);
     if (!l) offers.push({ ...d, replace: false });
     else if (d.writtenAt > (Number(l.addedAt) || 0)) offers.push({ ...d, replace: true });

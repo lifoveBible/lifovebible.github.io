@@ -105,6 +105,8 @@ async function webVersion() {
  * @param hooks.serverCodes () => 서버 목록 코드들(이 역본들은 파일째 올리지 않는다)
  * @param hooks.ask (text, yes, no) => Promise<boolean> 묻는 창
  * @param hooks.suggestBibles (offers, fetchOne) => Promise<string|null> 다른 기기가 올린 역본 받기·바꾸기 제안. 결과 글
+ * @param hooks.downloadBibles (list, fetchOne) => Promise<string> 동기화 창 [다운로드]: 받아 넣고 결과 글
+ * @param hooks.hasBible (code) => boolean 이 기기에 그 역본(대소문자 무시)을 넣어 두었나
  * @returns { changed } 넣은 역본이 바뀌었을 때 부른다(모았다가 동기화해 올린다)
  */
 export function setupSync($, S, hooks) {
@@ -181,16 +183,44 @@ export function setupSync($, S, hooks) {
     $list.replaceChildren(...[...driveList.values()].map((d) => {
       const li = document.createElement('li');
       const name = document.createElement('span');
-      name.textContent = `${d.name || d.code} (${d.code}, ${Math.max(0.1, Math.round(d.size / 1024 / 102.4) / 10)} MB)`;
+      name.textContent = `${d.name || d.code} (${d.code}, ${Math.max(0.1, Math.round(d.size / 1024 / 102.4) / 10)} MB)`
+        + (d.complete ? '' : ' ' + S.syncFileIncomplete);
+      // 받기 제안은 한 판에 한 번만 묻으므로 여기서 언제든 받을 수 있게(6b). 덜 올라온 bdf·모르는 새 판은 받지 않는다
+      const get = document.createElement('button');
+      get.className = 'icon del';
+      get.textContent = '⬇';
+      get.title = S.syncGet + ' ' + (d.name || d.code);
+      get.setAttribute('aria-label', get.title);
+      get.disabled = !d.complete || !!d.newer;
+      get.addEventListener('click', () => downloadFromDrive(d, get));
       const del = document.createElement('button');
       del.className = 'icon del';
       del.textContent = '🗑';
       del.title = S.delete + ' ' + (d.name || d.code);
       del.setAttribute('aria-label', del.title);
       del.addEventListener('click', () => removeBible(d, del));
-      li.append(name, del);
+      li.append(name, get, del);
       return li;
     }));
+  }
+
+  /** 드라이브의 역본을 받는다. 이 기기에 이미 있으면 드라이브의 것으로 바꾼다고 먼저 묻는다(6b) */
+  async function downloadFromDrive(d, $btn) {
+    const name = d.name || d.code;
+    if (hooks.hasBible(d.code) && !await hooks.ask(S.syncFileReplaceConfirm(name), S.syncReplace, S.close)) return;
+    $btn.disabled = true;
+    try {
+      if (!await ensureToken()) return;
+      const drive = new DriveClient(tokenNow());
+      status(S.downloading);
+      status(await hooks.downloadBibles([d], (x) => fetchBible(drive, x)));
+    } catch (e) {
+      console.warn('[LifoveSync]', e);
+      if (e.status === 401) token = null;
+      status(S.syncFailed(e.message || String(e)), true);
+    } finally {
+      $btn.disabled = false;
+    }
   }
 
   /** 드라이브에서 역본 파일 지우기. 서버에서 받을 수 없는 역본이면 되찾을 길이 없다고 한 번 더 묻는다(6b, JC 결정) */

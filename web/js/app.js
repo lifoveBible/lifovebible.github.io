@@ -2533,6 +2533,8 @@ const syncApi = setupSync($, S, {
   serverCodes: () => serverList.map((v) => v.code),
   ask: (text, yes, no) => askSync(text, yes, no),
   suggestBibles: syncSuggestBibles,
+  downloadBibles: (list, fetchOne) => downloadBibles(list, fetchOne),
+  hasBible: (code) => localList.some((l) => codeKey(l.code) === codeKey(code)),
   // 동기화를 마쳤으면 '오래 백업 안 함' 알림은 필요 없다(기록이 드라이브에도 있다). 새 버전·DB 막힘 알림은 그대로
   synced: () => { if (updateBarKind === 'backup') hideUpdateBar(); },
 });
@@ -3095,6 +3097,15 @@ async function syncSuggestBibles(offers, fetchOne) {
     if (await askSync(S.syncFileReplaceAsk(nameOf(d)), S.syncReplace, S.close)) want.push(d);
   }
   if (!want.length) return null;
+  return downloadBibles(want, fetchOne);
+}
+
+/**
+ * 드라이브의 역본을 받아 넣는다(받기 제안과 동기화 창의 [다운로드]가 같이 쓴다). 결과 글을 돌려준다
+ * @param fetchOne (항목) => Promise<{record}|{reason}>
+ */
+async function downloadBibles(want, fetchOne) {
+  const nameOf = (d) => d.name || d.code;
   showToast(S.downloading);
   const got = [], failed = [];
   for (const d of want) {
@@ -3625,12 +3636,7 @@ function drawLocalList() {
     const li = document.createElement('li');
     li.append(nameLabel(v), deleteButton(v.name, async () => {
       if (!confirm(S.deleteLocalConfirm(v.name))) return;
-      // 드라이브에 올린 파일은 남는다(6b). 방금 지운 그 파일을 다음 동기화에서 "받을까요?"로 묻지 않게 본 것으로 둔다
-      const mine = localList.find((l) => l.code === v.code);
-      if (mine) {
-        prefs.syncFilesSeen = [...(prefs.syncFilesSeen || []), offerKey({ code: mine.code, writtenAt: Number(mine.addedAt) || 0 })].slice(-200);
-        savePrefs();
-      }
+      // 드라이브에 올린 파일은 남는다(6b). 지운 역본은 다음 동기화에서 "받을까요?"로 다시 물을 수 있다(자기 드라이브 파일로 되찾게, 앱과 같음)
       await deleteLocal(v.code);
       // 서버에도 있는 역본이면 서버 역본으로 돌아간다. 받아 두지 않았으면 고른 역본에서 뺀다
       const changed = await reloadLocal();
