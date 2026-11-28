@@ -3,7 +3,8 @@
 // IndexedDB는 http로 연 주소(다른 PC에서 http://192.168.x.x:8000)에서도 쓸 수 있다(Cache Storage는 안 된다).
 // 메모 같은 사용자 데이터(5단계)와는 DB를 나눈다. 크고, 앱 백업과 주고받는 대상도 아니라서.
 //
-// 한 역본 = 한 행: { code, name, kind: 'lfa'|'bdf', restricted, size, addedAt, data }
+// 한 역본 = 한 행: { code, name, lang, kind: 'lfa'|'bdf', restricted, size, addedAt, data }
+//   lang: 언어 코드, ''는 살펴봤지만 모름, 없으면(옛 행) 아직 안 살펴봄(app.js reloadLocal이 채운다)
 //   lfa: data는 ArrayBuffer(파일 그대로)
 //   bdf: data는 {1: 문자열, ...}. 넣을 때 인코딩을 한 번 풀어 둔다(MS949 판별을 매번 하지 않게)
 // Blob 대신 ArrayBuffer를 쓴다. 예전 사파리는 IndexedDB의 Blob을 잘 다루지 못했다.
@@ -48,8 +49,8 @@ export async function listLocal() {
       req.onsuccess = () => {
         const c = req.result;
         if (!c) return;
-        const { code, name, kind, restricted, size, addedAt } = c.value;
-        out.push({ code, name, kind, restricted, size, addedAt });
+        const { code, name, lang, kind, restricted, size, addedAt } = c.value;
+        out.push({ code, name, lang, kind, restricted, size, addedAt });
         c.continue();
       };
       return null;

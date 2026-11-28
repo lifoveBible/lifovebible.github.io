@@ -172,7 +172,7 @@ export async function uploadBible(drive, record, prev, { device, lang = '' }) {
     format: String(BIBLE_FORMAT),
     code: fitProp('code', record.code),
     name: fitProp('name', record.name || ''),
-    lang: fitProp('lang', lang),
+    lang: fitProp('lang', record.lang || lang),
     kind: record.kind,
     parts: String(parts.length),
     device,
@@ -198,12 +198,12 @@ export async function uploadBible(drive, record, prev, { device, lang = '' }) {
  * 깨졌으면 { reason }(넣기 검사와 같은 이유)
  */
 export async function fetchBible(drive, d) {
-  const base = { code: d.code, kind: d.kind, restricted: false, addedAt: d.writtenAt };
+  const base = { code: d.code, kind: d.kind, restricted: false, addedAt: d.writtenAt, lang: d.lang || null };
   if (d.kind === 'lfa') {
     const buf = await drive.downloadBytes(d.files[0].id);
     const r = await checkLfa(buf);
     if (!r.ok) return { reason: r.reason };
-    return { record: { ...base, name: d.name || r.name, size: buf.byteLength, data: buf } };
+    return { record: { ...base, name: d.name || r.name, lang: d.lang || r.lang || null, size: buf.byteLength, data: buf } };
   }
   const data = {};
   let size = 0;

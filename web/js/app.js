@@ -23,7 +23,7 @@ import {
   loadHistory, jumpHistory, updateHistory, stepHistory, canBack, canForward,
 } from './navBar.js';
 import { swipeDirection } from './swipe.js';
-import { groupFiles, prepareGroup, openRecord, mergeLocal, classifyName } from './localBible.js';
+import { groupFiles, prepareGroup, openRecord, mergeLocal, classifyName, detectLang } from './localBible.js';
 import { listLocal, getLocal, putLocal, deleteLocal } from './localStore.js';
 import { offerKey, codeKey } from './bibleSync.js';
 import { formatChapter, formatVerses, rowsOfSingle } from './verseCopy.js';
@@ -248,6 +248,7 @@ async function loadVersionList() {
   // 서버 목록에서 빠진 역본의 받아 둔 파일은 지운다. 새 목록을 받았을 때만(오프라인 목록으로는 지우지 않는다)
   if (!old && list.length) pruneLfa(list.map((v) => v.url)).catch((e) => console.warn('prune failed', e));
   localList = await listLocal();
+  await fillLocalLangs(); // 언어 기능 전에 넣은 역본은 처음 한 번 살펴본다
   versionList = mergeLocal(serverList, localList);
   cacheOk = await canCache();
   await refreshCached();
@@ -274,12 +275,32 @@ function syncPrefsVersions() {
 /** 넣거나 지운 뒤 목록을 다시 만든다. 지금 보는 역본의 읽을 곳이 바뀌었으면 true(다시 그려야 함) */
 async function reloadLocal() {
   localList = await listLocal();
+  await fillLocalLangs();
   versionList = mergeLocal(serverList, localList);
   // 같은 코드라도 넣은 파일 ↔ 서버 파일로 url이 바뀐다. 열어 둔 것은 다시 연다(보관본에서 금방 열린다)
   opened.clear();
   const before = prefs.versions.map((v) => v.url).join();
   syncPrefsVersions();
   return before !== prefs.versions.map((v) => v.url).join();
+}
+
+/**
+ * 언어를 아직 살펴보지 않은 넣은 역본(언어 기능 전에 넣었거나 드라이브에서 언어 없이 받은 것)의 언어를 한 번 정해 저장한다.
+ * 모르면 ''로 저장해 다시 살펴보지 않는다. 넣은 시각(addedAt)은 그대로라 동기화가 다시 올리지 않는다
+ */
+async function fillLocalLangs() {
+  for (const l of localList) {
+    if (l.lang != null) continue;
+    try {
+      const rec = await getLocal(l.code);
+      if (!rec) continue;
+      rec.lang = (await detectLang(rec).catch(() => null)) || '';
+      await putLocal(rec);
+      l.lang = rec.lang;
+    } catch (e) {
+      console.warn('language check failed', l.code, e);
+    }
+  }
 }
 
 /** 역본 파일을 연다. 처음이면 받는다(진행률 표시) */
@@ -3680,6 +3701,8 @@ async function importItems(items) {
           continue;
         }
         r.record.addedAt = Date.now();
+        // 언어: biblename 둘째 줄 → 코드 → 본문(langGuess). 모르면 ''(살펴봤지만 모름)
+        if (!r.record.lang) r.record.lang = (await detectLang(r.record).catch(() => null)) || '';
         await putLocal(r.record);
         added.push(g.code);
       } catch (e) {

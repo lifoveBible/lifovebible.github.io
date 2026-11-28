@@ -12,6 +12,7 @@
 import { LfaFile } from './lfa.js';
 import { readEntry } from './zip.js';
 import { readChapter } from './chapterLines.js';
+import { parseBibleName, guessBibleLang } from './langGuess.js';
 
 const LFA_NAME = /^(.+)\.lfa$/i;
 const BDF_NAME = /^(.+?)([1-7])\.bdf$/i;
@@ -99,9 +100,10 @@ export class BdfSet {
 }
 
 /**
- * .lfa 검사. 문제가 없으면 역본 이름(lfa 안 biblename 첫 줄, 없으면 null)을 돌려준다.
+ * .lfa 검사. 문제가 없으면 역본 이름(lfa 안 biblename 첫 줄, 없으면 null)과 언어(둘째 줄의 언어 코드, 없으면 null)를 돌려준다.
+ * 둘째 줄은 LfaConverter가 넣는다(2026-11-28). 앱은 첫 줄만 이름으로 읽어 둘째 줄이 있어도 깨지지 않는다
  * @param {ArrayBuffer} buf
- * @returns {Promise<{ok: true, name: string|null} | {ok: false, reason: 'notZip'|'noChapters'|'badText'}>}
+ * @returns {Promise<{ok: true, name: string|null, lang: string|null} | {ok: false, reason: 'notZip'|'noChapters'|'badText'}>}
  */
 export async function checkLfa(buf) {
   let lfa;
@@ -122,14 +124,14 @@ export async function checkLfa(buf) {
   } catch {
     return { ok: false, reason: 'badText' }; // 압축이 깨졌거나 줄 형식이 다르다
   }
-  let name = null;
+  let name = null, lang = null;
   const entry = lfa.entries.find((e) => e.name === 'biblename');
   if (entry) {
     try {
-      name = new TextDecoder().decode(await readEntry(buf, entry)).replace(/^﻿/, '').split(/\r?\n/)[0].trim() || null;
+      ({ name, lang } = parseBibleName(new TextDecoder().decode(await readEntry(buf, entry))));
     } catch { /* 이름이 없으면 코드로 보인다 */ }
   }
-  return { ok: true, name };
+  return { ok: true, name, lang };
 }
 
 /** .bdf 내용 검사: 비어 있지 않은 첫 줄이 본문 줄 형식인가 */
@@ -181,7 +183,7 @@ export function mergeLocal(server, local) {
   const out = server.map((v) => (byCode.has(v.code) ? { ...v, url: localUrl(v.code), local: true } : v));
   for (const l of local) {
     if (!server.some((v) => v.code === l.code)) {
-      out.push({ code: l.code, url: localUrl(l.code), name: l.name || l.code, lang: '', local: true });
+      out.push({ code: l.code, url: localUrl(l.code), name: l.name || l.code, lang: l.lang || '', local: true }); // 언어를 모르면 '직접 넣은 역본' 묶음
     }
   }
   return out;
@@ -201,7 +203,7 @@ export async function prepareGroup(g) {
     const buf = await g.files[0].file.arrayBuffer();
     const r = await checkLfa(buf);
     if (!r.ok) return { reason: r.reason };
-    return { record: { code: g.code, name: r.name, kind: 'lfa', restricted: g.restricted, size: buf.byteLength, data: buf } };
+    return { record: { code: g.code, name: r.name, lang: r.lang, kind: 'lfa', restricted: g.restricted, size: buf.byteLength, data: buf } };
   }
   const data = {};
   let size = 0;
@@ -212,10 +214,30 @@ export async function prepareGroup(g) {
     data[f.part] = text;
     size += bytes.length;
   }
-  return { record: { code: g.code, name: null, kind: 'bdf', restricted: g.restricted, size, data } };
+  return { record: { code: g.code, name: null, lang: null, kind: 'bdf', restricted: g.restricted, size, data } };
 }
 
 /** 보관한 행으로 읽기용 객체를 만든다(LfaFile 또는 BdfSet). 둘 다 chapterText(book, chapter)가 있다 */
 export function openRecord(record) {
   return record.kind === 'lfa' ? new LfaFile(record.data) : new BdfSet(record.data);
+}
+
+// 언어를 볼 장: 창세기 1장, 마태복음 1장, 시편 23편, 요한복음 1장(신약만 있는 역본도 있어서 여럿)
+const LANG_SAMPLE = [[0, 1], [39, 1], [18, 23], [42, 1]];
+
+/**
+ * 넣은 역본 행의 언어(langGuess 차례: biblename 둘째 줄 → 코드 → 글자 → 낱말). 모르면 null
+ */
+export async function detectLang(record) {
+  let fromName = null;
+  if (record.kind === 'lfa') {
+    const r = await checkLfa(record.data);
+    if (r.ok) fromName = r.lang;
+  }
+  const src = openRecord(record);
+  const texts = [];
+  for (const [b, c] of LANG_SAMPLE) {
+    try { texts.push(await src.chapterText(b, c)); } catch { /* 없는 장 */ }
+  }
+  return guessBibleLang({ fromName, code: record.code, texts });
 }

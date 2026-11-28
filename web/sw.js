@@ -9,7 +9,7 @@
 //   (바꾸지 않으면 브라우저가 새 버전을 알아채지 못한다. tests/sw.test.js가 잊은 것을 잡는다)
 // - 모듈 서비스 워커는 파이어폭스 지원이 늦어서 보통 스크립트로 둔다
 
-const VERSION = 'f1e95c2a849e';
+const VERSION = '8e131b5e7421';
 const CACHE = 'lifove-app-' + VERSION;
 const CACHE_PREFIX = 'lifove-app-'; // 이 이름으로 시작하는 옛 캐시만 지운다(lfa-v1은 남긴다)
 // vendor/ 아래 라이브러리(sql.js wasm 650KB)는 버전마다 다시 받지 않게 따로 둔다.
@@ -50,6 +50,7 @@ const APP_FILES = [
   'js/drive.js',
   'js/highlight.js',
   'js/highlightStyle.js',
+  'js/langGuess.js',
   'js/lfa.js',
   'js/lfaStore.js',
   'js/localBible.js',
