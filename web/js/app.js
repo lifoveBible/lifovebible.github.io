@@ -3694,7 +3694,7 @@ async function renameLocal(v) {
   const row = localList.find((l) => l.code === v.code);
   const cur = row?.userName || '';
   const original = mergeLocal(serverList, row ? [{ ...row, userName: null }] : [], lang).find((x) => x.code === v.code)?.name || v.code;
-  const input = prompt(S.localRenamePrompt(original), cur || original);
+  const input = prompt(S.localRenamePrompt(original, v.code), cur || original);
   if (input == null) return;
   let name = input.trim() || null;
   if (name === original) name = null; // 원래 이름 그대로 두면 고친 것이 아니다(나중에 표·목록 이름이 바뀌면 따라가게)
