@@ -16,7 +16,7 @@ import { mergeSyncData, allSyncData, applyResolvedMemos, onUserDataChanged } fro
 import { createAutoSync } from './autoSync.js';
 import { listLocal, getLocal } from './localStore.js';
 import {
-  driveBibles, planBibles, uploadBible, fetchBible, driveSummary, codeKey, canUploadBibles, isMobileDevice,
+  driveBibles, planBibles, uploadBible, fetchBible, driveSummary, codeKey, canUploadBibles, isMobileDevice, planLangFills, fillBibleLang,
 } from './bibleSync.js';
 
 // Cloud Console "Lifove Bible" 프로젝트의 웹 OAuth 클라이언트 ID(공개해도 되는 값). 승인된 자바스크립트 원본:
@@ -272,6 +272,12 @@ export function setupSync($, S, hooks) {
       line(`Uploaded bible ${l.code} (${n} file(s), ${Math.round((rec.size || 0) / 1024)} KB)`);
     }
     if (allowed && plan.upload.length) list = driveBibles(await drive.listAppData());
+    // 이미 올라간 파일의 빈 lang은 내용을 다시 올리지 않고 lang만 채운다(6c, 앱과 같음). 정보만이라 네트워크와 상관없이
+    for (const { d, lang } of planLangFills({ local, drive: list })) {
+      await fillBibleLang(drive, d, lang);
+      d.lang = lang;
+      line(`Filled language ${lang} of bible ${d.code}`);
+    }
     driveList = list;
     drawFiles();
     const { offers } = planBibles({ local, drive: list, ...opts });

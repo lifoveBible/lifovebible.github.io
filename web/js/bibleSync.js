@@ -8,6 +8,7 @@
 // 화면과 토큰은 부르는 쪽(syncUi.js, app.js)이 맡는다. 여기서는 목록 해석, 할 일 정하기, 올리기·받기만
 
 import { checkLfa, checkBdfText, decodeBdf } from './localBible.js';
+import { LANG_RE } from './langGuess.js';
 
 export const BIBLE_FORMAT = 1;
 const LFA_RE = /^bible-(.+)\.lfa$/;
@@ -151,6 +152,28 @@ export function isMobileDevice(nav = globalThis.navigator) {
   if (nav?.userAgentData?.mobile) return true;
   const ua = nav?.userAgent || '';
   return /Android|iPhone|iPad|iPod|Mobile/i.test(ua) || (/Macintosh/.test(ua) && (nav?.maxTouchPoints || 0) > 1);
+}
+
+/**
+ * 이미 올라간 역본 파일 중 lang이 빈 것에 이 기기가 아는 언어를 채울 것(sync-format 6c, 앱과 같은 규칙).
+ * 내용은 다시 올리지 않는다. 드라이브의 lang이 비었고 이 기기에 그 역본(대소문자 무시)이 있고 언어를 알 때만.
+ * 다른 기기가 이미 적은 언어는 덮지 않는다. 모르는 새 판은 건드리지 않는다
+ * @returns [{ d, lang }]
+ */
+export function planLangFills({ local, drive }) {
+  const mine = new Map(local.map((l) => [codeKey(l.code), l]));
+  const out = [];
+  for (const [key, d] of drive) {
+    const l = mine.get(key);
+    if (d.newer || d.lang || !l?.lang || !LANG_RE.test(l.lang)) continue;
+    out.push({ d, lang: l.lang });
+  }
+  return out;
+}
+
+/** 한 역본의 파일들(bdf는 조각 모두)에 lang만 적는다 */
+export async function fillBibleLang(drive, d, lang) {
+  for (const f of d.files) await drive.setAppProperties(f.id, { lang: fitProp('lang', lang) });
 }
 
 /** 같은 제안을 다시 묻지 않으려고 기억하는 표(코드와 넣은 시각) */

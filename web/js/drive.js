@@ -86,6 +86,15 @@ export class DriveClient {
     return (await this.request('GET', `${API}files/${enc(id)}?alt=media`)).text();
   }
 
+  /**
+   * 내용은 두고 appProperties만 고친다(준 키만 바뀌고 나머지 키는 그대로. 드라이브 PATCH의 appProperties는 합쳐진다).
+   * 이미 올라간 역본 파일의 빈 lang 채우기(sync-format 6c)
+   */
+  async setAppProperties(id, appProperties) {
+    await this.request('PATCH', `${API}files/${enc(id)}?fields=id`,
+      { type: 'application/json; charset=UTF-8', body: JSON.stringify({ appProperties }) });
+  }
+
   /** 내용을 바이트로(역본 파일 .lfa는 zip이라 글로 읽으면 깨진다) */
   async downloadBytes(id) {
     return (await this.request('GET', `${API}files/${enc(id)}?alt=media`)).arrayBuffer();
