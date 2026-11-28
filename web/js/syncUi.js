@@ -107,6 +107,7 @@ async function webVersion() {
  * @param hooks.suggestBibles (offers, fetchOne) => Promise<string|null> 다른 기기가 올린 역본 받기·바꾸기 제안. 결과 글
  * @param hooks.downloadBibles (list, fetchOne) => Promise<string> 동기화 창 [다운로드]: 받아 넣고 결과 글
  * @param hooks.hasBible (code) => boolean 이 기기에 그 역본(대소문자 무시)을 넣어 두었나
+ * @param hooks.otherBooks (memosByBook) => string|null 지금 메모책이 아닌 메모책에 온 메모 "번역 노트 3, 필사 1"
  * @returns { changed } 넣은 역본이 바뀌었을 때 부른다(모았다가 동기화해 올린다)
  */
 export function setupSync($, S, hooks) {
@@ -115,6 +116,7 @@ export function setupSync($, S, hooks) {
   let lastNewer = false; // 다른 기기의 앱이 더 새 판이라 읽지 못한 파일이 있었다
   let lastBibleError = null; // 역본 파일을 주고받다 난 오류(나머지 동기화는 끝났다)
   let lastSaid = null; // 역본 받기 제안의 결과 글(받았습니다 등)
+  let lastOthers = null; // 다른 메모책에 새로 온 메모 안내(앱 text_sync_other_books)
   let driveList = null; // 드라이브의 역본 파일(driveBibles). 이번에 동기화하기 전에는 모른다
   let waitingBibles = 0; // 네트워크 때문에 아직 올리지 못한 역본 수(6b: 데이터 요금이 없는 네트워크에서만)
 
@@ -342,6 +344,8 @@ export function setupSync($, S, hooks) {
       try {
         const r = await syncWith(new DriveClient(t), interactive);
         state.at = Date.now();
+        // 지금 보고 있지 않은 메모책에 온 메모(본문은 지금 메모책만 보여 '메모가 안 온다'고 헷갈리지 않게, 앱 6-2)
+        lastOthers = hooks.otherBooks?.(r.memosByBook) || null;
         hooks.synced?.(); // 떠 있는 '오래 백업 안 함' 알림을 내린다
         save();
         lastNewer = !!r.newer;
@@ -377,13 +381,14 @@ export function setupSync($, S, hooks) {
       $('syncBandText').textContent = S.syncConflicts(info);
       $('syncBandBtn').textContent = S.syncChoose;
       $band.hidden = false;
-      status(S.syncLeft(info));
+      status(lastOthers ? S.syncLeft(info) + '\n' + S.syncOtherBooks(lastOthers) : S.syncLeft(info));
     } else if (st === 'running') {
       status(S.syncRunning);
     } else if (st === 'ok') {
       const notes = [S.syncDone];
       if (lastNewer) notes.push(S.syncNewer);
       if (lastBibleError) notes.push(S.syncFilesFailed(lastBibleError.message || String(lastBibleError)));
+      if (lastOthers) notes.push(S.syncOtherBooks(lastOthers));
       if (lastSaid) notes.push(lastSaid);
       lastSaid = null;
       status(notes.join('\n'), !!lastBibleError);

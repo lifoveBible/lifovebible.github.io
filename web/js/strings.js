@@ -306,7 +306,9 @@ const STRINGS = {
     conflictLocal: '이 기기', // memo_conflict_local(이 폰)
     conflictBackup: '백업', // memo_conflict_backup
     conflictOther: '다른 기기', // 웹에서 먼저: 동기화 메모 충돌(앱 7.7 동기화 화면 문구가 생기면 맞춘다)
-    conflictDeleted: '(지운 메모)', // 웹에서 먼저: 동기화 충돌에서 지운 쪽
+    conflictDeleted: '(지움)', // memo_conflict_deleted(앱 7.7)
+    conflictStoppedSync: '고르지 않은 메모는 일단 이 기기 것을 그대로 두었습니다. 다음 동기화 때 다시 묻습니다.', // memo_conflict_stopped_sync
+    syncOtherBooks: (list) => `다른 메모책에 새로 온 메모가 있습니다: ${list}. 메모 목록에서 메모책을 바꿔 보세요.`, // text_sync_other_books
     // 구글 드라이브 동기화 화면(syncUi.js). 앱 7.7에 아직 화면이 없어 웹에서 먼저(2026-11-28)
     groupSync: '동기화',
     syncTitle: '구글 드라이브 동기화',
@@ -662,7 +664,9 @@ ${names}`, // 웹에서 먼저: 동기화 역본 제안(5a)
     conflictLocal: 'This device', // memo_conflict_local (This phone)
     conflictBackup: 'Backup', // memo_conflict_backup
     conflictOther: 'Other device', // sync memo conflict (web first)
-    conflictDeleted: '(Deleted memo)', // sync conflict: deleted side (web first)
+    conflictDeleted: '(deleted)', // memo_conflict_deleted(앱 7.7)
+    conflictStoppedSync: 'Memos you did not choose keep this device\'s version for now. You will be asked again at the next sync.', // memo_conflict_stopped_sync
+    syncOtherBooks: (list) => `New memos arrived in other memo books: ${list}. Switch the memo book in My Memo to see them.`, // text_sync_other_books
     groupSync: 'Sync',
     syncTitle: 'Google Drive sync',
     syncRowOff: 'Off',
@@ -1018,7 +1022,9 @@ ${names}`,
     conflictLocal: 'この端末', // memo_conflict_local(このスマホ)
     conflictBackup: 'バックアップ', // memo_conflict_backup
     conflictOther: '他の端末', // sync memo conflict (web first)
-    conflictDeleted: '(削除したメモ)', // sync conflict: deleted side (web first)
+    conflictDeleted: '(削除済み)', // memo_conflict_deleted(앱 7.7)
+    conflictStoppedSync: '選ばなかったメモは、ひとまずこの端末のものをそのまま残しました。次の同期でもう一度確認します。', // memo_conflict_stopped_sync
+    syncOtherBooks: (list) => `他のメモ帳に新しいメモが届きました：${list}。メモの一覧でメモ帳を切り替えてご覧ください。`, // text_sync_other_books
     groupSync: '同期',
     syncTitle: 'Googleドライブ同期',
     syncRowOff: 'オフ',
@@ -1375,7 +1381,9 @@ ${names}`,
     conflictLocal: '這部裝置', // memo_conflict_local(這支手機)
     conflictBackup: '備份', // memo_conflict_backup
     conflictOther: '其他裝置', // sync memo conflict (web first)
-    conflictDeleted: '（已刪除的備忘）', // sync conflict: deleted side (web first)
+    conflictDeleted: '（已刪除）', // memo_conflict_deleted(앱 7.7)
+    conflictStoppedSync: '未選擇的備忘暫時保留這個裝置的內容，下次同步時會再詢問。', // memo_conflict_stopped_sync
+    syncOtherBooks: (list) => `其他備忘冊有新的備忘：${list}。請在備忘列表中切換備忘冊查看。`, // text_sync_other_books
     groupSync: '同步',
     syncTitle: 'Google 雲端硬碟同步',
     syncRowOff: '關閉',
@@ -1732,7 +1740,9 @@ ${names}`,
     conflictLocal: '这部装置', // memo_conflict_local(這支手機)
     conflictBackup: '备份', // memo_conflict_backup
     conflictOther: '其他装置', // sync memo conflict (web first)
-    conflictDeleted: '（已删除的备忘）', // sync conflict: deleted side (web first)
+    conflictDeleted: '（已删除）', // memo_conflict_deleted(앱 7.7)
+    conflictStoppedSync: '未选择的备忘暂时保留这个装置的内容，下次同步时会再询问。', // memo_conflict_stopped_sync
+    syncOtherBooks: (list) => `其他备忘册有新的备忘：${list}。请在备忘列表中切换备忘册查看。`, // text_sync_other_books
     groupSync: '同步',
     syncTitle: 'Google 云端硬碟同步',
     syncRowOff: '关闭',
@@ -2088,7 +2098,9 @@ ${names}`,
     conflictLocal: 'Este dispositivo', // memo_conflict_local(Este teléfono)
     conflictBackup: 'Copia', // memo_conflict_backup
     conflictOther: 'Otro dispositivo', // sync memo conflict (web first)
-    conflictDeleted: '(Nota eliminada)', // sync conflict: deleted side (web first)
+    conflictDeleted: '(eliminada)', // memo_conflict_deleted(앱 7.7)
+    conflictStoppedSync: 'Las notas que no elegiste conservan por ahora la versión de este dispositivo. Se te preguntará de nuevo en la próxima sincronización.', // memo_conflict_stopped_sync
+    syncOtherBooks: (list) => `Llegaron notas nuevas a otros cuadernos de notas: ${list}. Cambia el cuaderno en la lista de notas para verlas.`, // text_sync_other_books
     groupSync: 'Sincronización',
     syncTitle: 'Sincronización con Google Drive',
     syncRowOff: 'Desactivada',
@@ -2444,7 +2456,9 @@ ${names}`,
     conflictLocal: 'Este dispositivo', // memo_conflict_local(Este celular)
     conflictBackup: 'Backup', // memo_conflict_backup
     conflictOther: 'Outro dispositivo', // sync memo conflict (web first)
-    conflictDeleted: '(Nota excluída)', // sync conflict: deleted side (web first)
+    conflictDeleted: '(excluída)', // memo_conflict_deleted(앱 7.7)
+    conflictStoppedSync: 'As notas que você não escolheu ficam por enquanto com a versão deste aparelho. Vamos perguntar de novo na próxima sincronização.', // memo_conflict_stopped_sync
+    syncOtherBooks: (list) => `Chegaram notas novas em outros cadernos de notas: ${list}. Troque o caderno na lista de notas para vê-las.`, // text_sync_other_books
     groupSync: 'Sincronização',
     syncTitle: 'Sincronização com o Google Drive',
     syncRowOff: 'Desativada',
@@ -2800,7 +2814,9 @@ ${names}`,
     conflictLocal: 'Cet appareil',
     conflictBackup: 'Sauvegarde',
     conflictOther: 'Autre appareil', // sync memo conflict (web first)
-    conflictDeleted: '(Note supprimée)', // sync conflict: deleted side (web first)
+    conflictDeleted: '(supprimée)', // memo_conflict_deleted(앱 7.7)
+    conflictStoppedSync: 'Les notes que vous n\'avez pas choisies gardent pour l\'instant la version de cet appareil. La question vous sera reposée à la prochaine synchronisation.', // memo_conflict_stopped_sync
+    syncOtherBooks: (list) => `De nouvelles notes sont arrivées dans d'autres carnets de notes : ${list}. Changez de carnet dans la liste des notes pour les voir.`, // text_sync_other_books
     groupSync: 'Synchronisation',
     syncTitle: 'Synchronisation Google Drive',
     syncRowOff: 'Désactivée',

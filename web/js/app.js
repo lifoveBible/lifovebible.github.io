@@ -2556,6 +2556,9 @@ const syncApi = setupSync($, S, {
   suggestBibles: syncSuggestBibles,
   downloadBibles: (list, fetchOne) => downloadBibles(list, fetchOne),
   hasBible: (code) => localList.some((l) => codeKey(l.code) === codeKey(code)),
+  // 앱 MemoBookList.otherBooksSummary: 지금 메모책이 아닌 것만, 메모책 목록 순서로 "이름 수"
+  otherBooks: (counts) => memoBooks.filter((b) => b.uid !== memoBook && counts?.[b.uid] > 0)
+    .map((b) => `${memoBookTitle(b.uid)} ${counts[b.uid]}`).join(', ') || null,
   // 동기화를 마쳤으면 '오래 백업 안 함' 알림은 필요 없다(기록이 드라이브에도 있다). 새 버전·DB 막힘 알림은 그대로
   synced: () => { if (updateBarKind === 'backup') hideUpdateBar(); },
 });
@@ -3198,6 +3201,8 @@ function askSyncConflicts(conflicts) {
 function endSyncConflicts() {
   for (const id of ['conflictBackupHead', 'conflictPickBackup']) $(id).textContent = S.conflictBackup;
   const done = conflictSync;
+  // 도중에 닫았으면 남은 것은 이 기기 것 그대로, 다음 동기화에서 다시 묻는다(앱 memo_conflict_stopped_sync)
+  if (done.picks.some((p) => p == null)) showToast(S.conflictStoppedSync);
   conflictSync = null;
   conflictList = [];
   done.resolve(done.picks);

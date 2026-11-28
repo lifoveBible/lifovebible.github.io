@@ -34,7 +34,7 @@ export function fileKey(f) {
  * @param o.cache { get(): Promise<기억 | null>, set(기억): Promise } 지난번에 합친 다른 기기 파일(바뀐 파일만 받으려고. 없으면 늘 다 받는다).
  *   기억 = { [파일 id]: { key: fileKey, writtenAt, device?: parseDeviceFile 결과 } }. data 파일은 그 내용이 이 기기에
  *   들어갔을 때(메모 충돌 없이 끝났을 때)만 기억한다: 충돌을 남긴 파일을 건너뛰면 다음 동기화에서 다시 묻지 못한다
- * @returns 요약 { taken, conflicts, resolved, left, uploaded, skipped: [{name, why}], removed: [이름], newer, devices, listed }
+ * @returns 요약 { taken, memosByBook(다른 기기에서 온 메모 수, 메모책별), conflicts, resolved, left, uploaded, skipped: [{name, why}], removed: [이름], newer, devices, listed }
  *   left: 고르지 않은 메모 충돌 수(있으면 uploaded가 false). devices: 다른 기기의 device 파일(parseDeviceFile 결과,
  *   position이 없는 것도 있다: 앱은 6단계 전까지 넣지 않음). 읽던 곳·역본 제안은 부르는 쪽이 한다
  */
@@ -181,5 +181,5 @@ export async function syncOnce({ drive, store, device, app, deviceInfo, askConfl
   }
 
   // listed: 처음 받은 드라이브 목록(역본 파일 bibleSync가 목록을 다시 받지 않게. 역본 파일은 여기서 건드리지 않는다)
-  return { taken: plan.taken, conflicts: plan.conflicts.length, resolved, left, uploaded, skipped, removed, newer, devices, listed };
+  return { taken: plan.taken, memosByBook: plan.memosByBook || {}, conflicts: plan.conflicts.length, resolved, left, uploaded, skipped, removed, newer, devices, listed };
 }

@@ -308,10 +308,13 @@ export function mergeVerSetting(localRows, me, files) {
  * 다른 기기 파일을 차례로 합치므로 둘째 파일은 첫째를 합친 결과와 비교한다
  * @param local 표 → 지금 행들(정규화한 것)
  * @param files parseDataFile 결과들(건너뛸 것은 뺀 것)
- * @returns {{puts: Object<string, object[]>, conflicts: {key, local, other, device}[], taken: Object<string, number>}}
+ * @returns {{puts: Object<string, object[]>, conflicts: {key, local, other, device}[], taken: Object<string, number>,
+ *   memosByBook: Object<string, number>}} memosByBook: 다른 기기에서 새로 오거나 바뀐(지우지 않은) 메모 수, 메모책 uid별
+ *   (vv만 더한 행은 세지 않는다. 앱 SyncRunner memosByBook과 같게, 다른 메모책 안내에 쓴다)
  */
 export function planSync(local, files, me) {
-  const puts = {}, taken = {};
+  const puts = {}, taken = {}, memosByBook = {};
+  const tookMemo = new Set(); // 다른 기기 쪽을 가져온 메모 키
   const conflicts = new Map();
   for (const table of SYNC_ORDER) {
     puts[table] = [];
@@ -359,15 +362,24 @@ export function planSync(local, files, me) {
         if (choice !== TAKE_OTHER) continue;
         // 지금 행에 웹이 모르는 칸(앱 백업에서 온 것 등)이 있으면 남긴다. 메모 vv는 두 쪽의 항목별 큰 값
         const row = m ? { ...m, ...o } : o;
-        if (table === 'my_memo') row.vv = mergedVv(m, o);
+        if (table === 'my_memo') {
+          row.vv = mergedVv(m, o);
+          tookMemo.add(k);
+        }
         work.set(k, row);
         changed.set(k, row);
       }
     }
     puts[table] = [...changed.values()];
     taken[table] = changed.size;
+    if (table === 'my_memo') {
+      for (const k of tookMemo) {
+        const row = changed.get(k);
+        if (row && !Number(row.deleted)) memosByBook[row.memo_book] = (memosByBook[row.memo_book] || 0) + 1;
+      }
+    }
   }
-  return { puts, conflicts: [...conflicts.values()], taken };
+  return { puts, conflicts: [...conflicts.values()], taken, memosByBook };
 }
 
 const sortVv = (vv) => Object.fromEntries(Object.entries(vv).sort(([a], [b]) => (a < b ? -1 : a > b ? 1 : 0)));
